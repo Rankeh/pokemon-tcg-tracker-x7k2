@@ -26,3 +26,42 @@ Cifras estáticas del modelo (contadas): 233 nodos, 105 con malla, 9 mallas úni
 ## 3.6.1 — Adaptador de datos (sin cambios visibles todavía)
 `js/adaptador-coleccion.js` conecta la colección real con el álbum 3D reutilizando `distribuir()`, `ModeloColeccion`, `Almacen` y `coleccion.js` de la app (no hay segunda base de datos ni cambios de esquema). Traduce página/posición del catálogo ⇄ nodo 3D (`Hoja_i_F|D_Bolsillo_k`) y cada cambio de cantidad devuelve una transición (`insertar`, `extraer`, `cantidad`, `nada`) que será la que anime.
 Pruebas: `node --test web/prueba-3d/pruebas/*.test.mjs` (Node, almacén en memoria) y `node web/prueba-3d/pruebas/ejecutar-navegador.mjs` (Chromium + IndexedDB real, en un perfil desechable y con bases de datos de prueba). Sonda para comprobar CORS de las imágenes en WebGL: `web/prueba-3d/sonda-cors.html`.
+
+## 3.6.2 — Álbum 3D interactivo con la colección real
+
+Abre `web/prueba-3d/index.html` (Live Server) y verás las 18 páginas reales (158 cartas, 9 hojas físicas × 2 caras). Tocas el bolsillo de un Pokémon, se abre su ficha y con **+ / −** añades o retiras copias; el cambio se ve en el 3D en cuanto IndexedDB confirma el guardado.
+
+### Cómo se conecta Three.js con IndexedDB
+`main.js` abre el **mismo** `Almacen` de la app (BD `coleccion-teselia`, almacén `copias`, versión 1, sin migraciones) → `ModeloColeccion` → `AdaptadorColeccion`. El controlador (`controlador.js`) sigue siempre: *validar → guardar → confirmar → actualizar ficha y 3D*. Si el guardado falla, se muestra el error y la cantidad real guardada, nunca una cantidad falsa. Las operaciones se encadenan en una cola (los toques rápidos no se pisan). Al volver a la pestaña se relee IndexedDB, de modo que lo editado en la app original aparece aquí. No hay BD nueva, ni cambios de esquema, ni sincronización entre dispositivos (PC e iPhone no comparten IndexedDB; usa exportar/importar JSON de la app).
+
+### Módulos nuevos
+`navegacion3d.js` (página↔hoja, indicador «Páginas 4–5 de 18»), `picking.js` (rayo → bolsillo, zona táctil algo mayor que la carta, solo caras superiores, sin huecos), `texturas.js` (caché LRU con recuento y presupuesto, 32 MB por defecto, `?mem=MB`), `texturas3d.js` + `marcadores.js` (imagen local o marcador «SIN IMAGEN» / placa «pendiente»), `bolsillos3d.js` (mallas por página activa, animaciones de inserción/extracción, `prefers-reduced-motion`), `controlador.js`, `ficha-ui.js`. El GLB ya no lleva cartas: solo estructura, 162 bolsillos y 2 plantillas de geometría compartida.
+
+### Imágenes locales (no se piden a servidores externos durante la navegación)
+La prueba CORS de 3.6.1 mostró que solo una imagen remota se podía usar como textura, así que el álbum usa copias locales optimizadas. **Todavía no están generadas** (mi entorno no tiene acceso a TCGdex). Genera tú las copias una vez, desde la raíz del repositorio:
+
+```
+java herramientas/texturas/PrepararTexturas.java
+```
+
+Crea `web/prueba-3d/assets/cartas/mini/<id>.jpg` (256 px), `grande/<id>.jpg` (480 px, solo para la ficha) y `manifiesto.json`. Es idempotente (`--forzar` para rehacer, `--solo id1,id2`). No toca ningún original. Se esperan **153** imágenes; **5 no tienen imagen en el catálogo** (`svp-208` … `svp-212`) y usan marcador con nombre, expansión, número e id (no se inventa arte). Sin el manifiesto, todo el álbum funciona con marcadores. Procedencia y términos: las imágenes son de TCGdex (arte © The Pokémon Company / sus ilustradores), para **uso personal, no comercial**; el manifiesto lo recuerda y guarda el hash del original.
+
+### Pruebas automáticas
+```
+node --test web/prueba-3d/pruebas/*.test.mjs      # 48 pruebas (las 24 de la fase + apoyo)
+node web/prueba-3d/pruebas/ejecutar-navegador.mjs  # Chromium + IndexedDB real en BD desechable
+python3 blender/pruebas_glb.py
+```
+Las pruebas de Node usan Three.js **simulado** y el GLB real: validan datos, colección, picking, caché, navegación y ausencia de fugas, no el renderizado. Ninguna toca la BD real.
+
+### Qué NO está verificado
+Ejecución real de Three.js, rendimiento y Safari en iPhone, la descarga real de imágenes y la exportación real con Blender: no se pueden probar desde mi entorno. Requieren tu comprobación manual.
+
+### Windows (VS Code)
+1. `git pull`. 2. (Una vez) `java herramientas/texturas/PrepararTexturas.java` y haz commit de `web/prueba-3d/assets/cartas/` si quieres verlo en GitHub Pages / iPhone. 3. Live Server sobre `web/prueba-3d/index.html`. Opcional: `?debug=1`, `?pagina=7`, `?bd=prueba` (BD alternativa para ensayar).
+
+### iPhone (Safari)
+Abre la URL de GitHub Pages (o `http://192.168.1.156:5500/web/prueba-3d/` en la misma wifi). Ten en cuenta que la BD del iPhone es distinta de la del PC.
+
+### Protocolo manual
+1. Abre el álbum y pulsa «Abrir álbum». 2. Toca un bolsillo vacío (placa «pendiente»). 3. Pulsa + : la carta entra en la funda. 4. Recarga: sigue ahí. 5. Pulsa − hasta 0: sale y vuelve la placa. 6. Salta a otra página con el selector, vuelve y comprueba el estado. 7. Abre la app original **en el mismo origen** y comprueba que la cantidad coincide (y viceversa). 8. Toca un hueco de la página 18: no debe abrir ficha. 9. En el iPhone, repite y prueba giro con el dedo y zona táctil. 10. Prueba con ajuste «reducir movimiento» activado.

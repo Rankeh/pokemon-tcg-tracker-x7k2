@@ -1,13 +1,13 @@
 {
  "modelo": {
-  "nodos": 233,
+  "nodos": 242,
   "mallas_distintas": 9,
-  "nodos_con_malla": 105,
-  "triangulos_instanciados": 2776,
+  "nodos_con_malla": 50,
+  "triangulos_instanciados": 2340,
   "triangulos_unicos": 420
  },
  "parametros": {
-  "n_hojas": 6,
+  "n_hojas": 9,
   "paso": 0.0035,
   "grosor_tapa": 0.006,
   "ancho_hoja": 0.232,
@@ -18,8 +18,8 @@
   "grosor_hoja": 0.0012,
   "ancho_carta": 0.063,
   "alto_carta": 0.088,
-  "ocupados": 72,
-  "bolsillos": 108
+  "ocupados": 0,
+  "bolsillos": 162
  },
- "bytes_glb": 51252
+ "bytes_glb": 53556
 }

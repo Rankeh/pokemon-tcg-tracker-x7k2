@@ -56,6 +56,19 @@ export async function ejecutarSuite(ent, informar) {
     const porEspecie = new Map(); lista.forEach((c, i) => { const d = numeroPokedex(c); if (d) { porEspecie.set(d, [...(porEspecie.get(d) || []), i]); } });
     for (const [d, idx] of porEspecie) cierto(idx.every((x, j) => j === 0 || x === idx[j - 1] + 1), 'versiones de #' + d + ' separadas');
   });
+  await prueba('3e. especies repetidas: comprobado con TODOS los dexId, con el nombre base y con (expansión, número) — el id sigue siendo la única clave', () => {
+    const cartas = ent.catalogo.cartas;
+    const porDex = new Map(), porBase = new Map(), porNum = new Map();
+    for (const c of cartas) {
+      for (const d of Array.isArray(c.dexId) ? c.dexId : []) porDex.set(d, [...(porDex.get(d) || []), c.id]);
+      if (!esEntrenador(c)) { const b = c.nombre.replace(/\s+(ex|EX|V|VMAX|VSTAR)$/, ''); porBase.set(b, [...(porBase.get(b) || []), c.id]); }
+      const k = c.expansion + '/' + c.numero; porNum.set(k, [...(porNum.get(k) || []), c.id]);
+    }
+    const rep = (m) => [...m].filter(([, v]) => v.length > 1).map(([k, v]) => k + ':' + v.join('+'));
+    // En el catálogo actual no hay ninguna: si algún día aparece (otra versión de una especie), el álbum no se rompe porque nada usa el nombre como clave
+    igual(rep(porDex).join(' '), '', 'dexId repetidos'); igual(rep(porBase).join(' '), '', 'nombres base repetidos'); igual(rep(porNum).join(' '), '', '(expansión, número) repetidos');
+    igual(new Set(mapa.porId.keys()).size, cartas.length, 'ids únicos como clave');
+  });
   await prueba('3c. traducción página/posición ⇄ nodo 3D: biyectiva, 9 hojas × 2 caras, lectura de libro', () => {
     const vistos = new Set();
     for (let p = 1; p <= 18; p++) { const u = ubicacionPagina(p); vistos.add(u.hoja + u.cara); }

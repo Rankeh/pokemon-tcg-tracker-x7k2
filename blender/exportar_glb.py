@@ -1,6 +1,6 @@
 """
-Fase 3.5 — Genera web/prueba-3d/modelo/album.glb SIN Blender (Python puro) y las cartas de prueba 256x358.
-Uso (desde la raíz del repositorio):  python blender/exportar_glb.py [--hojas 6]
+Fase 3.5 — Genera web/prueba-3d/modelo/album.glb SIN Blender (Python puro): 9 hojas, 162 bolsillos sin cartas (las pone el JS según la colección).
+Uso (desde la raíz del repositorio):  python blender/exportar_glb.py [--hojas 9]
 """
 import argparse
 import json
@@ -18,10 +18,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--hojas", type=int, default=modelo_web.N_HOJAS_DEFECTO)
     ap.add_argument("--salida", default=os.path.join(RAIZ, "web", "prueba-3d"))
-    ap.add_argument("--sin-cartas", action="store_true")
+    ap.add_argument("--cartas-prueba", action="store_true", help="solo para depurar: hornea cartas de prueba en el GLB y escribe 12 PNG (NO es lo que usa la app real)")
     a = ap.parse_args()
     cfg = json.load(open(os.path.join(AQUI, "configuracion.json"), encoding="utf-8"))
-    modelo = modelo_web.construir(cfg, a.hojas)
+    modelo = modelo_web.construir(cfg, a.hojas, relleno=0.72 if a.cartas_prueba else 0.0)
     os.makedirs(os.path.join(a.salida, "modelo"), exist_ok=True)
     datos = glb.a_bytes(modelo)
     ruta = os.path.join(a.salida, "modelo", "album.glb")
@@ -32,7 +32,7 @@ def main():
     print("Parámetros:", json.dumps(modelo["parametros"], ensure_ascii=False))
     json.dump({"modelo": est, "parametros": modelo["parametros"], "bytes_glb": len(datos)},
               open(os.path.join(a.salida, "modelo", "album.estadisticas.json"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
-    if not a.sin_cartas:
+    if a.cartas_prueba:
         import numpy as np
         from PIL import Image
         from teselia import arte

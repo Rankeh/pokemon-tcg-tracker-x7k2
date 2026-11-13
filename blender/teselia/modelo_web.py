@@ -30,7 +30,7 @@ import random
 from . import geometria as G
 
 # ------------------------------------------------------------------ parámetros (metros), tomados de configuracion.json
-N_HOJAS_DEFECTO = 6
+N_HOJAS_DEFECTO = 9      # 9 hojas físicas × 2 caras × 9 bolsillos = 18 páginas (catálogo de 158 cartas)
 PASO = 0.0035            # separación vertical entre hojas apiladas (mayor que en el render para que se lean en 3D)
 GROSOR_TAPA = 0.006
 SEP_FUNDA = 0.0012       # altura de la funda sobre la hoja
@@ -151,8 +151,10 @@ MATERIALES = [
 ]
 
 
-def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.72):
-    """Devuelve {'materiales', 'mallas' {clave: Malla}, 'raiz', 'parametros'}. Estado inicial: álbum cerrado."""
+def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.0):
+    """Devuelve {'materiales', 'mallas' {clave: Malla}, 'raiz', 'parametros'}. Estado inicial: álbum cerrado.
+    relleno = fracción de bolsillos que llevan una carta HORNEADA en el GLB (0 en la app real: las cartas las pone el JS según la colección;
+    >0 solo para vistas previas). Siempre se añaden los nodos 'Plantilla_Carta_F/D' (geometría de carta que el JS reutiliza y retira de la escena)."""
     a = cfg["archivador"]
     cub, hoja, bol, car = a["cubierta"], a["hoja"], a["bolsillo"], a["carta"]
     W, H = hoja["ancho"], hoja["alto"]
@@ -224,6 +226,9 @@ def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.72):
             h["hijos"].append(g)
         hijos.append(h)
 
+    hijos.append(nodo("Plantillas", None, extras={"tipo": "plantillas"}, hijos=[
+        nodo("Plantilla_Carta_F", "carta_f", extras={"tipo": "plantilla", "cara": "F"}),
+        nodo("Plantilla_Carta_D", "carta_d", extras={"tipo": "plantilla", "cara": "D"})]))
     raiz = nodo("Album", None, (0.0, 0.0, 0.0), extras={"tipo": "album", "n_hojas": n_hojas, "paso": PASO, "grosor_tapa": GROSOR_TAPA,
                                               "y_base": Y_BASE, "ancho_tapa": cub["ancho"], "ancho_hoja": W})
     raiz["hijos"] = hijos

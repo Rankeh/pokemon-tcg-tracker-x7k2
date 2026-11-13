@@ -4,46 +4,51 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#14171d">
-  <title>Prueba 3D — Álbum Teselia (Fase 3.5)</title>
+  <title>Álbum 3D Teselia — Fase 3.6.2</title>
   <link rel="stylesheet" href="css/prueba-3d.css">
 </head>
 <body>
 <main class="app">
-  <canvas id="lienzo" aria-label="Álbum 3D de cartas. Arrastra para girar la vista ligeramente; toca una carta para ver su ficha."></canvas>
+  <canvas id="lienzo" aria-label="Álbum 3D de cartas. Arrastra para girar la vista ligeramente; toca una carta para abrir su ficha."></canvas>
 
   <header class="cabecera">
-    <h1>Álbum 3D <small>prueba de integración 3.5</small></h1>
+    <h1>Álbum Teselia <small id="progreso">…</small></h1>
     <p id="estado" role="status" aria-live="polite">Cargando…</p>
   </header>
 
-  <p id="cargando" class="cargando">Cargando modelo 3D…</p>
+  <p id="cargando" class="cargando">Cargando álbum…</p>
   <p id="aviso" class="aviso" role="alert" hidden></p>
 
   <pre id="diag" class="diag" hidden aria-label="Diagnóstico"></pre>
   <pre id="panel" class="panel" aria-label="Métricas de rendimiento" hidden></pre>
   <textarea id="informe" class="informe" rows="8" readonly hidden aria-label="Informe de métricas (copia este texto)"></textarea>
 
-  <section id="ficha" class="ficha" hidden aria-label="Ficha de la carta seleccionada">
-    <img id="f-img" alt="Imagen de la carta seleccionada" width="128" height="179">
-    <div class="ficha-texto">
-      <h2 id="f-titulo"></h2>
-      <p id="f-detalle"></p>
-      <div class="fila">
-        <button type="button" id="f-cambiar">Cambiar imagen</button>
-        <button type="button" id="f-quitar">Quitar carta</button>
-        <button type="button" id="f-volver" class="principal">Volver al álbum</button>
+  <div id="f-fondo" class="ficha-fondo" hidden></div>
+  <section id="ficha" class="ficha" hidden role="dialog" aria-modal="true" aria-labelledby="f-nombre">
+    <button type="button" id="f-cerrar" class="ficha-cerrar" aria-label="Cerrar ficha">✕</button>
+    <div id="f-imagen" class="ficha-imagen"></div>
+    <div class="ficha-cuerpo">
+      <h2 id="f-nombre"></h2>
+      <p class="ficha-exp" id="f-exp"></p>
+      <p class="ficha-num" id="f-num"></p>
+      <div class="ficha-cantidad">
+        <button type="button" id="f-menos" class="paso" aria-label="Retirar una copia">−</button>
+        <div class="ficha-total" aria-live="polite"><strong id="f-cant">0</strong><span id="f-estado-txt"></span></div>
+        <button type="button" id="f-mas" class="paso paso-mas" aria-label="Añadir una copia">+</button>
       </div>
+      <p id="f-error" class="ficha-error" role="alert"></p>
     </div>
   </section>
 
-  <nav class="barra" aria-label="Controles del álbum">
-    <button type="button" id="b-abrir">Abrir álbum</button>
-    <button type="button" id="b-ant" aria-label="Hoja anterior">‹ Hoja</button>
-    <button type="button" id="b-sig" aria-label="Hoja siguiente">Hoja ›</button>
-    <button type="button" id="b-rellenar">Rellenar vacíos</button>
-    <button type="button" id="b-metricas">Métricas</button>
-    <button type="button" id="b-medir">Medir</button>
-    <button type="button" id="b-informe">Copiar informe</button>
+  <nav class="barra" id="barra" aria-label="Navegación del álbum">
+    <button type="button" id="b-abrir" class="principal">Abrir álbum</button>
+    <button type="button" id="b-ant" aria-label="Hoja anterior">‹</button>
+    <label class="salto"><span class="solo-lector">Ir a la página</span>
+      <select id="b-salto" aria-label="Ir a la página"></select></label>
+    <button type="button" id="b-sig" aria-label="Hoja siguiente">›</button>
+    <button type="button" id="b-metricas" class="secundario">Métricas</button>
+    <button type="button" id="b-medir" class="secundario">Medir</button>
+    <button type="button" id="b-informe" class="secundario">Informe</button>
   </nav>
 </main>
 

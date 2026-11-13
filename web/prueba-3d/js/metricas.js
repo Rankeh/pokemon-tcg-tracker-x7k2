@@ -2,8 +2,8 @@
 import { MedidorFps } from './logica.js';
 
 export class Metricas {
-  constructor(panel, renderer, album) {
-    this.panel = panel; this.renderer = renderer; this.album = album;
+  constructor(panel, renderer, album, cache = null, vista = null) {
+    this.panel = panel; this.renderer = renderer; this.album = album; this.cache = cache; this.vista = vista;
     this.fps = new MedidorFps();
     this.tiempos = {};
     this.ultimo = 0;
@@ -36,7 +36,8 @@ export class Metricas {
   instantanea() {
     const info = this.renderer.info, a = this.album;
     const total = a.contarEscena({ soloVisibles: false }), vis = a.contarEscena({ soloVisibles: true });
-    const mem = a.memoriaTexturasEstimada();
+    const cs = this.cache ? this.cache.estadisticas() : { texturas: 0, bytes: 0 };
+    const mem = { texturas: cs.texturas, bytes: cs.bytes };
     const f = this.fps.resumen();
     return {
       fecha: new Date().toISOString(),
@@ -49,7 +50,9 @@ export class Metricas {
       ultimoFrame: { llamadasDibujo: info.render.calls, triangulosDibujados: info.render.triangles },
       escenaEstatica: { triangulosTotales: total.triangulos, mallasTotales: total.mallas, triangulosVisibles: vis.triangulos, mallasVisibles: vis.mallas },
       memoriaRenderer: { geometrias: info.memory.geometries, texturas: info.memory.textures },
-      texturasEstimadas: { cantidad: mem.texturas, tamano: '256x358 RGBA + mipmaps', megabytes: +(mem.bytes / 1048576).toFixed(2), nota: 'ESTIMACIÓN: el navegador no expone la memoria de GPU real' },
+      texturasEstimadas: { cantidad: mem.texturas, tamano: 'estimado por textura (RGBA + mipmaps)', megabytes: +(mem.bytes / 1048576).toFixed(2), nota: 'ESTIMACIÓN: el navegador no expone la memoria de GPU real' },
+      cacheTexturas: this.cache ? this.cache.estadisticas() : null,
+      bolsillos: this.vista ? this.vista.estadisticas() : null,
       bench: this.bench && this.bench.resultado ? this.bench.resultado : null,
     };
   }

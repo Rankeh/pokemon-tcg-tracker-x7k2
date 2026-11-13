@@ -82,7 +82,8 @@ def aplicar_estado(js, vueltas):
 
 def dibujar(js, mallas, vueltas, ruta_png, ancho=1400, alto=900, elev=60, az=0, radio=0.66, mirar=(0, 0.01, 0.0)):
     objetos = aplicar_estado(js, vueltas)
-    cartas = [np.asarray(Image.open(os.path.join(WEB, "cartas", "c%02d.png" % i)).convert("RGB")) / 255.0 for i in range(12)]
+    from teselia import arte
+    cartas = [np.clip(arte.carta(i, holo=(i % 5 == 4))[::-1][..., :3], 0, 1) for i in range(12)]     # ilustraciones de prueba en memoria
     e, a = math.radians(elev), math.radians(az)
     tgt = np.array(mirar, float)
     pos = tgt + radio * np.array([math.cos(e) * math.sin(a), math.sin(e), math.cos(e) * math.cos(a)])
@@ -168,7 +169,14 @@ def dibujar(js, mallas, vueltas, ruta_png, ancho=1400, alto=900, elev=60, az=0, 
 
 
 if __name__ == "__main__":
-    js, mallas = cargar(os.path.join(WEB, "modelo", "album.glb"))
+    # Vista previa de DEMOSTRACIÓN: el GLB real no lleva cartas; aquí se hornean en memoria para ver pilas, giro y orientación.
+    import json
+    from teselia import modelo_web
+    cfg = json.load(open(os.path.join(AQUI, "configuracion.json"), encoding="utf-8"))
+    tmp = os.path.join(RAIZ, "blender", "salida", "_demo.glb")
+    os.makedirs(os.path.dirname(tmp), exist_ok=True)
+    open(tmp, "wb").write(glb.a_bytes(modelo_web.construir(cfg, relleno=0.72)))
+    js, mallas = cargar(tmp)
     salida = os.path.join(RAIZ, "blender", "salida")
     os.makedirs(salida, exist_ok=True)
     for v in [int(x) for x in sys.argv[1:]] or [0, 3]:

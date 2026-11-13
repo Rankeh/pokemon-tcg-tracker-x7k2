@@ -3,7 +3,8 @@
 import * as THREE from 'three';
 
 export class Diagnostico {
-  constructor(pre, { renderer, scene, camara, orbita, getAlbum }) {
+  constructor(pre, { renderer, scene, camara, orbita, getAlbum, getExtra = () => ({}) }) {
+    this.getExtra = getExtra;
     this.pre = pre; this.renderer = renderer; this.scene = scene; this.camara = camara; this.orbita = orbita; this.getAlbum = getAlbum;
     this.estadoGlb = 'pendiente';
     this.shaderErrores = [];
@@ -76,9 +77,10 @@ export class Diagnostico {
     }
     s += this.linea('Cubos prueba', `en frustum: plano ${this.frustum.intersectsObject(this.cuboPlano)}, con luz ${this.frustum.intersectsObject(this.cuboLuz)} (deben verse magenta y verde)`);
     s += this.linea('Último frame', `${info.render.calls} llamadas · ${info.render.triangles} triáng. · ${info.memory.geometries} geom. · ${info.memory.textures} text. · ${info.programs ? info.programs.length : '?'} programas`);
-    let texturasListas = 0, texturasMal = 0;
-    if (album) album.texturas.forEach((t) => { if (t.textura) texturasListas++; else texturasMal++; });
-    s += this.linea('Materiales', `${mats.size} activos · ${conMapa.size} con textura · texturas cargadas ${texturasListas}, pendientes/fallidas ${texturasMal}`);
+    const { cache, vista } = this.getExtra();
+    s += this.linea('Materiales', `${mats.size} activos · ${conMapa.size} con textura`);
+    if (cache) { const c = cache.estadisticas(); s += this.linea('Caché texturas', `${c.texturas} (${c.activas} en uso, ${c.inactivas} libres) · ${(c.bytes / 1048576).toFixed(1)} MB estimados · en cola ${c.enCola} · cargando ${c.cargando} · descartadas ${c.descartadas} · errores ${c.errores}`); }
+    if (vista) { const v = vista.estadisticas(); s += this.linea('Bolsillos', `${v.paginasActivas} páginas activas · ${v.tarjetas} cartas · ${v.fantasmas} pendientes · ${v.animando} animaciones`); }
     return s;
   }
 
