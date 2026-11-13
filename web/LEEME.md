@@ -73,3 +73,7 @@ Solo cambia el aspecto; no se ha tocado la lógica, IndexedDB, los datos ni las 
 | `assets/cine/*.svg` | `sala`, `lampara`, `objetos-fondo`, `clip`: dibujados por mí en SVG, sin imágenes ni fuentes externas ni licencias. |
 
 Para comparar con Live Server: abre `web/album-prototipo.html` (versión funcional actual) y `web/album-cine.html` (propuesta) en dos pestañas.
+
+## Fase 3.4.2 — Prueba de concepto en Blender (aislada)
+Carpeta `blender/` (scripts, configuración y README con los pasos para Windows). `web/comparar-render.html` muestra el
+render junto al prototipo web (lado a lado o superpuesto). No modifica la app, IndexedDB ni el catálogo.

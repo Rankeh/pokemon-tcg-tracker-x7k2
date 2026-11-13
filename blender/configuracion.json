@@ -1,0 +1,38 @@
+{
+  "_comentario": "Todas las medidas en METROS (escala real). Edita aquí en vez de tocar el código.",
+  "archivador": {
+    "cubierta": {"ancho": 0.245, "alto": 0.305, "grosor": 0.006, "radio_esquina": 0.012, "bisel": 0.0016},
+    "lomo": {"ancho": 0.032},
+    "anillas": {"radio": 0.0135, "grosor_alambre": 0.0013, "posiciones_y": [-0.09, 0.0, 0.09]},
+    "hoja": {"ancho": 0.232, "alto": 0.292, "grosor": 0.0008, "inicio_x": 0.0165, "radio_esquina": 0.006},
+    "pila": {"derecha": 0.010, "izquierda": 0.008},
+    "bolsillo": {"ancho": 0.0655, "alto": 0.0905, "separacion": 0.006, "margen_interior": 0.015, "radio_esquina": 0.003, "soldadura": 0.0028},
+    "carta": {"ancho": 0.063, "alto": 0.088, "grosor": 0.0004, "radio_esquina": 0.0030, "holgura": 0.0011},
+    "cartas_derecha": 9,
+    "cartas_izquierda": 5,
+    "inclinacion_grados": 28
+  },
+  "colores": {
+    "cubierta": "#2B2E31",
+    "hilo": "#D7C5A5",
+    "metal": "#CDBF9F",
+    "hoja": "#25272A",
+    "pared": "#7A5238",
+    "taza": "#778A7C",
+    "luz_principal": "#FFB977",
+    "luz_relleno": "#C9D6E8",
+    "luz_borde": "#FF9A55"
+  },
+  "vistas": {
+    "escritorio": {"resolucion": [1920, 1080], "lente_mm": 40, "elevacion_grados": 21, "azimut_grados": -9, "ocupacion_ancho": 0.70, "desplazamiento_x": -0.05, "desplazamiento_y": 0.03, "objetivo": "doble"},
+    "movil": {"resolucion": [1080, 2340], "lente_mm": 50, "elevacion_grados": 30, "azimut_grados": -6, "ocupacion_ancho": 0.88, "desplazamiento_x": 0.0, "desplazamiento_y": 0.0, "objetivo": "derecha"}
+  },
+  "calidad": {
+    "previa": {"escala": 0.5, "muestras": 48, "rebotes": 6},
+    "final": {"escala": 1.0, "muestras": 192, "rebotes": 8},
+    "alta": {"escala": 2.0, "muestras": 384, "rebotes": 10}
+  },
+  "luces": {"principal_w": 260, "relleno_w": 45, "borde_w": 140, "exposicion": 0.0},
+  "camara": {"f_stop": 2.4, "sensor_mm": 36},
+  "entorno": {"pared_y": 0.80, "escritorio_ancho": 3.0, "escritorio_fondo": 2.4, "luces_bokeh": 9, "semilla": 7}
+}

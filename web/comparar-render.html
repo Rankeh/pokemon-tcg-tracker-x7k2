@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comparar render de Blender</title>
+<style>
+  :root { color-scheme: dark; --fondo:#1a120c; --papel:#efe6d4; --laton:#d3b47f; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--fondo); color:var(--papel); font:15px system-ui,-apple-system,"Segoe UI",sans-serif; display:flex; flex-direction:column; height:100vh; height:100dvh; }
+  header { display:flex; flex-wrap:wrap; gap:.6rem 1rem; align-items:center; padding:.6rem 1rem; background:#241911; border-bottom:1px solid #4b392c; }
+  header h1 { font-size:1rem; margin:0 .5rem 0 0; font-weight:600; }
+  label, button { font:inherit; color:inherit; }
+  button, .archivo { background:#33261b; border:1px solid #6a513d; border-radius:8px; padding:.35rem .7rem; cursor:pointer; }
+  button[aria-pressed="true"] { background:var(--laton); color:#241911; border-color:var(--laton); }
+  input[type=file] { display:none; }
+  main { flex:1; min-height:0; position:relative; display:grid; grid-template-columns:1fr 1fr; gap:2px; background:#000; }
+  main.superpuesto { display:block; }
+  .panel { position:relative; min-width:0; min-height:0; background:#120c08; overflow:hidden; }
+  .panel > span { position:absolute; z-index:3; left:.6rem; top:.5rem; background:rgba(20,12,6,.75); padding:.15rem .5rem; border-radius:6px; font-size:.8rem; }
+  #render { width:100%; height:100%; object-fit:contain; display:block; }
+  #web { width:100%; height:100%; border:0; display:block; background:#000; }
+  .vacio { position:absolute; inset:0; display:grid; place-items:center; text-align:center; padding:2rem; color:#bcb09b; line-height:1.5; }
+  main.superpuesto .panel { position:absolute; inset:0; }
+  main.superpuesto #pw { opacity:var(--op,.5); pointer-events:none; z-index:2; }
+  #op { width:140px; }
+  @media (max-width: 800px) { main:not(.superpuesto) { grid-template-columns:1fr; grid-template-rows:1fr 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Render de Blender ↔ prototipo web</h1>
+  <label class="archivo">Cargar PNG del render… <input id="archivo" type="file" accept="image/*"></label>
+  <button id="modo" aria-pressed="false">Superponer</button>
+  <label id="ctrlop" hidden>Opacidad web <input id="op" type="range" min="0" max="100" value="50"></label>
+  <label>Prototipo
+    <select id="proto"><option value="album-cine.html">Propuesta cinematográfica</option><option value="album-prototipo.html">Prototipo 3.3.1</option></select>
+  </label>
+</header>
+<main id="main">
+  <div class="panel" id="pr"><span>Render (Blender)</span><img id="render" alt="Render de Blender" hidden><div class="vacio" id="vacio">Aún no hay render.<br>Genera uno con <code>blender/ejecutar_windows.bat</code> y cárgalo con el botón de arriba<br>(se buscará también <code>../blender/salida/teselia_escritorio_final.png</code> automáticamente).</div></div>
+  <div class="panel" id="pw"><span>Prototipo web</span><iframe id="web" title="Prototipo web" src="album-cine.html"></iframe></div>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const img = $("render"), vacio = $("vacio");
+  function mostrar(src) { img.src = src; img.hidden = false; vacio.hidden = true; }
+  // Intenta los renders habituales de la carpeta (solo funciona con Live Server desde la raíz del repo)
+  const candidatos = ["teselia_escritorio_final", "teselia_escritorio_previa", "teselia_escritorio_alta", "teselia_movil_final", "teselia_movil_previa"];
+  (async () => {
+    for (const n of candidatos) {
+      try { const r = await fetch("../blender/salida/" + n + ".png", { method: "HEAD" }); if (r.ok) { mostrar("../blender/salida/" + n + ".png"); return; } } catch (e) {}
+    }
+  })();
+  $("archivo").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) mostrar(URL.createObjectURL(f)); });
+  $("modo").addEventListener("click", (e) => {
+    const sup = $("main").classList.toggle("superpuesto");
+    e.currentTarget.setAttribute("aria-pressed", sup); e.currentTarget.textContent = sup ? "Lado a lado" : "Superponer"; $("ctrlop").hidden = !sup;
+  });
+  $("op").addEventListener("input", (e) => $("pw").style.setProperty("--op", e.target.value / 100));
+  $("proto").addEventListener("change", (e) => { $("web").src = e.target.value; });
+</script>
+</body>
+</html>

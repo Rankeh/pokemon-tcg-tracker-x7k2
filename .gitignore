@@ -27,3 +27,10 @@ replay_pid*
 datos/crudo/
 .idea/
 *.iml
+
+# Blender (Fase 3.4): renders y archivos generados; se pueden regenerar con blender/ejecutar_windows.bat
+blender/salida/*
+!blender/salida/.gitkeep
+*.blend1
+blender/cartas_reales/
+__pycache__/
