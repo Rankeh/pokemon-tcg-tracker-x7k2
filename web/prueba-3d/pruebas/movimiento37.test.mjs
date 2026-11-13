@@ -116,20 +116,40 @@ test('M10 estilo carpeta de cuero: banda y panel en la tapa, SIN costuras (3.7.9
   for (let i = 0; i < 9; i++) assert.ok(!a.nodo.get('Hoja_' + i + '_Pestana_Losa'), 'sin pestaña en la hoja ' + i);
 });
 
-test('M11 construcción física (3.7.9): el lomo sigue el grosor de las pilas y cada hoja lleva su canto de encuadernación', async () => {
+test('M11 construcción física (3.7.10): el lomo alto solo existe con el álbum cerrado y queda a ras de las tapas al abrir (las hojas no lo atraviesan); cada hoja lleva su canto de encuadernación', async () => {
   const m = await crearMundo(), a = m.album, g = a.geo, p = a.params;
   const alto = (v) => { a.estado.irA(v); a.aplicar(); const b = a.lomo.geometry.boundingBox; return (b.max.y - b.min.y) * a.lomo.scale.y; };
+  const caja = a.cajaMalla('Lomo'); assert.ok(Math.abs(caja.min[0] + 0.010) < 1e-6 && Math.abs(caja.max[0] - 0.004) < 1e-6, 'lomo en x ∈ [-10, +4] mm: fuera de las hojas, que empiezan en x = 0');
   assert.ok(Math.abs(alto(0) - 0.0435) < 1e-6, 'cerrado: abarca todo el álbum');
-  const hs = [...Array(g.elementos + 1).keys()].map(alto);
-  assert.ok(hs[4] < hs[0] && hs[5] < hs[0], 'abierto por la mitad: lomo más bajo que cerrado');
-  for (let v = 0; v <= g.elementos; v++) {
-    a.estado.irA(v); a.aplicar();
-    const izq = Math.max(...a.elemento.map((e, i) => (a.estado.progreso[i] >= 1 ? a.elemento[i].position.y : 0))), der = Math.max(...a.elemento.map((e, i) => (a.estado.progreso[i] <= 0 ? a.elemento[i].position.y : 0)));
-    assert.ok(hs[v] + 1e-4 >= Math.max(izq, der), 'v=' + v + ': el lomo nunca queda por debajo de la pila más alta');
+  const base = 2 * p.grosor_tapa / 2;                                    // grosor de una tapa = 6 mm
+  const parteInferiorHoja = 0.0012 / 2;                                  // la hoja más baja de cada pila tiene su cara inferior por encima de y = 6 mm + (paso - 1,2 mm)/2
+  for (let v = 1; v <= g.elementos; v++) {
+    const h = alto(v), suelo = p.grosor_tapa + (p.paso - 0.0012) / 2;
+    assert.ok(Math.abs(h - base) < 1e-6 && h < suelo, 'v=' + v + ': lomo plano (' + (h * 1000).toFixed(2) + ' mm) por debajo de las hojas (' + (suelo * 1000).toFixed(2) + ' mm)');
   }
-  a.estado.irA(4); a.estado.avanzar(); let prev = alto(4), salto = 0;           // continuo mientras gira una hoja
-  for (let k = 0; k < 30; k++) { a.estado.actualizar(0.03); a.aplicar(); const h = a.lomo.geometry.boundingBox.max.y * a.lomo.scale.y; salto = Math.max(salto, Math.abs(h - prev)); prev = h; }
-  assert.ok(salto < 0.0012, 'sin saltos bruscos al girar (máx ' + salto.toFixed(5) + ')');
+  let prev = alto(0), salto = 0, bajo = true; a.estado.avanzar();       // continuo mientras la tapa gira
+  for (let k = 0; k < 40; k++) { a.estado.actualizar(0.03); a.aplicar(); const h = a.lomo.geometry.boundingBox.max.y * a.lomo.scale.y; salto = Math.max(salto, Math.abs(h - prev)); bajo = bajo && h <= prev + 1e-9; prev = h; }
+  assert.ok(salto < 0.0045 && bajo, 'baja de forma continua y monótona al abrir (máx ' + salto.toFixed(5) + ')');
+  assert.ok(Math.abs(prev - base) < 1e-6, 'termina plano: ' + prev + ' vs ' + base);
   for (let i = 0; i < 9; i++) { const b = a.nodo.get('Hoja_' + i + '_Bisagra_Losa'); assert.ok(b && b.material.name === 'Hoja', 'bisagra ' + i); }
   const cb = a.cajaMalla('Hoja_0_Bisagra_Losa'); assert.ok(Math.abs(cb.max[0] + cb.min[0]) < 1e-6 && cb.max[0] > 0.0012, 'barril centrado en el eje del lomo y más grueso que la hoja');
+});
+
+test('M12 zoom del giro (3.7.10): con el barrido reducido la cámara se aleja ≤ 15 % en doble página (antes ≈ +50 % en horizontal) y no cambia en vertical', async () => {
+  const { dimensiones, puntosVista, puntosGiro, calcularEncuadre, reservadoDesdeDom, COMPOSICION } = await import('../js/encuadre.js');
+  const bytes = readFileSync(new URL('../modelo/album.glb', import.meta.url));
+  const json = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + bytes.readUInt32LE(12))));
+  const dim = dimensiones(json.nodes.find((n) => n.name === 'Album').extras);
+  assert.ok(COMPOSICION.barridoGiro > 0 && COMPOSICION.barridoGiro <= 0.3);
+  for (const [w, h] of [[390, 663], [844, 390], [750, 340], [1920, 1080], [820, 1180]]) {
+    const aspect = w / h, reservado = reservadoDesdeDom({ ancho: w, alto: h, cabeceraAbajo: 60, barraArriba: h - 62 });
+    for (const v of [1, 3, 8]) {
+      const base = [...puntosVista({ vueltas: v, dim, modo: 'doble' }), ...puntosVista({ vueltas: v + 1, dim, modo: 'doble' })];
+      const r = (pts) => calcularEncuadre({ puntos: pts, fovGrados: 32, aspect, reservado, margen: COMPOSICION.margenDoble }).radio;
+      const r0 = r(base), nuevo = r([...base, ...puntosGiro(dim, 0.03, COMPOSICION.barridoGiro)]), viejo = r([...base, ...puntosGiro(dim)]);
+      assert.ok(nuevo / r0 <= 1.15, `${w}×${h} v${v}: ${(nuevo / r0).toFixed(3)}`);
+      assert.ok(nuevo <= Math.max(viejo, r0 * 1.02), 'nunca más lejos que antes (en vertical el barrido casi no cuenta)');
+    }
+  }
+  assert.equal(puntosGiro(dim).length, puntosGiro(dim, 0.03, 1).length);
 });

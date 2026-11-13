@@ -34,9 +34,9 @@ const apaisadas = { 'iPhone horizontal 844×390': [844, 390], 'iPhone horizontal
 test('cajas reales ≈ cajas por dimensiones en todos los estados (el encuadre durante un giro no salta al asentarse)', () => {
   for (let v = 0; v <= N + 1; v++) {
     const real = enEstado(v), dims = cajasDimensiones(v, dim, album.geo);
-    // 3.7.9: el lomo sigue el grosor de las pilas, así que su altura real es ≤ a la supuesta (el encuadre es conservador)
+    // 3.7.10: el lomo es más bajo y más estrecho que el supuesto (x ∈ [-10,+4] mm, altura variable), y el encuadre es conservador: la caja real queda DENTRO de la supuesta (el encuadre es conservador)
     for (const k of Object.keys(real)) for (const e of ['x', 'y', 'z']) for (const i of [0, 1])
-      assert.ok(k === 'lomo' && e === 'y' && i === 1 ? real[k][e][i] <= dims[k][e][i] + 0.002 : Math.abs(real[k][e][i] - dims[k][e][i]) < 0.002, `v${v} ${k}.${e}[${i}]: real ${real[k][e][i].toFixed(4)} vs dimensiones ${dims[k][e][i].toFixed(4)}`);
+      assert.ok(k === 'lomo' && (e === 'y' || e === 'x') ? (i === 1 ? real[k][e][i] <= dims[k][e][i] + 0.002 : real[k][e][i] >= dims[k][e][i] - 0.002) : Math.abs(real[k][e][i] - dims[k][e][i]) < 0.002, `v${v} ${k}.${e}[${i}]: real ${real[k][e][i].toFixed(4)} vs dimensiones ${dims[k][e][i].toFixed(4)}`);
   }
   assert.deepEqual(Object.values(nombresCajas(3, N)), ['Hoja_2_Losa', 'Hoja_1_Losa', 'Contratapa', 'Tapa_Malla', 'Lomo']);
 });
@@ -113,7 +113,8 @@ test('horizontal: las columnas laterales dan un álbum mayor que reservar bandas
   const ancho = (reservado) => { const c = calcularEncuadre({ puntos: pts, fovGrados: FOV, aspect, reservado, margen: COMPOSICION.margenDoble }); const b = bbox(pts, c, aspect); return (b.x1 - b.x0) / 2 * w; };
   const filas = ancho(reservadoDesdeDom({ ancho: w, alto: h, cabeceraAbajo: 58, barraArriba: h - 62 })), columnas = ancho(reservaNav(w, h));
   console.log(`# horizontal 844×390: álbum de ${filas.toFixed(0)} px (bandas) → ${columnas.toFixed(0)} px (columnas)`);
-  assert.ok(columnas > filas * 1.15, `${filas} → ${columnas}`);
+  assert.ok(columnas > filas * 1.10,   // 3.7.10: 1,15 → 1,10 (el lomo plano baja la caja del conjunto y la ventaja relativa baja un poco: sigue siendo ≈ +14 %)
+     `${filas} → ${columnas}`);
 });
 
 // ---------------------------------------------------------------- viewport cambiante, orientación, vista simple/doble
@@ -245,6 +246,7 @@ test('las 18 páginas ↔ 9 hojas físicas: cada página protagonista usa la hoj
 
 test('lado de la vista del lomo: el eje del lomo está donde se espera en cada estado (cerrado, abierto, final)', () => {
   const x = (v) => { const c = enEstado(v); return (c.lomo.x[0] + c.lomo.x[1]) / 2; };
-  assert.ok(Math.abs(x(0) + dim.a / 2) < 1e-6 && Math.abs(x(3)) < 1e-6 && Math.abs(x(10) - dim.a / 2) < 1e-6);
+  // 3.7.10: la caja real del lomo es x ∈ [-10,+4] mm respecto al eje, es decir, su centro queda 3 mm a su izquierda
+  assert.ok(Math.abs(x(0) + 0.003 + dim.a / 2) < 1e-6 && Math.abs(x(3) + 0.003) < 1e-6 && Math.abs(x(10) + 0.003 - dim.a / 2) < 1e-6);
   for (const v of [1, 5, 10]) assert.ok(puntosVista({ vueltas: v, dim }).length === 8);
 });

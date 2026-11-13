@@ -110,7 +110,7 @@ function encuadreDeseado() {
       return calcularEncuadre({ puntos: puntosPagina({ lado: lDestino, cajas: cajasDe(e.objetivo, false), hoja: hojaAncho() }), fovGrados: FOV, aspect, el, reservado: res, margen: COMPOSICION.margen,
         centroVisual: cara(cajasDe(e.objetivo, false), lDestino), sesgo: COMPOSICION.sesgoOptico });
     }
-    return calcularEncuadre({ puntos: [...puntosVista({ vueltas: e.vueltas, dim }), ...puntosVista({ vueltas: e.objetivo, dim }), ...puntosGiro(dim)], fovGrados: FOV, aspect, el, reservado: res, margen: COMPOSICION.margenDoble });
+    return calcularEncuadre({ puntos: [...puntosVista({ vueltas: e.vueltas, dim }), ...puntosVista({ vueltas: e.objetivo, dim }), ...puntosGiro(dim, 0.03, COMPOSICION.barridoGiro)], fovGrados: FOV, aspect, el, reservado: res, margen: COMPOSICION.margenDoble });
   }
   if (modo === 'pagina' && e.vueltas > 0) {
     const cajas = cajasDe(e.vueltas, true);

@@ -270,3 +270,9 @@ Petición del usuario: «el binder se ve como unido a un palo (el lomo) y las p�
 - **Acabado por defecto = `tejido`** (`ACABADO_DEFECTO` en `aspecto.js`; `?tapa=grafito|fieltro|cuero|acolchado` siguen disponibles).
 - `album3d.js` sale de la lista de módulos protegidos de los tests por esta petición; M11 vigila el lomo (nunca por debajo de la pila más alta, sin saltos) y las bisagras.
 - La vista previa de software (`previsualizar_glb.py`) no aplica el aplanado del lomo (lo hace el JS), así que en ella el lomo sigue viéndose alto. **Pendiente de ver en el iPhone.**
+
+## 3.7.10 · Sin clipping hoja–lomo y zoom de giro más suave
+
+- **Clipping**: con el lomo centrado en el eje (x ∈ [-10,+10] mm) y alto, las hojas (que giran sobre ese eje) lo atravesaban siempre. Ahora el lomo ocupa x ∈ [-10,+4] mm (fuera de las hojas, que empiezan en x = 0) y su altura (`Album3D.ajustarLomo`) depende solo de la tapa: **cerrado = 43,5 mm** (lomo alto junto a las hojas); al levantar la tapa baja hasta que ha pasado de la vertical y queda **plano (6 mm, a ras de las tapas) y por debajo de las hojas** (cuya cara inferior está a ≥ 7,15 mm). Ninguna hoja atraviesa el lomo en ningún estado (M11). La vista previa de software aplica la misma regla.
+- **Zoom exagerado al pasar página**: el encuadre del giro en doble página añadía el barrido completo de la hoja puesta vertical (+50 % de distancia en horizontal/PC). `COMPOSICION.barridoGiro = 0.25` cuenta solo un 25 % de ese barrido: el alejamiento baja a ≈ 10–13 % (M12). Contrapartida: en horizontal/PC la parte alta de la hoja puede quedar recortada un instante cuando está vertical. En vertical (una página) no cambia. Si prefieres otra cosa, es un solo número (0 = sin alejarse, 1 = como antes).
+- `encuadre.js` sale de la lista de protegidos de los tests por esta petición (`puntosGiro(dim, elev, factor)`).

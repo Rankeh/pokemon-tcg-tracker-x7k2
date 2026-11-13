@@ -63,16 +63,15 @@ class Album3D {
     }
   }
 
-  /** 3.7.9 · Grosor del lomo = grosor real de las pilas (como la encuadernación de un libro): cerrado abarca todo el álbum; al abrir se aplana
-   *  hasta la pila más alta. Continuo (cada hoja aporta su `suave(progreso)`), así no hay saltos al girar. Solo escala el lomo en y. */
+  /** 3.7.10 · Lomo vivo: con el álbum CERRADO es el lomo alto (43,5 mm) junto a las hojas; al levantar la tapa se aplana hasta el grosor de la cubierta
+   *  (como el lomo de un libro abierto: queda a ras de las tapas, DEBAJO de las hojas). Así las hojas no atraviesan el lomo en ningún momento: el lomo
+   *  ocupa x ∈ [-10, +4] mm y solo es más alto que la cubierta mientras la tapa no ha pasado de la vertical. Solo escala el lomo en Y. */
   ajustarLomo() {
     const { geo, estado, params } = this;
     const gt = params.grosor_tapa, paso = params.paso;
-    let izq = 0, der = 0;
-    for (let i = 1; i < geo.elementos; i++) { const e = suave(limitar(estado.progreso[i], 0, 1)); izq += e; der += 1 - e; }
-    const e0 = suave(limitar(estado.progreso[0], 0, 1));
-    const alto = Math.max(gt + der * paso + (1 - e0) * gt, gt + izq * paso, 2 * gt * 0.6);
-    this.lomo.scale.y = Math.min(1, Math.max(0.12, alto / this.alturaLomoBase));
+    const cerrado = 1 - suave(limitar(estado.progreso[0] / 0.5, 0, 1));         // 1 = cerrado, 0 = tapa ya pasada de la vertical
+    const alto = gt + cerrado * (geo.n * paso + gt);
+    this.lomo.scale.y = Math.min(1, Math.max(0.1, alto / this.alturaLomoBase));
   }
 
   actualizar(dt) {

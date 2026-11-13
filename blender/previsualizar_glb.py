@@ -72,6 +72,10 @@ def aplicar_estado(js, vueltas):
             det = (prog[el] > 0 and prog[el] < 1) or (vueltas - 2 <= el <= vueltas + 1)
         elif d["name"] == "Album":
             Mi[0, 3] = cx
+        elif d["name"] == "Lomo":
+            # 3.7.10: mismo criterio que Album3D.ajustarLomo (alto solo con el álbum cerrado; plano al abrir)
+            cerrado = 1 - suave(min(1.0, max(0.0, prog[0] / 0.5)))
+            Mi[1, 1] = (p["grosor_tapa"] + cerrado * (n * p["paso"] + p["grosor_tapa"])) / (2 * p["grosor_tapa"] + n * p["paso"])
         Mt = M @ Mi
         es_cuerpo = d["name"].endswith("_Losa") or d["name"] in ("Tapa_Malla", "Contratapa", "Lomo")
         if "mesh" in d and (es_cuerpo or det):
