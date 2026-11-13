@@ -76,3 +76,16 @@ body:not(.debug) .secundario { display: none; }
 }
 @media (max-width: 380px) { .ficha { grid-template-columns: 1fr; } .ficha-imagen { max-width: 140px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Móvil HORIZONTAL (poca altura): la cabecera pasa a una columna a la izquierda y los controles a una columna a la derecha, para que la altura
+   completa quede libre para el álbum (el encuadre mide estos elementos reales: ver reservado() en main.js). */
+@media (orientation: landscape) and (max-height: 520px) {
+  .cabecera { right: auto; width: max-content; max-width: 150px; top: max(8px, env(safe-area-inset-top)); }
+  h1 { font-size: 0.95rem; } h1 small { display: block; margin: 2px 0 0; }
+  #estado { font-size: 0.8rem; }
+  .barra { left: auto; top: 0; bottom: 0; width: calc(68px + env(safe-area-inset-right)); flex-direction: column; flex-wrap: nowrap; justify-content: center; gap: 6px;
+    padding: 8px max(8px, env(safe-area-inset-right)) 8px 6px; background: linear-gradient(90deg, transparent, rgba(8, 10, 14, 0.7) 35%); }
+  .barra > button, #b-salto { width: 100%; min-width: 0; max-width: none; flex: none; padding: 0 4px; }
+  #b-salto { font-size: 0.78rem; }
+  #b-ant, #b-sig { font-size: 1.3rem; }
+}

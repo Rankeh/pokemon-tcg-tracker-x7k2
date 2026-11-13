@@ -39,123 +39,156 @@ async function sesion(viewport, fn) {
   await ctx.close();
 }
 
-// utilidades dentro de la página: proyección de puntos con la cámara que se dibujó y rectángulo libre real (DOM)
-const medir = (pag) => pag.evaluate(async () => {
-  const { puntosVista, proyectarPunto, claseVista } = await import('/web/prueba-3d/js/encuadre.js');
-  const a = window.__album3d, r = a.renderer.ultima, cv = document.getElementById('lienzo').getBoundingClientRect();
-  const t = r.mira, p = [r.pos.x, r.pos.y, r.pos.z], d = [p[0] - t[0], p[1] - t[1], p[2] - t[2]], rad = Math.hypot(...d);
-  const el = Math.asin(d[1] / rad), az = Math.atan2(d[0], d[2]);
-  const e = a.album.estado, modo = document.getElementById('b-vista').getAttribute('aria-label') === 'Ver dos páginas' ? 'pagina' : 'doble';
-  return { cv: { w: cv.width, h: cv.height }, r, el, az, radio: rad, aspect: r.aspect, vueltas: e.vueltas, estado: document.getElementById('estado').textContent,
-    modo, dibujos: a.renderer.dibujos,
-    px: (pt) => 0 };
-});
-const proyectarCaja = (pag, opciones) => pag.evaluate(async (o) => {
-  const { puntosVista, proyectarPunto } = await import('/web/prueba-3d/js/encuadre.js');
+// utilidades dentro de la página: proyección de puntos/mallas con la cámara que se dibujó y rectángulo libre real (el mismo que mide main.js)
+const proyectar = (pag, o) => pag.evaluate(async (o) => {
+  const { proyectarPunto, aabbMundo } = await import('/web/prueba-3d/js/encuadre.js');
   const a = window.__album3d, r = a.renderer.ultima, t = r.mira, p = [r.pos.x, r.pos.y, r.pos.z];
   const d = [p[0] - t[0], p[1] - t[1], p[2] - t[2]], rad = Math.hypot(...d), el = Math.asin(d[1] / rad), az = Math.atan2(d[0], d[2]);
   const cv = document.getElementById('lienzo').getBoundingClientRect();
-  const pts = o.nombre ? (() => { const m = a.album.matrizMundo(o.nombre); return [[m[12], m[13], m[14]]]; })() : puntosVista({ vueltas: a.album.estado.vueltas, dim: a.dim, modo: o.modo, lado: o.lado });
-  const px = pts.map((q) => { const n = proyectarPunto(q, p, t, r.fov ?? 32, r.aspect, az, el); return { x: cv.left + (n.x + 1) / 2 * cv.width, y: cv.top + (1 - n.y) / 2 * cv.height, z: n.z }; });
-  const xs = px.map((q) => q.x), ys = px.map((q) => q.y);
-  const bar = document.getElementById('barra'), vis = getComputedStyle(bar).visibility !== 'hidden', cab = document.getElementById('estado').getBoundingClientRect();
-  const fi = document.getElementById('ficha');
-  return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys), w: cv.width, h: cv.height, barraTop: vis ? bar.getBoundingClientRect().top : cv.height, cabBottom: cab.bottom,
-    fichaTop: fi.hidden ? null : fi.getBoundingClientRect().top, fichaLeft: fi.hidden ? null : fi.getBoundingClientRect().left, px, radio: rad, az, el };
-}, opciones);
+  let pts;
+  if (o.malla) { const c = aabbMundo(a.album.cajaMalla(o.malla)); pts = []; for (const x of c.x) for (const y of c.y) for (const z of c.z) pts.push([x, y, z]); }
+  else { const m = a.album.matrizMundo(o.nombre); pts = [[m[12], m[13], m[14]]]; }
+  const px = pts.map((q) => { const n = proyectarPunto(q, p, t, 32, r.aspect, az, el); return { x: cv.left + (n.x + 1) / 2 * cv.width, y: cv.top + (1 - n.y) / 2 * cv.height }; });
+  const xs = px.map((q) => q.x), ys = px.map((q) => q.y), res = a.reservado(), fi = document.getElementById('ficha');
+  const libre = { x0: res.izquierda * cv.width, x1: cv.width * (1 - res.derecha), y0: res.arriba * cv.height, y1: cv.height * (1 - res.abajo) };
+  return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys), w: cv.width, h: cv.height, libre, px, radio: rad, el, nivel: a.diagCam.nivel,
+    fichaTop: fi.hidden ? null : fi.getBoundingClientRect().top, fichaLeft: fi.hidden ? null : fi.getBoundingClientRect().left, estado: document.getElementById('estado').textContent };
+}, o);
+const dentro = (c, tol = 2) => c.x0 >= c.libre.x0 - tol && c.x1 <= c.libre.x1 + tol && c.y0 >= c.libre.y0 - tol && c.y1 <= c.libre.y1 + tol;
+const deslizar = async (pag, dir) => {         // dir -1 = dedo hacia la izquierda (siguiente), +1 = hacia la derecha (anterior)
+  const x0 = dir < 0 ? 300 : 90, x1 = x0 + dir * 190;
+  await pag.mouse.move(x0, 330); await pag.mouse.down(); await pag.mouse.move((x0 + x1) / 2, 335, { steps: 4 }); await pag.mouse.move(x1, 335, { steps: 4 }); await pag.mouse.up(); await dormir(1900);
+};
+const etiqueta = (pag) => pag.evaluate(() => document.getElementById('estado').textContent);
+const hojaDe = (p) => Math.ceil(p / 2) - 1;               // página → hoja física (0-based)
+const losa = (p) => `Hoja_${hojaDe(p)}_Losa`;
+
+/** Comprueba la composición «protagonista + lomo + franja» de la página `p` en vertical. */
+async function composicion(pag, p, ctx) {
+  const lado = p % 2 === 1 ? 'der' : 'izq';
+  const pr = await proyectar(pag, { malla: losa(p) }), lomo = await proyectar(pag, { malla: 'Lomo' });
+  const frac = (pr.x1 - pr.x0) / pr.w;
+  ok(pr.x0 >= -1 && pr.x1 <= pr.w + 1 && pr.y0 >= pr.libre.y0 - 2 && pr.y1 <= pr.libre.y1 + 2, `${ctx}: página ${p} completa dentro del viewport y del área libre (x ${pr.x0.toFixed(0)}–${pr.x1.toFixed(0)})`);
+  ok(frac >= 0.68 && frac <= 0.84, `${ctx}: página ${p} ocupa ${(100 * frac).toFixed(0)} % del ancho (objetivo 70–82 %)`);
+  const lc = (lomo.x0 + lomo.x1) / 2, mitad = (pr.x0 + pr.x1) / 2, ancho = pr.x1 - pr.x0;
+  const lomoOk = lado === 'der' ? lc < mitad - 0.3 * ancho && lc > 0 : lc > mitad + 0.3 * ancho && lc < pr.w;       // el lomo queda en el lado del borde interior de la página, dentro de pantalla
+  if (process.env.DEP) console.log('LOMO', ctx, lc.toFixed(1), pr.x0.toFixed(1), pr.x1.toFixed(1));
+  ok(lomoOk, `${ctx}: el lomo está ${lado === 'der' ? 'a la izquierda' : 'a la derecha'} de la página ${p}`);
+  const franja = lado === 'der' ? lomo.x0 - 0 : pr.w - lomo.x1;       // lo que queda entre el lomo y el borde de pantalla = página contigua
+  ok(franja > pr.w * 0.03 && franja < pr.w * 0.14, `${ctx}: franja de la página contigua ≈ ${(100 * franja / pr.w).toFixed(1)} % del ancho (más lomo)`);
+}
 
 // ------------------------------------------------------------------ iPhone vertical 390×663 (Safari con barras)
 await sesion({ width: 390, height: 663 }, async (pag) => {
   await dormir(500);
-  let c = await proyectarCaja(pag, { modo: 'doble' });
-  ok(c.x0 >= -1 && c.x1 <= c.w + 1 && c.y0 >= c.cabBottom - 2 && c.y1 <= c.barraTop + 2, `cerrado: el álbum cabe entre cabecera y barra (${c.x0.toFixed(0)}–${c.x1.toFixed(0)} px de ${c.w}; y ${c.y0.toFixed(0)}–${c.y1.toFixed(0)} entre ${c.cabBottom.toFixed(0)} y ${c.barraTop.toFixed(0)})`);
-  ok((c.x1 - c.x0) > 390 * 0.85, `cerrado: ocupa ${(100 * (c.x1 - c.x0) / 390).toFixed(0)} % del ancho`);
+  let c = await proyectar(pag, { malla: 'Tapa_Malla' });
+  ok(dentro(c) && (c.x1 - c.x0) > 390 * 0.85, `cerrado: la cubierta cabe en el área libre y ocupa ${(100 * (c.x1 - c.x0) / 390).toFixed(0)} % del ancho`);
   ok(await pag.evaluate(() => getComputedStyle(document.getElementById('b-metricas')).display === 'none'), 'los botones de diagnóstico no se ven sin ?debug=1');
   const altoBarra = await pag.evaluate(() => Math.round(document.getElementById('barra').getBoundingClientRect().height));
   ok(altoBarra <= 72, `la barra inferior cabe en una sola fila (${altoBarra} px de alto)`);
 
   await pag.click('#b-abrir'); await dormir(2200);
-  const e = await pag.evaluate(() => document.getElementById('estado').textContent);
-  ok(/Página 1 de 18/.test(e), 'abrir: modo página en vertical, «' + e + '»');
-  c = await proyectarCaja(pag, { modo: 'pagina', lado: 'der' });
-  ok(c.x0 >= -1 && c.x1 <= c.w + 1 && c.y0 >= c.cabBottom - 2 && c.y1 <= c.barraTop + 2, `primera página dentro del área libre (x ${c.x0.toFixed(0)}–${c.x1.toFixed(0)}, y ${c.y0.toFixed(0)}–${c.y1.toFixed(0)})`);
-  ok((c.x1 - c.x0) > 390 * 0.85, `primera página ocupa ${(100 * (c.x1 - c.x0) / 390).toFixed(0)} % del ancho (antes ≈ 44 %)`);
+  ok(/Página 1 de 18/.test(await etiqueta(pag)), 'abrir: página 1 protagonista');
+  await composicion(pag, 1, 'p1');
+  c = await proyectar(pag, { malla: losa(1) });
   ok(c.el > 40 * Math.PI / 180 && c.el < 70 * Math.PI / 180, `cámara elevada ${(c.el * 180 / Math.PI).toFixed(0)}° (ni cenital ni plana)`);
+  // centrado visual: la página queda centrada verticalmente en el área libre (con el pequeño sesgo hacia arriba)
+  const centro = (c.y0 + c.y1) / 2, libreC = (c.libre.y0 + c.libre.y1) / 2;
+  ok(Math.abs(centro - libreC) < c.h * 0.05, `página centrada en el área libre (centro ${centro.toFixed(0)} vs ${libreC.toFixed(0)} px)`);
 
-  // selección: tocar un bolsillo con el ratón/dedo
-  const nombre = 'Hoja_0_F_Bolsillo_4';
-  const antes = await proyectarCaja(pag, { nombre });
-  await pag.mouse.click(antes.px[0].x, antes.px[0].y); await dormir(1500);
-  const abierta = await pag.evaluate(() => !document.getElementById('ficha').hidden);
-  ok(abierta, 'tocar un bolsillo abre la ficha (raycast con la cámara nueva)');
-  const sel = await proyectarCaja(pag, { nombre });
-  ok(sel.px[0].y < sel.fichaTop - 10 && sel.px[0].y > sel.cabBottom && sel.px[0].x > 0 && sel.px[0].x < sel.w, `la carta seleccionada queda visible sobre la ficha (y ${sel.px[0].y.toFixed(0)} < ficha ${sel.fichaTop.toFixed(0)})`);
-  const pag9 = await proyectarCaja(pag, { modo: 'pagina', lado: 'der' });
-  ok(pag9.y1 <= sel.fichaTop && pag9.x0 >= -1 && pag9.x1 <= pag9.w + 1, `con la ficha se mantiene el contexto: toda la página visible (y hasta ${pag9.y1.toFixed(0)} < ${sel.fichaTop.toFixed(0)})`);
-  const hl = await pag.evaluate(() => window.__album3d.resaltado.malla.visible);
-  ok(hl, 'la carta seleccionada tiene resalte');
+  // lectura en orden: 1 → 2 → 3 → 4 → 5 → 6 (giros entre impar→par, sin giro de par→impar)
+  const t0 = await pag.evaluate(() => window.__album3d.album.estado.vueltas);
+  for (const p of [2, 3, 4, 5, 6]) {
+    await deslizar(pag, -1);
+    ok(new RegExp(`Página ${p} de 18`).test(await etiqueta(pag)), `deslizar a la izquierda → página ${p}`);
+    await composicion(pag, p, `p${p}`);
+  }
+  for (const p of [5, 4, 3, 2, 1]) {
+    await deslizar(pag, +1);
+    ok(new RegExp(`Página ${p} de 18`).test(await etiqueta(pag)), `deslizar a la derecha → página ${p}`);
+    await composicion(pag, p, `p${p}`);
+  }
+  ok(await pag.evaluate(() => window.__album3d.album.estado.vueltas) === t0, 'ida y vuelta: mismo estado de hojas');
 
-  // colección: añadir y retirar con persistencia real
+  // 17 ↔ 18
+  await pag.selectOption('#b-salto', '17'); await dormir(1800);
+  await composicion(pag, 17, 'p17');
+  await deslizar(pag, -1); ok(/Página 18 de 18/.test(await etiqueta(pag)), 'p17 → p18'); await composicion(pag, 18, 'p18');
+  await deslizar(pag, +1); ok(/Página 17 de 18/.test(await etiqueta(pag)), 'p18 → p17'); await composicion(pag, 17, 'p17');
+  await pag.selectOption('#b-salto', '1'); await dormir(1800);
+
+  // selección en la primera y en la última fila
+  for (const [nombre, etq] of [['Hoja_0_F_Bolsillo_1', 'primera fila'], ['Hoja_0_F_Bolsillo_7', 'última fila']]) {
+    const antes = await proyectar(pag, { nombre }), nav = await proyectar(pag, { malla: losa(1) });
+    await pag.mouse.click(antes.px[0].x, antes.px[0].y); await dormir(1600);
+    ok(await pag.evaluate(() => !document.getElementById('ficha').hidden), `${etq}: tocar abre la ficha`);
+    const sel = await proyectar(pag, { nombre }), pg = await proyectar(pag, { malla: losa(1) });
+    ok(sel.px[0].y < sel.fichaTop - 10 && sel.px[0].y > sel.libre.y0 && sel.px[0].x > 0 && sel.px[0].x < sel.w, `${etq}: la carta queda visible sobre la ficha (y ${sel.px[0].y.toFixed(0)} < ${sel.fichaTop.toFixed(0)})`);
+    ok(await pag.evaluate(() => window.__album3d.resaltado.malla.visible), `${etq}: carta resaltada`);
+    const desplaza = (nav.y0 + nav.y1) / 2 - (pg.y0 + pg.y1) / 2;
+    ok(desplaza < sel.h * 0.2, `${etq}: el álbum no se desplaza de forma exagerada (${desplaza.toFixed(0)} px hacia arriba; nivel «${sel.nivel}»)`);
+    ok(pg.y0 >= sel.libre.y0 - 2 || sel.nivel === 'filas', `${etq}: contexto de página (nivel «${sel.nivel}»)`);
+    await pag.click('#f-cerrar'); await dormir(1500);
+    const despues = await proyectar(pag, { malla: losa(1) });
+    ok(Math.abs(despues.radio - nav.radio) < 0.002 && Math.abs(despues.x0 - nav.x0) < 2, `${etq}: cerrar la ficha vuelve al encuadre de navegación`);
+  }
+
+  // colección: añadir y retirar con persistencia real (no debe alterarse)
+  const nombre = 'Hoja_0_F_Bolsillo_4', a0 = await proyectar(pag, { nombre });
+  await pag.mouse.click(a0.px[0].x, a0.px[0].y); await dormir(1500);
   const id = await pag.evaluate((n) => window.__album3d.adaptador.bolsillo(n).carta.id, nombre);
   await pag.click('#f-mas'); await dormir(300);
   ok(await pag.evaluate((i) => window.__album3d.adaptador.cantidad(i), id) === 1, 'añadir guarda 1 copia en IndexedDB');
   await pag.click('#f-menos'); await dormir(300);
   ok(await pag.evaluate((i) => window.__album3d.adaptador.cantidad(i), id) === 0, 'retirar deja 0 copias');
-  await pag.click('#f-mas'); await dormir(300);
-  await pag.click('#f-cerrar'); await dormir(1400);
-  ok(await pag.evaluate(() => document.getElementById('ficha').hidden), 'cerrar la ficha la oculta');
-  const despues = await proyectarCaja(pag, { modo: 'pagina', lado: 'der' });
-  ok(Math.abs(despues.radio - c.radio) < 0.002 && Math.abs(despues.x0 - c.x0) < 2, `cerrar la ficha vuelve al encuadre de navegación (radio ${despues.radio.toFixed(3)} vs ${c.radio.toFixed(3)})`);
-  ok(await pag.evaluate(() => document.getElementById('f-cant').textContent) === '1', 'el contador de la ficha reflejaba 1');
-  const prog = await pag.evaluate(() => document.getElementById('progreso').textContent);
-  ok(/^1 de 158/.test(prog), 'contador general: «' + prog + '»');
-
-  // gestos: deslizar a la izquierda = siguiente; página 1 → giro de hoja → página 2/3
-  await pag.mouse.move(300, 330); await pag.mouse.down(); await pag.mouse.move(200, 335, { steps: 5 }); await pag.mouse.move(120, 335, { steps: 5 }); await pag.mouse.up(); await dormir(2200);
-  const e2 = await pag.evaluate(() => document.getElementById('estado').textContent);
-  ok(/Página 3 de 18/.test(e2), 'deslizar a la izquierda pasa a la hoja siguiente: «' + e2 + '»');
-  const c2 = await proyectarCaja(pag, { modo: 'pagina', lado: 'der' });
-  ok(c2.x0 >= -1 && c2.x1 <= c2.w + 1, 'tras el giro la página sigue encuadrada');
-  await pag.mouse.move(100, 330); await pag.mouse.down(); await pag.mouse.move(200, 330, { steps: 5 }); await pag.mouse.move(300, 330, { steps: 5 }); await pag.mouse.up(); await dormir(1200);
-  const e3 = await pag.evaluate(() => document.getElementById('estado').textContent);
-  ok(/Página 2 de 18/.test(e3), 'deslizar a la derecha pasa a la página izquierda: «' + e3 + '»');
-  const c3 = await proyectarCaja(pag, { modo: 'pagina', lado: 'izq' });
-  ok(c3.x0 >= -1 && c3.x1 <= c3.w + 1 && c3.y0 >= c3.cabBottom - 2, 'la página izquierda queda dentro de pantalla');
+  await pag.click('#f-mas'); await dormir(300); await pag.click('#f-cerrar'); await dormir(1300);
+  ok(/^1 de 158/.test(await pag.evaluate(() => document.getElementById('progreso').textContent)), 'contador general 1 de 158');
 
   // vista doble
   await pag.click('#b-vista'); await dormir(1300);
-  const cd = await proyectarCaja(pag, { modo: 'doble' });
-  ok(cd.x0 >= -1 && cd.x1 <= cd.w + 1, 'vista de dos páginas: cabe en el ancho');
-  // salto a la página 18 y cierre
+  const cd = await proyectar(pag, { malla: 'Lomo' });
+  const tapas = [await proyectar(pag, { malla: 'Contratapa' }), await proyectar(pag, { malla: 'Tapa_Malla' })];
+  ok(Math.min(...tapas.map((q) => q.x0)) >= -1 && Math.max(...tapas.map((q) => q.x1)) <= cd.w + 1, 'vista de dos páginas: cubiertas y lomo caben en el ancho');
   await pag.selectOption('#b-salto', '18'); await dormir(1800);
-  ok(/18 de 18/.test(await pag.evaluate(() => document.getElementById('estado').textContent)), 'salto directo a la página 18');
+  ok(/18 de 18/.test(await etiqueta(pag)) || /Páginas 1[78]/.test(await etiqueta(pag)), 'salto directo a la página 18 en vista doble');
+  const fin = [await proyectar(pag, { malla: 'Contratapa' }), await proyectar(pag, { malla: 'Tapa_Malla' }), await proyectar(pag, { malla: 'Hoja_8_Losa' })];
+  ok(fin.every((q) => q.x0 >= -1 && q.x1 <= q.w + 1), 'final: pila y contratapa dentro de pantalla (3.7.1 recortaba la contratapa)');
+  await pag.click('#b-vista'); await dormir(1200);
   await pag.click('#b-abrir'); await dormir(1500);
-  ok(/cerrado/i.test(await pag.evaluate(() => document.getElementById('estado').textContent)), 'cerrar el álbum');
+  ok(/cerrado/i.test(await etiqueta(pag)), 'cerrar el álbum');
 
-  // rotación a horizontal: se recalcula todo
+  // rotación y barras de Safari
   await pag.click('#b-abrir'); await dormir(1800);
-  await pag.setViewportSize({ width: 844, height: 390 }); await dormir(900);
-  const h = await proyectarCaja(pag, { modo: await pag.evaluate(() => (document.getElementById('b-vista').getAttribute('aria-label') === 'Ver dos páginas' ? 'pagina' : 'doble')), lado: 'der' });
-  ok(h.x0 >= -1 && h.x1 <= h.w + 1 && h.y0 >= h.cabBottom - 2 && h.y1 <= h.barraTop + 2, `giro a horizontal 844×390: sigue dentro del área libre (x ${h.x0.toFixed(0)}–${h.x1.toFixed(0)}, y ${h.y0.toFixed(0)}–${h.y1.toFixed(0)}, libre ${h.cabBottom.toFixed(0)}–${h.barraTop.toFixed(0)})`);
-  await pag.setViewportSize({ width: 390, height: 750 }); await dormir(900);    // Safari oculta sus barras
-  const v2 = await proyectarCaja(pag, { modo: 'pagina', lado: 'der' });
-  ok(v2.y1 <= v2.barraTop + 2 && v2.x1 <= v2.w + 1, 'Safari sin barras 390×750: reencuadre correcto');
+  await pag.setViewportSize({ width: 844, height: 390 }); await dormir(1200);
+  const res = await pag.evaluate(() => window.__album3d.reservado());
+  ok(res.izquierda > 0.05 && res.derecha > 0.03 && res.arriba === 0 && res.abajo === 0, `horizontal: la interfaz pasa a columnas laterales (izq ${res.izquierda.toFixed(2)}, der ${res.derecha.toFixed(2)}, arriba ${res.arriba}, abajo ${res.abajo})`);
+  const h = await proyectar(pag, { malla: 'Lomo' });
+  const h1 = await proyectar(pag, { malla: 'Tapa_Malla' });
+  if (process.env.DEP) console.log('ROT', JSON.stringify({ h1, libre: h.libre, res }));
+  ok(dentro({ ...h1, libre: h.libre }), 'giro a 844×390: sigue dentro del área libre');
+  await pag.setViewportSize({ width: 390, height: 750 }); await dormir(1200);   // Safari oculta sus barras
+  const v2 = await proyectar(pag, { malla: 'Tapa_Malla' });
+  ok(v2.x1 <= v2.w + 1 && v2.y1 <= v2.libre.y1 + 2, 'Safari sin barras 390×750: reencuadre correcto');
 });
 
 // ------------------------------------------------------------------ iPhone horizontal y escritorio
-for (const vp of [{ width: 844, height: 390 }, { width: 1920, height: 1080 }]) {
+for (const vp of [{ width: 844, height: 390 }, { width: 750, height: 340 }, { width: 1920, height: 1080 }]) {
   await sesion(vp, async (pag) => {
     await pag.click('#b-abrir'); await dormir(2200); await pag.click('#b-sig'); await dormir(2200);
-    const c = await proyectarCaja(pag, { modo: 'doble' });
-    ok(c.x0 >= -1 && c.x1 <= c.w + 1 && c.y0 >= c.cabBottom - 2 && c.y1 <= c.barraTop + 2, `${vp.width}×${vp.height}: dos páginas dentro del área libre (ocupan ${(100 * (c.x1 - c.x0) / c.w).toFixed(0)} % del ancho, ${(100 * (c.y1 - c.y0) / (c.barraTop - c.cabBottom)).toFixed(0)} % del alto libre)`);
-    const nombre = 'Hoja_1_D_Bolsillo_2';
-    const a = await proyectarCaja(pag, { nombre });
-    await pag.mouse.click(a.px[0].x, a.px[0].y); await dormir(1500);
+    const e = await etiqueta(pag);
+    const piezas = [await proyectar(pag, { malla: 'Contratapa' }), await proyectar(pag, { malla: 'Tapa_Malla' }), await proyectar(pag, { malla: 'Lomo' }), await proyectar(pag, { malla: 'Hoja_0_Losa' })];
+    const caja = { x0: Math.min(...piezas.map((q) => q.x0)), x1: Math.max(...piezas.map((q) => q.x1)), y0: Math.min(...piezas.map((q) => q.y0)), y1: Math.max(...piezas.map((q) => q.y1)), libre: piezas[0].libre };
+    if (process.env.DEP) console.log('DEP', vp.width, JSON.stringify({ res: await pag.evaluate(() => window.__album3d.reservado()), caja, radio: piezas[0].radio, diag: await pag.evaluate(() => window.__album3d.diagCam), obj: await pag.evaluate(() => window.__album3d.orbita.estado()), cam: await pag.evaluate(() => window.__album3d.camara.aspect) }));
+    const lw = caja.libre.x1 - caja.libre.x0, lh = caja.libre.y1 - caja.libre.y0;
+    ok(dentro(caja), `${vp.width}×${vp.height}: dos páginas con cubiertas y lomo dentro del área libre (${(100 * (caja.x1 - caja.x0) / lw).toFixed(0)} % del ancho libre, ${(100 * (caja.y1 - caja.y0) / lh).toFixed(0)} % del alto libre) «${e}»`);
+    ok(Math.max((caja.x1 - caja.x0) / lw, (caja.y1 - caja.y0) / lh) > 0.9, `${vp.width}×${vp.height}: aprovecha el área libre`);
+    const nombre = 'Hoja_1_D_Bolsillo_2', a = await proyectar(pag, { nombre });
+    await pag.mouse.click(a.px[0].x, a.px[0].y); await dormir(1600);
     ok(await pag.evaluate(() => !document.getElementById('ficha').hidden), `${vp.width}×${vp.height}: se abre la ficha al tocar`);
-    const s = await proyectarCaja(pag, { nombre });
+    const s = await proyectar(pag, { nombre });
     const libreX = s.fichaLeft > s.w * 0.4 ? s.fichaLeft : s.w, libreY = s.fichaLeft > s.w * 0.4 ? s.h : s.fichaTop;
-    ok(s.px[0].x > 0 && s.px[0].x < libreX && s.px[0].y < libreY && s.px[0].y > s.cabBottom, `${vp.width}×${vp.height}: la carta seleccionada no queda tapada por la ficha`);
-    await pag.keyboard.press('Escape'); await dormir(800);
+    ok(s.px[0].x > 0 && s.px[0].x < libreX && s.px[0].y < libreY && s.px[0].y > 0, `${vp.width}×${vp.height}: la carta seleccionada no queda tapada por la ficha (nivel «${s.nivel}»)`);
+    await pag.keyboard.press('Escape'); await dormir(900);
   });
 }
 

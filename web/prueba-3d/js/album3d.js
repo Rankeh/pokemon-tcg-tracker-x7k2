@@ -66,6 +66,17 @@ class Album3D {
     return n.matrixWorld.elements;
   }
 
+  /** Caja local (min/max de la geometría) + matriz del mundo ACTUAL de una malla con nombre: base del encuadre calculado con las transformaciones reales. */
+  cajaMalla(nombre) {
+    const n = this.nodo.get(nombre);
+    if (!n || !n.geometry) return null;
+    const g = n.geometry;
+    if (!g.boundingBox) g.computeBoundingBox();
+    n.updateWorldMatrix(true, false);
+    const b = g.boundingBox;
+    return { min: [b.min.x, b.min.y, b.min.z], max: [b.max.x, b.max.y, b.max.z], matriz: n.matrixWorld.elements };
+  }
+
   // ---------------------------------------------------------------- métricas reales (contadas, no inventadas)
   contarEscena({ soloVisibles }) {
     let tris = 0, mallas = 0;

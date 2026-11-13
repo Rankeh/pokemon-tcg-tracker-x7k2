@@ -91,3 +91,41 @@ Luz principal suave + relleno tenue + luz de contorno (rim) para separar el álb
 
 ### Propuesta resumida 3.7.3 (interfaz y microinteracciones) — NO implementada
 Barra superior fina (nombre, progreso «X/158», página); navegación flotante compacta (‹ › selector, abrir/cerrar) con zonas táctiles de 48 px; panel de diagnóstico oculto tras `?debug=1` o pulsación larga en el título; ficha integrada con el estilo del álbum (cristal oscuro, acento dorado), animación de entrada/salida, contador con transición, háptica/sonido opcionales y desactivables, y respeto de `prefers-reduced-motion`.
+
+## 3.7.1b — Refinamiento de cámara y composición física
+
+Se refina el motor de la 3.7.1 (`encuadre.js`, `main.js`); no se crea otro sistema de cámara. No se toca el GLB ni la geometría del álbum, ni ninguna hoja se mueve u oculta para encuadrar.
+
+### Origen de los problemas
+- **A (vecina recortada):** en vertical se encajaba la caja `[lomo, lomo + ancho de tapa]` con el lomo exactamente en el borde de la pantalla; lo que había a su izquierda quedaba cortado por el borde por casualidad (y el lomo, medio fuera).
+- **B (horizontal pequeño):** cabecera y barra ocupaban dos bandas completas (≈ 120 px de 390), el factor limitante era la altura, y la caja de dos páginas era conservadora (altura del lomo en las esquinas de las tapas), unos 5 % de más.
+- **C (ficha):** se metía la página entera en el hueco sobre la ficha y se centraba su caja matemática, empujando el álbum hacia arriba aunque cupiera más contexto.
+- Además: «siguiente» desde la página 1 pasaba a la 3 (se saltaba la 2) y el estado «todo girado» recortaba la contratapa.
+
+### Solución (funciones ajustadas)
+- `COMPOSICION` (encuadre.js): **todos** los parámetros artísticos en un sitio, documentados (franja de la vecina = lomo + 12 % del ancho de hoja; margen 3,5 %; sesgo óptico 2 %; tolerancia de contexto 15 %; filas de contexto; paso de fila, que una prueba compara con el GLB).
+- `cajasReales()` / `aabbMundo()`: cajas de las mallas **reales** (`Hoja_n_Losa`, `Tapa_Malla`, `Contratapa`, `Lomo`) con su matriz del mundo actual (`album.cajaMalla`); mientras una hoja gira (sin pose final) `cajasDimensiones()`, que una prueba compara con las reales (< 2 mm).
+- `puntosPagina()`: página protagonista + lomo + franja contigua **recortada en la caja de cámara** (no se toca la geometría). `puntosConjunto()` para cerrado/dos páginas con las cajas reales.
+- `calcularEncuadre(... centroVisual, sesgo)`: además del centrado matemático, centra la **cara** de la página (no el grosor de pilas/cubiertas) con un pequeño sesgo hacia arriba.
+- `elegirEncuadreSeleccion()`: con la ficha abierta, cascada de prioridades *página+lomo+vecina → página+lomo → página → solo las filas cercanas a la carta*, aceptando el primer nivel que no aleje la cámara más de un 15 % respecto a la navegación. La carta siempre queda visible fuera de la ficha.
+- `reservado()` (main.js): mide los elementos **visibles** (texto de la cabecera, botones), no sus contenedores. En móvil horizontal (`max-height: 520px`) la cabecera pasa a una columna izquierda y los controles a una columna derecha (CSS), liberando toda la altura (844×390: álbum de ≈ 488 px → ≈ 596 px).
+- `pasoLectura()` (navegacion3d.js): orden de lectura 1 → 2 → 3 → 4 …; la hoja gira de impar a par al avanzar (y de par a impar al retroceder); dentro de una doble página solo se mueve la cámara.
+- Giro de hoja en una página: la cámara acompaña a la página de destino sin alejarse (duración del giro); en dos páginas se abre un poco por el barrido de la hoja. `near` se calcula con el zoom más cercano y `far` con el más lejano.
+- Cambios de `visualViewport` pequeños se absorben con una transición de 0,3 s; cambiar de orientación reencuadra de golpe y restablece la vista por defecto (1 página en vertical, 2 en horizontal).
+- Estado «todo girado»: ahora se encuadran también la pila izquierda y la contratapa (antes se cortaba).
+
+### Reglas de composición
+1. Vertical: una página protagonista de 68–84 % del ancho (diseño ≈ 76 %), lomo en el lado interior, franja de la contigua de ≈ 9–12 % (más lomo), margen exterior ≈ 1,75 % por lado.
+2. Horizontal/escritorio: dos páginas con cubiertas y lomo, ≥ 99 % del lado limitante del área libre, 2 % de margen.
+3. La página protagonista nunca se recorta; lo único que puede quedar fuera es la página contigua (recortada a propósito).
+4. Con la ficha: ficha utilizable > carta visible > contexto de su página > lomo > franja.
+5. Parámetros por dispositivo: nada es una constante de píxeles; todo sale del viewport, el fov (32°), la elevación (52° vertical / 58° horizontal) y la interfaz medida.
+
+### Pruebas
+`node --test web/prueba-3d/pruebas/*.test.mjs` (102, con `encuadre37b.test.mjs`: límites **proyectados** de la página protagonista en 5 pantallas verticales × 18 páginas, 4 apaisadas, selección primera/última fila, cascada de contexto, viewport cambiante, orientación, vista simple/doble, near/far, raycast, lectura 1→18→1, 17↔18, etc.) y `node web/prueba-3d/pruebas/ejecutar-pagina.mjs` (113 comprobaciones sobre la página real en Chromium con Three.js simulado, IndexedDB real en una BD desechable). Ninguna toca tu base de datos real. **No son WebGL ni Safari.**
+
+### Cómo comprobarlo
+`git pull`; abre `web/prueba-3d/index.html` (Live Server) o la URL de GitHub Pages en el iPhone. **Vertical:** página grande, lomo a su lado interior, franja discreta de la contigua; desliza para leer 1, 2, 3, 4, 5, 6… y 17, 18; ▯/▯▯ alterna una/dos páginas; toca una carta de la primera y de la última fila. **Horizontal:** dos páginas, controles en las columnas laterales. Prueba con las barras de Safari visibles/ocultas.
+
+### Requiere validación visual (no comprobable desde aquí)
+Aspecto real de la franja y del lomo; cómo se lee la composición con luz y materiales actuales; fluidez de las transiciones; el aro de resalte; el aspecto de las columnas laterales (el selector de página en la columna es estrecho); iPhones con Dynamic Island/`safe-area` en horizontal.

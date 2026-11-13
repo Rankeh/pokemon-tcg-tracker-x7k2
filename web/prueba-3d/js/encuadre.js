@@ -18,13 +18,16 @@ const esquinas = (x, y, z) => { const r = []; for (const a of x) for (const b of
 /** Clase de encuadre según las hojas giradas: 'cerrado' | 'portada' (solo la tapa abierta) | 'doble' | 'final' (todo girado). */
 export const claseVista = (vueltas, n) => (vueltas <= 0 ? 'cerrado' : vueltas >= n + 1 ? 'final' : vueltas === 1 ? 'portada' : 'doble');
 
-/** Caja (puntos del mundo) que debe verse en un estado asentado. `modo` 'doble' | 'pagina'; `lado` 'izq' | 'der' (solo en modo página). */
+/** Posición x del lomo en el mundo: el conjunto se centra solo (centradoX de logica.js): cerrado → -a/2, abierto → 0, todo girado → +a/2. */
+export const lomoX = (vueltas, dim) => (vueltas <= 0 ? -dim.a / 2 : vueltas >= dim.n + 1 ? dim.a / 2 : 0);
+
+/** Caja (puntos del mundo) que debe verse en un estado asentado (vista de dos páginas o álbum cerrado), a partir de las dimensiones del modelo. */
 export function puntosVista({ vueltas, dim, modo = 'doble', lado = 'der' }) {
-  const { a, d, h, n } = dim, z = d / 2, clase = claseVista(vueltas, n);
+  const { a, d, h, n } = dim, z = d / 2, clase = claseVista(vueltas, n), sp = lomoX(vueltas, dim);
   let x;
-  if (clase === 'cerrado' || clase === 'final') x = [-a / 2, a / 2];             // el conjunto se centra solo (centradoX)
-  else if (modo === 'pagina') x = lado === 'izq' && clase !== 'portada' ? [-a, 0] : [0, a];
-  else x = [-a, a];
+  if (clase === 'cerrado') x = [sp, sp + a];                                     // solo la cubierta, sobre la pila derecha
+  else if (modo === 'pagina') x = lado === 'izq' && clase !== 'portada' ? [sp - a, sp] : [sp, sp + a];
+  else x = [sp - a, sp + a];                                                     // dos páginas (en «final»: pila a la izquierda y contratapa a la derecha)
   return esquinas(x, [0, h], [-z, z]);
 }
 
@@ -37,6 +40,79 @@ export function puntosGiro(dim, elevacion = 0.03) {
 
 /** Elevación de la cámara: más baja en vertical (se aprecia el grosor), algo más alta en horizontal (hay menos alto disponible). */
 export const elevacionPara = (aspect) => (aspect < 0.9 ? 52 : 58) * GRAD;
+
+// ------------------------------------------------------------------ composición artística (3.7.1b) — TODOS los parámetros en un solo sitio
+export const COMPOSICION = {
+  vecina: 0.12,          // franja visible de la página contigua, como fracción del ancho de la hoja (≈ 9 % del ancho de pantalla en vertical); además se ve el lomo
+  margen: 0.035,         // margen exterior de la vista de una página y del álbum cerrado (coordenadas NDC: 0,035 = 1,75 % del ancho a cada lado)
+  margenDoble: 0.02,     // margen de la vista de dos páginas (más ajustado: es la que más sufre en horizontal)
+  sesgoOptico: 0.02,     // el centro VISUAL queda un 2 % del alto libre por encima del centro matemático (un objeto se percibe más «bajo» de lo que está)
+  toleranciaContexto: 1.15, // con la ficha abierta se renuncia a vecina/lomo/página completa si obligan a alejar la cámara más de un 15 % respecto a la navegación
+  filasContexto: 1,      // cuando ni la página cabe junto a la ficha: filas de cartas que se conservan sobre y bajo la carta seleccionada
+  pasoFila: 0.0965,      // separación entre filas de bolsillos en el modelo (m); una prueba lo comprueba contra el GLB real
+};
+
+// ------------------------------------------------------------------ cajas del mundo (transformaciones REALES de los nodos, o dimensiones del modelo mientras algo se mueve)
+/** Caja alineada con los ejes en el mundo de una malla: min/max locales + matriz del mundo (16 números, column-major). Vale con rotaciones de 0 o π en Z, como las hojas. */
+export function aabbMundo({ min, max, matriz: m }) {
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const x of [min[0], max[0]]) for (const y of [min[1], max[1]]) for (const z of [min[2], max[2]]) {
+    const p = [m[0] * x + m[4] * y + m[8] * z + m[12], m[1] * x + m[5] * y + m[9] * z + m[13], m[2] * x + m[6] * y + m[10] * z + m[14]];
+    for (let i = 0; i < 3; i++) { lo[i] = Math.min(lo[i], p[i]); hi[i] = Math.max(hi[i], p[i]); }
+  }
+  return { x: [lo[0], hi[0]], y: [lo[1], hi[1]], z: [lo[2], hi[2]] };
+}
+
+/** Nombres de las mallas reales que forman cada parte visible en el estado `vueltas`. */
+export function nombresCajas(vueltas, n) {
+  return { der: vueltas <= n ? `Hoja_${Math.max(0, vueltas - 1)}_Losa` : 'Contratapa', izq: vueltas >= 2 ? `Hoja_${vueltas - 2}_Losa` : 'Tapa_Malla',
+    baseDer: 'Contratapa', baseIzq: 'Tapa_Malla', lomo: 'Lomo' };
+}
+
+/** Cajas reales del estado asentado: `malla(nombre)` devuelve {min,max,matriz} de la malla del GLB. */
+export function cajasReales(vueltas, n, malla) {
+  const nombres = nombresCajas(vueltas, n), r = {};
+  for (const [k, nombre] of Object.entries(nombres)) { const m = malla(nombre); if (!m) return null; r[k] = aabbMundo(m); }
+  return r;
+}
+
+/** Las mismas cajas calculadas con las dimensiones del modelo (para estados intermedios, mientras una hoja gira y no hay transformación final que medir). */
+export function cajasDimensiones(vueltas, dim, geo) {
+  const { a, hoja, n } = dim, sp = lomoX(vueltas, dim), z = dim.d / 2, zh = Math.min(dim.d, 0.3) / 2, g = 0.0006;
+  const hojaDer = (e) => ({ x: [sp, sp + hoja], y: [geo.yDerecha(e) - g, geo.yDerecha(e) + g], z: [-zh, zh] });
+  const hojaIzq = (e) => ({ x: [sp - hoja, sp], y: [geo.yIzquierda(e) - g, geo.yIzquierda(e) + g], z: [-zh, zh] });
+  // la cubierta delantera está sobre la pila derecha con el álbum cerrado y sobre la izquierda en cuanto se abre
+  const tapaIzq = vueltas <= 0 ? { x: [sp, sp + a], y: [geo.yDerecha(0) - 0.003, geo.yDerecha(0) + 0.003], z: [-z, z] }
+    : { x: [sp - a, sp], y: [geo.yIzquierda(0) - 0.003, geo.yIzquierda(0) + 0.003], z: [-z, z] };
+  const contratapa = { x: [sp, sp + a], y: [0, 0.006], z: [-z, z] };
+  return { der: vueltas <= n ? hojaDer(Math.max(1, vueltas)) : contratapa, izq: vueltas >= 2 ? hojaIzq(vueltas - 1) : tapaIzq, baseDer: contratapa, baseIzq: tapaIzq,
+    lomo: { x: [sp - 0.01, sp + 0.01], y: [0, dim.h], z: [-z, z] } };
+}
+
+const esquinasCaja = (c) => esquinas(c.x, c.y, c.z);
+const recortar = (c, rx, rz) => ({ x: rx ? [Math.max(c.x[0], rx[0]), Math.min(c.x[1], rx[1])] : c.x, y: c.y, z: rz ? [Math.max(c.z[0], rz[0]), Math.min(c.z[1], rz[1])] : c.z });
+const vacia = (c) => c.x[0] > c.x[1] || c.z[0] > c.z[1];
+
+/**
+ * Puntos de la composición «página protagonista + lomo + franja de la contigua» (vista de una página en vertical).
+ *  lado: 'der' | 'izq' (página protagonista); vecina: incluir la franja contigua; lomo: incluir el lomo.
+ *  La franja es el lomo más COMPOSICION.vecina × ancho de hoja de la página contigua: se recorta la caja, no se mueve ninguna hoja.
+ *  filaZ: [z0, z1] para quedarse solo con unas filas de la página (último recurso con la ficha abierta).
+ */
+export function puntosPagina({ lado, cajas, vecina = true, lomo = true, filaZ = null, hoja, composicion = COMPOSICION }) {
+  const prop = lado === 'der' ? ['der', 'baseDer'] : ['izq', 'baseIzq'], otra = lado === 'der' ? ['izq', 'baseIzq'] : ['der', 'baseDer'];
+  const lomoMitad = (cajas.lomo.x[1] - cajas.lomo.x[0]) / 2, sp = (cajas.lomo.x[0] + cajas.lomo.x[1]) / 2;
+  const franja = lomoMitad + composicion.vecina * hoja;
+  const rz = filaZ;
+  const pts = [];
+  for (const k of prop) pts.push(...esquinasCaja(recortar(cajas[k], null, rz)));
+  if (lomo) pts.push(...esquinasCaja(recortar(cajas.lomo, null, rz)));
+  if (vecina) for (const k of otra) { const c = recortar(cajas[k], lado === 'der' ? [sp - franja, sp] : [sp, sp + franja], rz); if (!vacia(c)) pts.push(...esquinasCaja(c)); }
+  return pts;
+}
+
+/** Vista de dos páginas (o álbum cerrado) a partir de las cajas: todas las piezas visibles, ajustadas a lo que hay (no a una caja envolvente conservadora). */
+export const puntosConjunto = (cajas) => Object.values(cajas).flatMap(esquinasCaja);
 
 // ------------------------------------------------------------------ proyección
 export function baseCamara(az, el) {
@@ -73,7 +149,7 @@ export function rectLibre({ arriba = 0, abajo = 0, izquierda = 0, derecha = 0 } 
  * Cámara que encaja `puntos` en el rectángulo libre del viewport, centrados en él y lo más grandes posible.
  * Devuelve { az, el, radio, objetivo }. No usa una distancia fija: depende del fov, la proporción, la elevación y la interfaz.
  */
-export function calcularEncuadre({ puntos, fovGrados = 32, aspect, az = 0, el = elevacionPara(aspect), reservado = {}, margen = 0.02 }) {
+export function calcularEncuadre({ puntos, fovGrados = 32, aspect, az = 0, el = elevacionPara(aspect), reservado = {}, margen = 0.02, centroVisual = null, sesgo = 0 }) {
   const R = rectLibre(reservado, margen), W = R.x1 - R.x0, H = R.y1 - R.y0;
   if (!(W > 0.1) || !(H > 0.1)) throw new RangeError('la interfaz ocupa casi toda la pantalla');
   const b = baseCamara(az, el);
@@ -96,6 +172,17 @@ export function calcularEncuadre({ puntos, fovGrados = 32, aspect, az = 0, el = 
     obj = [0, 1, 2].map((i) => obj[i] - b.r[i] * dx * m.z * tv * aspect - b.u[i] * dy * m.z * tv);
   }
   radio = resolver(obj);
+  if (centroVisual) {
+    // Centrado VISUAL: el centro matemático de la caja incluye el grosor de las pilas, la cubierta y el lomo; lo que el ojo centra es la CARA de la página.
+    // Se coloca el centro de `centroVisual` en el centro del rectángulo libre (+ un pequeño sesgo óptico hacia arriba) sin sacar nada del rectángulo.
+    for (let it = 0; it < 3; it++) {
+      const m = medir(obj, radio), pos = posicionDe(obj, radio, az, el), ys = centroVisual.map((p) => proyectarPunto(p, pos, obj, fovGrados, aspect, az, el).y);
+      const cy = (Math.min(...ys) + Math.max(...ys)) / 2, deseado = (R.y0 + R.y1) / 2 + sesgo * H;
+      let dy = deseado - cy; dy = Math.max(R.y0 - m.y0, Math.min(R.y1 - m.y1, dy));                   // sin salirse del rectángulo libre
+      if (Math.abs(dy) < 1e-6) break;
+      obj = [0, 1, 2].map((i) => obj[i] - b.u[i] * dy * m.z * tv);
+    }
+  }
   while (!enRect(medir(obj, radio), R) && radio < 8) radio *= 1.005;          // seguro final: tras centrar, todo dentro del rectángulo
   return { az, el, radio, objetivo: obj };
 }
@@ -106,12 +193,30 @@ export function planos(radio, radioMax, rc = 0.4) {
   return { near: Math.max(0.01, (radio - rc) * 0.5), far: Math.max(3, (radioMax + rc) * 4) };
 }
 
-/** Fracciones de interfaz reservadas a partir de rectángulos del DOM (todo en px del lienzo). `ficha`: rect o null. */
-export function reservadoDesdeDom({ ancho, alto, cabeceraAbajo = 0, barraArriba = alto, ficha = null }) {
-  const r = { arriba: Math.min(0.45, Math.max(0, cabeceraAbajo) / alto), abajo: Math.min(0.5, Math.max(0, alto - barraArriba) / alto), izquierda: 0, derecha: 0 };
+/**
+ * Fracciones de interfaz reservadas a partir de rectángulos del DOM (todo en px del lienzo). `ficha`: rect o null.
+ * Con la interfaz en columnas laterales (móvil horizontal) se pasan `izquierdaPx`/`derechaPx` y arriba/abajo quedan libres.
+ */
+export function reservadoDesdeDom({ ancho, alto, cabeceraAbajo = 0, barraArriba = alto, izquierdaPx = 0, derechaPx = 0, ficha = null }) {
+  const r = { arriba: Math.min(0.45, Math.max(0, cabeceraAbajo) / alto), abajo: Math.min(0.5, Math.max(0, alto - barraArriba) / alto),
+    izquierda: Math.min(0.4, Math.max(0, izquierdaPx) / ancho), derecha: Math.min(0.4, Math.max(0, derechaPx) / ancho) };
   if (ficha) {
-    if (ficha.left > ancho * 0.4) r.derecha = Math.min(0.6, Math.max(0, ancho - ficha.left) / ancho);       // tarjeta lateral (pantallas anchas)
+    if (ficha.left > ancho * 0.4) r.derecha = Math.min(0.6, Math.max(r.derecha, (ancho - ficha.left) / ancho));          // tarjeta lateral (pantallas anchas)
     else r.abajo = Math.min(0.6, Math.max(0, alto - ficha.top) / alto);                                       // hoja inferior (móvil vertical)
   }
   return r;
+}
+
+/**
+ * Encuadre de la SELECCIÓN con la ficha abierta, en orden de prioridad (ficha utilizable → carta visible → contexto de su página → lomo → franja contigua).
+ * `niveles`: lista de { nombre, puntos } de más a menos contexto; se elige el primero que NO obliga a alejar la cámara más de `toleranciaContexto`
+ * respecto a `radioRef` (el encuadre de navegación). El último nivel se acepta siempre (es el que garantiza ver la carta).
+ */
+export function elegirEncuadreSeleccion({ niveles, base, radioRef, tolerancia = COMPOSICION.toleranciaContexto }) {
+  let ultimo = null;
+  for (let i = 0; i < niveles.length; i++) {
+    ultimo = { ...calcularEncuadre({ ...base, puntos: niveles[i].puntos }), nivel: niveles[i].nombre, indice: i };
+    if (ultimo.radio <= radioRef * tolerancia) return ultimo;
+  }
+  return ultimo;
 }

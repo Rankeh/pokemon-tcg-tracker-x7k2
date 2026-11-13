@@ -8,7 +8,8 @@ export class GLTFLoader {
       const lj = dv.getUint32(12, true);
       const json = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 20, lj)));
       const geos = json.meshes.map((m) => { const p = m.primitives[0], idx = json.accessors[p.indices], pos = json.accessors[p.attributes.POSITION];
-        return { index: { count: idx.count }, attributes: { position: { count: pos.count } }, nombre: m.name }; });
+        const [mn, mx] = [pos.min || [0, 0, 0], pos.max || [0, 0, 0]];
+        return { index: { count: idx.count }, attributes: { position: { count: pos.count } }, nombre: m.name, boundingBox: { min: { x: mn[0], y: mn[1], z: mn[2] }, max: { x: mx[0], y: mx[1], z: mx[2] } }, computeBoundingBox() {} }; });
       const crea = (i) => {
         const d = json.nodes[i];
         const o = d.mesh !== undefined ? new Mesh(geos[d.mesh], { nombre: 'material-glb' }) : new Object3D();
