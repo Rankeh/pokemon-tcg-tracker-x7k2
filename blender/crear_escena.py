@@ -20,7 +20,7 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, AQUI)
 
 import bpy  # noqa: E402
-from teselia import config as CFG, geometria as G, materiales as M, modelos, luces_camara as LC, render, utilidades as U  # noqa: E402
+from teselia import config as CFG, geometria as G, materiales as M, escena, modelos, luces_camara as LC, render, utilidades as U  # noqa: E402
 
 
 def argumentos():
@@ -37,29 +37,23 @@ def argumentos():
 
 def construir(cfg, vista, exposicion):
     U.limpiar_escena()
-    escena = bpy.context.scene
+    scn = bpy.context.scene
     col = bpy.data.collections.new("Teselia")
-    escena.collection.children.link(col)
+    scn.collection.children.link(col)
     C = cfg["colores"]
     mats = {
         "cubierta": M.cubierta(C["cubierta"]),
         "hilo": M.liso("Hilo", C["hilo"], 0.8, 0.0, 0.2),
         "metal": M.metal(C["metal"]),
-        "hoja": M.liso("Hoja", C["hoja"], 0.45, 0.0, 0.45),
+        "hoja": M.liso("Hoja", C["hoja"], 0.5, 0.0, 0.3),
         "funda": M.funda(),
         "soldadura": M.soldadura(),
-        "madera": M.madera("Escritorio"),
-        "atril": M.madera("Atril", (0.17, 0.09, 0.045, 1), (0.52, 0.30, 0.15, 1)),
-        "pared": M.liso("Pared", C["pared"], 0.95, 0.0, 0.1),
-        "taza": M.liso("Taza", C["taza"], 0.3, 0.0, 0.5),
-        "caja": M.liso("CajaMazo", "#AD8956", 0.55, 0.0, 0.3),
-        "bokeh0": M.luz_emisiva("Bokeh0", (1.0, 0.62, 0.30, 1), 45),
-        "bokeh1": M.luz_emisiva("Bokeh1", (1.0, 0.78, 0.50, 1), 35),
-        "bokeh2": M.luz_emisiva("Bokeh2", (0.95, 0.50, 0.25, 1), 55),
+        "madera": M.madera("Escritorio", tablon=cfg["entorno"]["tablon"]),
+        "atril": M.madera("Atril", (0.09, 0.055, 0.035, 1), (0.40, 0.25, 0.15, 1), tablon=0.12),
+        "pared": M.liso("Pared", C["pared"], 0.9, 0.0, 0.15),
     }
-    modelos.crear_entorno(cfg, col, mats)
-    modelos.crear_atril(cfg, col, mats["atril"])
-    modelos.crear_archivador(cfg, col, mats)
+    piezas, _info = escena.construir(cfg)
+    modelos.instanciar(piezas, col, mats)
     cam, pos, obj, dist = LC.crear_camara(cfg, col, vista)
     LC.crear_luces(cfg, col, obj, cfg["luces"]["exposicion"] if exposicion is None else exposicion)
     return pos, obj, dist

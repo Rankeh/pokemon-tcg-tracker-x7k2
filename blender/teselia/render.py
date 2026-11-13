@@ -43,6 +43,7 @@ def configurar(cfg, vista, modo):
     c.adaptive_threshold = 0.02
     c.max_bounces = q["rebotes"]
     c.transparent_max_bounces = 12   # las fundas transparentes se cruzan muchas veces
+    c.sample_clamp_indirect = 4.0   # solo recorta luciérnagas de rebotes; los reflejos directos no se tocan
     c.use_denoising = True
     try:
         c.denoiser = "OPENIMAGEDENOISE"

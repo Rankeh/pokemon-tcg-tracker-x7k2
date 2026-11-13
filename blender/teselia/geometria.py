@@ -255,7 +255,7 @@ def esquinas_archivador(cfg, lado):
     """Esquinas de las cubiertas visibles en mundo. lado: 'doble' | 'derecha'."""
     a = cfg["archivador"]
     cw, ch, gz = a["cubierta"]["ancho"], a["cubierta"]["alto"], a["cubierta"]["grosor"]
-    sw = a["lomo"]["ancho"] / 2
+    sw = a["lomo"]["ancho"] / 2 + a["lomo"].get("hendidura", 0.0)
     xs = (-(sw + cw) if lado == "doble" else sw, sw + cw)
     pts = []
     for x in xs:
@@ -267,7 +267,7 @@ def esquinas_archivador(cfg, lado):
 
 def objetivo_vista(cfg, lado):
     a = cfg["archivador"]
-    sw, cw = a["lomo"]["ancho"] / 2, a["cubierta"]["ancho"]
+    sw, cw = a["lomo"]["ancho"] / 2 + a["lomo"].get("hendidura", 0.0), a["cubierta"]["ancho"]
     x = 0.0 if lado == "doble" else sw + cw / 2
     return a_mundo((x, 0.0, a["cubierta"]["grosor"] + 0.01), cfg)
 
@@ -382,3 +382,62 @@ def esfera(r, seg=16, anillos=10):
     base = 1 + (anillos - 2) * seg
     caras += [[ult, base + j, base + (j + 1) % seg] for j in range(seg)]
     return orientar(verts, caras)
+
+
+# ------------------------------------------------------------------ v2: bordes biselados SIN modificadores y láminas planas
+def losa_biselada(ancho, alto, radio, z0, z1, bisel, seg_bisel=5, seg_esq=6, cx=0.0, cy=0.0):
+    """Losa de esquinas redondeadas con el canto redondeado (bisel) construido en la propia malla.
+    Las caras superior e inferior tienen vértices PROPIOS (arista dura): con sombreado suave su normal es
+    exactamente +Z/-Z y no se 'curva' el reflejo, que era la causa de los cristales deformados de la v1."""
+    grosor = z1 - z0
+    b = min(bisel, grosor / 2 * 0.98, min(ancho, alto) / 2 * 0.9)
+    radio = max(radio, b + 0.0003)
+
+    def anillo(d):
+        return rect_redondeado(ancho - 2 * d, alto - 2 * d, radio - d, seg_esq, cx, cy)
+
+    n = len(anillo(0))
+    arriba = [(math.pi / 2 * k / seg_bisel) for k in range(seg_bisel + 1)]
+    perfil = [(b * (1 - math.sin(t)), z1 - b * (1 - math.cos(t))) for t in arriba]
+    perfil += [(b * (1 - math.sin(t)), z0 + b * (1 - math.cos(t))) for t in reversed(arriba)]
+    verts, filas = [], []
+    for d, z in perfil:
+        filas.append(list(range(len(verts), len(verts) + n)))
+        verts += [(x, y, z) for x, y in anillo(d)]
+    tapa_sup = list(range(len(verts), len(verts) + n))
+    verts += [(x, y, z1) for x, y in anillo(b)]
+    tapa_inf = list(range(len(verts), len(verts) + n))
+    verts += [(x, y, z0) for x, y in anillo(b)]
+    caras = [tapa_sup, list(reversed(tapa_inf))]
+    for a, c in zip(filas[:-1], filas[1:]):
+        for i in range(n):
+            j = (i + 1) % n
+            caras.append([c[i], c[j], a[j], a[i]])
+    return orientar(verts, caras)
+
+
+def plano(poligono, z):
+    """Una sola cara plana (sin grosor) con la normal hacia +Z."""
+    return [(x, y, z) for x, y in poligono], [list(range(len(poligono)))]
+
+
+def marco_plano(ancho, alto, radio, borde, z, seg=4, cx=0.0, cy=0.0):
+    """Marco plano (corona) entre el rectángulo redondeado interior (ancho x alto) y el exterior (+borde por lado)."""
+    ext = rect_redondeado(ancho + 2 * borde, alto + 2 * borde, radio + borde, seg, cx, cy)
+    inte = rect_redondeado(ancho, alto, radio, seg, cx, cy)
+    n = len(ext)
+    verts = [(x, y, z) for x, y in ext] + [(x, y, z) for x, y in inte]
+    caras = [[i, (i + 1) % n, n + (i + 1) % n, n + i] for i in range(n)]
+    return verts, caras
+
+
+def rotar_z_alrededor(verts, ang, cx, cy):
+    c, s = math.cos(ang), math.sin(ang)
+    return [(cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c, z) for x, y, z in verts]
+
+
+def normal_cara(verts, cara):
+    a, b, c = verts[cara[0]], verts[cara[1]], verts[cara[2]]
+    u = (b[0] - a[0], b[1] - a[1], b[2] - a[2])
+    v = (c[0] - a[0], c[1] - a[1], c[2] - a[2])
+    return _norm(_cruz(u, v))

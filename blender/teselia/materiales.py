@@ -19,34 +19,65 @@ def lineal4(hexcol):
     return (r, g, b, 1.0)
 
 
-def madera(nombre="Madera", oscuro=(0.10, 0.05, 0.025, 1), claro=(0.38, 0.20, 0.095, 1)):
+def madera(nombre="Madera", oscuro=(0.050, 0.034, 0.024, 1), claro=(0.27, 0.17, 0.105, 1), tablon=0.16):
+    """Tablones de nogal: tono distinto por tablón, juntas oscuras, veta larga y fina a lo largo de X (grano
+    alargado con coordenadas escaladas), ondulación suave a gran escala y rugosidad variable. Sin repeticiones
+    visibles porque todo es procedural en coordenadas de objeto."""
     mat, nt = nuevo_material(nombre)
-    coord = nodo(nt, "ShaderNodeTexCoord", -900, 0)
-    mapa = nodo(nt, "ShaderNodeMapping", -700, 0)
-    fijar(mapa, "Scale", (0.45, 1.0, 1.0))
-    onda = nodo(nt, "ShaderNodeTexWave", -480, 100, wave_type="BANDS", bands_direction="Y", wave_profile="SIN")
-    fijar(onda, "Scale", 11.0); fijar(onda, "Distortion", 5.0); fijar(onda, "Detail", 2.0); fijar(onda, "Detail Scale", 1.4)
-    ruido = nodo(nt, "ShaderNodeTexNoise", -480, -200)
-    fijar(ruido, "Scale", 40.0); fijar(ruido, "Detail", 5.0)
-    rampa = nodo(nt, "ShaderNodeValToRGB", -240, 100)
+    coord = nodo(nt, "ShaderNodeTexCoord", -1400, 0)
+    sep = nodo(nt, "ShaderNodeSeparateXYZ", -1200, 200)
+    enlazar(nt, coord, "Object", sep, "Vector")
+    # índice de tablón según Y, tono aleatorio por tablón y junta oscura
+    div = nodo(nt, "ShaderNodeMath", -1000, 300, operation="DIVIDE"); div.inputs[1].default_value = tablon
+    suelo = nodo(nt, "ShaderNodeMath", -820, 300, operation="FLOOR")
+    azar = nodo(nt, "ShaderNodeTexWhiteNoise", -640, 300, noise_dimensions="1D")
+    frac = nodo(nt, "ShaderNodeMath", -820, 120, operation="FRACT")
+    junta = nodo(nt, "ShaderNodeMath", -640, 120, operation="LESS_THAN"); junta.inputs[1].default_value = 0.012
+    enlazar(nt, sep, "Y", div, 0); enlazar(nt, div, "Value", suelo, 0); enlazar(nt, suelo, "Value", azar, "W")
+    enlazar(nt, div, "Value", frac, 0); enlazar(nt, frac, "Value", junta, 0)
+    # veta: ruido muy alargado en X + bandas anchas distorsionadas
+    mapa = nodo(nt, "ShaderNodeMapping", -1000, -150)
+    fijar(mapa, "Scale", (1.6, 260.0, 40.0))
+    fijar(mapa, "Location", (0.0, 0.0, 0.0))
+    grano = nodo(nt, "ShaderNodeTexNoise", -780, -150)
+    fijar(grano, "Scale", 1.0); fijar(grano, "Detail", 6.0); fijar(grano, "Roughness", 0.6)
+    mapa2 = nodo(nt, "ShaderNodeMapping", -1000, -420)
+    fijar(mapa2, "Scale", (0.7, 6.0, 1.0))
+    onda = nodo(nt, "ShaderNodeTexWave", -780, -420, wave_type="BANDS", bands_direction="Y", wave_profile="SAW")
+    fijar(onda, "Scale", 1.0); fijar(onda, "Distortion", 7.0); fijar(onda, "Detail", 3.0); fijar(onda, "Detail Scale", 1.3)
+    enlazar(nt, coord, "Object", mapa, "Vector"); enlazar(nt, mapa, "Vector", grano, "Vector")
+    enlazar(nt, coord, "Object", mapa2, "Vector"); enlazar(nt, mapa2, "Vector", onda, "Vector")
+    mezcla = nodo(nt, "ShaderNodeMath", -560, -250, operation="MULTIPLY_ADD")
+    mezcla.inputs[1].default_value = 0.6
+    enlazar(nt, grano, "Fac", mezcla, 0)
+    enlazar(nt, onda, "Fac", mezcla, 2)
+    rampa = nodo(nt, "ShaderNodeValToRGB", -360, -100)
     rampa.color_ramp.elements[0].color = oscuro
     rampa.color_ramp.elements[1].color = claro
-    rug = nodo(nt, "ShaderNodeMapRange", -240, -200)
-    fijar(rug, "To Min", 0.38); fijar(rug, "To Max", 0.62)
-    bump = nodo(nt, "ShaderNodeBump", 0, -200)
-    fijar(bump, "Strength", 0.12); fijar(bump, "Distance", 0.002)
-    bsdf = _principled(nt)
-    fijar(bsdf, ["Specular IOR Level", "Specular"], 0.35)
-    enlazar(nt, coord, "Object", mapa, "Vector")
-    enlazar(nt, mapa, "Vector", onda, "Vector")
-    enlazar(nt, mapa, "Vector", ruido, "Vector")
-    enlazar(nt, onda, "Color", rampa, "Fac")
-    enlazar(nt, rampa, "Color", bsdf, "Base Color")
-    enlazar(nt, ruido, "Fac", rug, "Value")
+    tono = nodo(nt, "ShaderNodeMath", -360, 300, operation="MULTIPLY_ADD")   # 0.75 + 0.5*azar
+    tono.inputs[1].default_value = 0.5; tono.inputs[2].default_value = 0.75
+    enlazar(nt, azar, "Value", tono, 0)
+    mult = nodo(nt, "ShaderNodeMix", -140, 0, data_type="RGBA", blend_type="MULTIPLY")
+    fijar(mult, "Factor", 1.0)
+    enlazar(nt, rampa, "Color", mult, "A")
+    enlazar(nt, tono, "Value", mult, "B")
+    oscurece = nodo(nt, "ShaderNodeMix", 60, 0, data_type="RGBA", blend_type="MIX")
+    fijar(oscurece, "B", (0.012, 0.008, 0.006, 1))
+    enlazar(nt, junta, "Value", oscurece, "Factor")
+    enlazar(nt, mult, "Result", oscurece, "A")
+    rug = nodo(nt, "ShaderNodeMapRange", -360, -420)
+    fijar(rug, "To Min", 0.42); fijar(rug, "To Max", 0.72)
+    bump = nodo(nt, "ShaderNodeBump", -140, -300)
+    fijar(bump, "Strength", 0.25); fijar(bump, "Distance", 0.0015)
+    bsdf = _principled(nt, 300, 0)
+    fijar(bsdf, ["Specular IOR Level", "Specular"], 0.3)
+    enlazar(nt, mezcla, "Value", rampa, "Fac")
+    enlazar(nt, grano, "Fac", rug, "Value")
+    enlazar(nt, grano, "Fac", bump, "Height")
+    enlazar(nt, oscurece, "Result", bsdf, "Base Color")
     enlazar(nt, rug, "Result", bsdf, "Roughness")
-    enlazar(nt, ruido, "Fac", bump, "Height")
     enlazar(nt, bump, "Normal", bsdf, "Normal")
-    _salida(nt, bsdf)
+    _salida(nt, bsdf, 560, 0)
     return mat
 
 
@@ -82,37 +113,30 @@ def liso(nombre, color_hex, rugosidad=0.5, metal=0.0, especular=0.4):
 
 
 def metal(color_hex):
-    return liso("MetalAnillas", color_hex, rugosidad=0.24, metal=1.0, especular=0.5)
+    return liso("MetalAnillas", color_hex, rugosidad=0.28, metal=1.0, especular=0.5)
 
 
 def funda():
-    """Plástico transparente: mezcla de 'transparente' y reflejo brillante guiada por Fresnel (barata en Cycles
-    y las cartas de debajo reciben luz y sombra normalmente)."""
+    """Lámina casi invisible: Principled con alfa muy bajo (el alfa atenúa también el reflejo), rugosidad media y
+    especular bajo. Sin Glossy puro, sin Fresnel, sin transmisión ni refracción: nada que pueda 'romperse'."""
     mat, nt = nuevo_material("Funda")
-    transp = nodo(nt, "ShaderNodeBsdfTransparent", 0, 150)
-    brillo = nodo(nt, "ShaderNodeBsdfGlossy", 0, -50)
-    fijar(brillo, "Roughness", 0.10)
-    fijar(brillo, "Color", (1, 1, 1, 1))
-    fres = nodo(nt, "ShaderNodeFresnel", -300, 250)
-    fijar(fres, "IOR", 1.45)
-    suelo = nodo(nt, "ShaderNodeMath", -120, 250, operation="MAXIMUM")
-    suelo.inputs[1].default_value = 0.07   # velo mínimo: la funda se nota incluso de frente
-    mezcla = nodo(nt, "ShaderNodeMixShader", 250, 100)
-    enlazar(nt, fres, "Fac", suelo, 0)
-    enlazar(nt, suelo, "Value", mezcla, "Fac")
-    enlazar(nt, transp, "BSDF", mezcla, 1)
-    enlazar(nt, brillo, "BSDF", mezcla, 2)
-    sal = nodo(nt, "ShaderNodeOutputMaterial", 500, 100)
-    enlazar(nt, mezcla, "Shader", sal, "Surface")
+    bsdf = _principled(nt)
+    fijar(bsdf, "Base Color", (1, 1, 1, 1))
+    fijar(bsdf, "Roughness", 0.30)
+    fijar(bsdf, ["Specular IOR Level", "Specular"], 0.30)
+    fijar(bsdf, "Alpha", 0.07)
+    _salida(nt, bsdf)
     return mat
 
 
 def soldadura():
+    """Línea de termosellado: plástico lechoso, algo más claro que la funda."""
     mat, nt = nuevo_material("Soldadura")
     bsdf = _principled(nt)
-    fijar(bsdf, "Base Color", (0.9, 0.9, 0.9, 1))
-    fijar(bsdf, "Roughness", 0.35)
-    fijar(bsdf, "Alpha", 0.28)
+    fijar(bsdf, "Base Color", (0.62, 0.62, 0.60, 1))
+    fijar(bsdf, "Roughness", 0.5)
+    fijar(bsdf, ["Specular IOR Level", "Specular"], 0.2)
+    fijar(bsdf, "Alpha", 0.55)
     _salida(nt, bsdf)
     return mat
 
@@ -124,8 +148,8 @@ def carta(nombre, imagen):
     tex.interpolation = "Linear"
     tex.extension = "EXTEND"
     bsdf = _principled(nt)
-    fijar(bsdf, "Roughness", 0.38)
-    fijar(bsdf, ["Specular IOR Level", "Specular"], 0.5)
+    fijar(bsdf, "Roughness", 0.55)
+    fijar(bsdf, ["Specular IOR Level", "Specular"], 0.2)
     enlazar(nt, tex, "Color", bsdf, "Base Color")
     _salida(nt, bsdf)
     return mat

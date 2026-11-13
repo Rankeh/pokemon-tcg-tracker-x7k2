@@ -29,13 +29,29 @@ def crear_luces(cfg, col, objetivo, exposicion):
     luz_area("Principal", col, (t[0] - 0.95, t[1] - 0.55, t[2] + 0.75), t, L["principal_w"], C["luz_principal"], 0.75)
     luz_area("Relleno", col, (t[0] + 1.0, t[1] - 0.85, t[2] + 0.45), t, L["relleno_w"], C["luz_relleno"], 1.2)
     luz_area("Borde", col, (t[0] + 0.55, t[1] + 0.70, t[2] + 0.55), t, L["borde_w"], C["luz_borde"], 0.4)
-    # mundo casi negro cálido: da algo de relleno ambiental sin lavar el contraste
+    # mundo: degradado neutro de estudio (suelo cálido oscuro, cielo gris azulado) para que el metal tenga
+    # algo que reflejar y haya relleno ambiental suave sin dominante de color
     mundo = bpy.data.worlds.new("Mundo")
     mundo.use_nodes = True
-    fondo = mundo.node_tree.nodes.get("Background")
-    if fondo:
-        fondo.inputs["Color"].default_value = (0.06, 0.04, 0.03, 1)
-        fondo.inputs["Strength"].default_value = 0.5
+    nt = mundo.node_tree
+    fondo = nt.nodes.get("Background")
+    try:
+        coord = nt.nodes.new("ShaderNodeTexCoord")
+        sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+        mr = nt.nodes.new("ShaderNodeMapRange")
+        mr.inputs["From Min"].default_value = -0.4
+        mr.inputs["From Max"].default_value = 0.9
+        rampa = nt.nodes.new("ShaderNodeValToRGB")
+        rampa.color_ramp.elements[0].color = (0.035, 0.030, 0.027, 1)
+        rampa.color_ramp.elements[1].color = (0.20, 0.22, 0.25, 1)
+        nt.links.new(coord.outputs["Generated"], sep.inputs["Vector"])
+        nt.links.new(sep.outputs["Z"], mr.inputs["Value"])
+        nt.links.new(mr.outputs["Result"], rampa.inputs["Fac"])
+        nt.links.new(rampa.outputs["Color"], fondo.inputs["Color"])
+        fondo.inputs["Strength"].default_value = 1.0
+    except (KeyError, AttributeError, TypeError):
+        fondo.inputs["Color"].default_value = (0.08, 0.08, 0.09, 1)
+        fondo.inputs["Strength"].default_value = 0.6
     bpy.context.scene.world = mundo
     vs = bpy.context.scene.view_settings
     for nombre in ("AgX", "Filmic", "Standard"):
