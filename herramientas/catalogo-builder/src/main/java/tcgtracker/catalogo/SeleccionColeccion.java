@@ -101,7 +101,11 @@ public class SeleccionColeccion {
         System.out.println("Fulgor Negro: " + totales.path("sv10.5b").asInt()
                 + " | Llama Blanca: " + totales.path("sv10.5w").asInt());
         comprobaciones.forEach(c -> System.out.println("  " + c));
-        System.out.println("Sin imagen en español (necesitan tu aprobación): " + seleccion.sinImagenEspanol.size());
+        System.out.println("Sin imagen en español (necesitan tu aprobación): "
+                + (seleccion.sinImagenEspanol.size() + promos.pendientesImagenEspanol.size())
+                + " (de ellas promociones: " + promos.pendientesImagenEspanol.size() + ")");
+        promos.avisos.forEach(a -> System.out.println("  aviso: " + a));
+        promos.problemas.forEach(a -> System.out.println("  PROBLEMA: " + a));
         System.out.println("A revisar a mano: " + seleccion.revisarAMano.size());
         System.out.println("Candidatas de promoción pendientes: "
                 + (promos.informes.size() - promos.confirmadas.size()));
@@ -163,14 +167,20 @@ public class SeleccionColeccion {
                 sb.append("\n");
             }
         }
+        promos.avisos.forEach(a -> sb.append("- Aviso: ").append(a).append("\n"));
         if (!promos.problemas.isEmpty()) {
             sb.append("### Problemas con promociones\n\n");
             promos.problemas.forEach(p -> sb.append("- ").append(p).append("\n"));
         }
 
         sb.append("\n## Cartas que cumplen los criterios pero SIN imagen en español (necesitan tu aprobación)\n\n");
-        if (sel.sinImagenEspanol.isEmpty()) {
+        if (sel.sinImagenEspanol.isEmpty() && promos.pendientesImagenEspanol.isEmpty()) {
             sb.append("Ninguna.\n");
+        }
+        for (ObjectNode c : promos.pendientesImagenEspanol) {
+            sb.append("- (promoción) ").append(c.path("id").asText()).append(" ").append(c.path("nombre").asText())
+                    .append(" — imagen en ").append(c.path("idiomaImagen").asText())
+                    .append(": ").append(c.path("imagen").asText()).append("\n");
         }
         for (ObjectNode c : sel.sinImagenEspanol) {
             sb.append("- ").append(c.path("id").asText()).append(" ").append(c.path("nombre").asText()).append("\n");

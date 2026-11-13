@@ -27,6 +27,9 @@ public final class PromocionesFase1 {
     public final List<Informe> informes = new ArrayList<>();
     public final List<ObjectNode> confirmadas = new ArrayList<>();
     public final List<String> problemas = new ArrayList<>();
+    /** Confirmadas pero sin imagen en español en TCGdex: no cuentan hasta que las apruebes. */
+    public final List<ObjectNode> pendientesImagenEspanol = new ArrayList<>();
+    public final List<String> avisos = new ArrayList<>();
 
     public static PromocionesFase1 procesar(Path archivoDecisiones, Path carpetaCrudo) throws IOException {
         PromocionesFase1 p = new PromocionesFase1();
@@ -36,40 +39,34 @@ public final class PromocionesFase1 {
         TcgdexCliente en = new TcgdexCliente("en", carpetaCrudo.resolve("en"));
 
         JsonNode listaEs = intentar(es, "svp");
-        JsonNode listaEn = listaEs == null ? intentar(en, "svp") : null;
+        JsonNode listaEn = null;
+        boolean enIntentada = false;
 
         for (JsonNode c : config.path("candidatas")) {
             String nombre = c.path("busqueda").asText();
             List<Coincidencia> coincidencias = new ArrayList<>();
             String nota = "";
-            if (listaEs == null && listaEn == null) {
-                nota = "No se pudo descargar la serie svp (revisa la conexión).";
-            } else {
-                // Preferimos español; si la serie no existe en español, usamos inglés y lo decimos.
-                JsonNode lista = listaEs != null ? listaEs : listaEn;
-                TcgdexCliente cliente = listaEs != null ? es : en;
-                String idioma = listaEs != null ? "es" : "en";
-                for (JsonNode resumen : lista.path("cards")) {
-                    if (!resumen.path("name").asText().toLowerCase().contains(nombre.toLowerCase())) {
-                        continue;
-                    }
-                    try {
-                        JsonNode carta = cliente.obtenerCarta(resumen.path("id").asText());
-                        coincidencias.add(new Coincidencia(carta.path("id").asText(), carta.path("localId").asText(),
-                                carta.path("name").asText(), carta.path("rarity").asText(""),
-                                carta.path("illustrator").asText(""),
-                                carta.hasNonNull("image") ? carta.path("image").asText() + "/high.webp" : "",
-                                idioma));
-                    } catch (IOException | InterruptedException e) {
-                        p.problemas.add(resumen.path("id").asText() + ": " + e.getMessage());
+
+            // Primero español; si no hay la serie o la carta en español, se prueba inglés y se avisa.
+            if (listaEs != null) {
+                buscar(p, es, listaEs, nombre, "es", coincidencias);
+            }
+            if (coincidencias.isEmpty()) {
+                if (!enIntentada) {
+                    listaEn = intentar(en, "svp");
+                    enIntentada = true;
+                }
+                if (listaEn != null) {
+                    buscar(p, en, listaEn, nombre, "en", coincidencias);
+                    if (!coincidencias.isEmpty()) {
+                        nota = "No está en español en TCGdex: datos e imágenes en inglés (requiere tu aprobación).";
                     }
                 }
-                if (idioma.equals("en")) {
-                    nota = "La serie svp no está en español en TCGdex: datos e imágenes en inglés (requiere tu aprobación).";
-                }
-                if (coincidencias.isEmpty()) {
-                    nota += " Sin coincidencias en svp para '" + nombre + "'.";
-                }
+            }
+            if (coincidencias.isEmpty()) {
+                nota = (listaEs == null && listaEn == null)
+                        ? "No se pudo descargar la serie svp (revisa la conexión)."
+                        : "Sin coincidencias en svp para '" + nombre + "'.";
             }
             p.informes.add(new Informe(c, coincidencias, nota.trim()));
 
@@ -78,6 +75,24 @@ public final class PromocionesFase1 {
             }
         }
         return p;
+    }
+
+    private static void buscar(PromocionesFase1 p, TcgdexCliente cliente, JsonNode lista, String nombre,
+                               String idioma, List<Coincidencia> destino) {
+        for (JsonNode resumen : lista.path("cards")) {
+            if (!resumen.path("name").asText().toLowerCase().contains(nombre.toLowerCase())) {
+                continue;
+            }
+            try {
+                JsonNode carta = cliente.obtenerCarta(resumen.path("id").asText());
+                destino.add(new Coincidencia(carta.path("id").asText(), carta.path("localId").asText(),
+                        carta.path("name").asText(), carta.path("rarity").asText(""),
+                        carta.path("illustrator").asText(""),
+                        carta.hasNonNull("image") ? carta.path("image").asText() + "/high.webp" : "", idioma));
+            } catch (IOException | InterruptedException e) {
+                p.problemas.add(resumen.path("id").asText() + ": " + e.getMessage());
+            }
+        }
     }
 
     private void recogerConfirmada(JsonNode c, List<Coincidencia> coincidencias) {
@@ -101,8 +116,18 @@ public final class PromocionesFase1 {
         o.put("idiomaImagen", elegida.idioma());
         o.put("producto", c.path("producto").asText());
         o.put("tipoIlustracion", c.path("tipoIlustracion").asText());
-        o.put("verificacion", "confirmada por el usuario");
-        confirmadas.add(o);
+        o.put("verificacion", "confirmada (número, producto e ilustración contrastados en varias fuentes; ver promociones.json)");
+
+        String esperado = c.path("ilustradorEsperado").asText("");
+        if (!esperado.isEmpty() && !elegida.ilustrador().toLowerCase().contains(esperado.toLowerCase())) {
+            avisos.add(elegida.id() + ": TCGdex da el ilustrador '" + elegida.ilustrador()
+                    + "' y las fuentes decían '" + esperado + "'. Compruébalo mirando la imagen.");
+        }
+        if (elegida.idioma().equals("es") || c.path("aprobarImagenIngles").asBoolean(false)) {
+            confirmadas.add(o);
+        } else {
+            pendientesImagenEspanol.add(o);
+        }
     }
 
     private static JsonNode intentar(TcgdexCliente cliente, String id) {
