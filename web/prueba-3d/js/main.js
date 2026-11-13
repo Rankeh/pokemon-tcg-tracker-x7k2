@@ -10,7 +10,8 @@ import { dimensiones, puntosVista, puntosGiro, calcularEncuadre, elevacionPara, 
 import { crearGeometria } from './logica.js';
 import { Resaltado } from './resaltado.js';
 import { Metricas } from './metricas.js';
-import { Aspecto, elegirCalidad } from './aspecto.js';
+import { Aspecto, elegirCalidad, elegirTema, TEMAS } from './aspecto.js';
+import { fijarTemaMarcadores } from './marcadores.js';
 import { Diagnostico } from './diagnostico.js';
 import { CacheTexturas } from './texturas.js';
 import { crearProductores, cargarManifiesto } from './texturas3d.js';
@@ -38,7 +39,9 @@ const camara = new THREE.PerspectiveCamera(FOV, 1, 0.02, 5);
 // Fase 3.7.2a: luces, mesa, sombra de contacto, materiales y tone mapping los gestiona Aspecto según el nivel de calidad (?calidad=baja|media|alta|legado).
 const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchMedia('(pointer: coarse)').matches,
   nucleos: navigator.hardwareConcurrency || 0, memoriaGb: navigator.deviceMemory || 0 });
-const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen });
+const tema = elegirTema(params.get('tema'));                 // ?tema=acogedor (por defecto, estilo videojuego) | noche (grafito de 3.7.2)
+document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
+const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema });
 
 const orbita = new OrbitaLigera();
 let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl = null, adaptador = null, ficha = null;
@@ -406,7 +409,7 @@ async function arrancar() {
   scene.add(album.escena);
   aspecto.aplicarAlbum(album);
   dim = dimensiones(album.params);
-  resaltado = new Resaltado({ reducirMovimiento: () => reducirMovimiento });
+  resaltado = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro });
 
   const manifiesto = await cargarManifiesto();
   cache = new CacheTexturas({ presupuestoBytes: (+params.get('mem') || 32) * 1048576, concurrencia: 4 });

@@ -89,3 +89,64 @@ body:not(.debug) .secundario { display: none; }
   #b-salto { font-size: 0.78rem; }
   #b-ant, #b-sig { font-size: 1.3rem; }
 }
+
+/* =====================================================================================================================================
+   TEMA «ACOGEDOR» (3.7.3, dirección de videojuego): paneles crema redondeados con borde grueso y sombra «de botón», acentos naranja/verde/azul,
+   fondo cálido con bokeh (solo CSS, sin desenfoque en tiempo real) y tipografía redondeada del sistema. ?tema=noche vuelve al grafito.
+   Solo cambia el aspecto: ni tamaños de la interfaz que importen al encuadre (se mide en el DOM) ni la lógica.
+   ===================================================================================================================================== */
+body[data-tema="acogedor"] {
+  --fondo: #e7b98a; --texto: #5a4630; --suave: #8a7357; --acento: #e8742a; --panel: #fff6e4; --borde: #e3cfa6; --azul: #5aa6c8; --ok: #6cbf4b;
+  --crema: #fff6e4; --crema-2: #f4e6c8; --sombra-btn: #cdb27f; --verde: #7cc35e; --verde-sombra: #4f9a3a; --azul-btn: #7fa7d9; --azul-sombra: #5379ad;
+  font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI Variable Display", "Trebuchet MS", system-ui, sans-serif; font-weight: 600;
+  background:
+    radial-gradient(38vmax 30vmax at 12% 18%, rgba(255, 244, 214, 0.85), transparent 60%),
+    radial-gradient(26vmax 26vmax at 88% 12%, rgba(130, 205, 205, 0.55), transparent 62%),
+    radial-gradient(30vmax 22vmax at 80% 90%, rgba(255, 150, 110, 0.45), transparent 62%),
+    radial-gradient(22vmax 22vmax at 8% 86%, rgba(255, 220, 150, 0.6), transparent 60%),
+    linear-gradient(180deg, #f3cf9f 0%, #e7b184 48%, #d99872 100%);
+}
+body[data-tema="acogedor"] .cabecera { pointer-events: none; }
+body[data-tema="acogedor"] .cabecera > * { pointer-events: none; }
+body[data-tema="acogedor"] h1 { display: inline-flex; align-items: center; gap: 8px; padding: 7px 8px 7px 16px; font-size: 1.08rem; font-weight: 800; letter-spacing: 0.01em;
+  background: var(--crema); color: var(--texto); border: 3px solid var(--borde); border-radius: 999px; box-shadow: 0 4px 0 var(--sombra-btn), 0 10px 18px rgba(120, 70, 30, 0.22); }
+body[data-tema="acogedor"] h1 small { margin: 0; padding: 3px 11px; color: #fff; background: var(--acento); border-radius: 999px; font-weight: 800; font-size: 0.86rem; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16); }
+body[data-tema="acogedor"] #estado { display: inline-block; margin: 8px 0 0 6px; padding: 3px 12px; color: var(--texto); font-size: 0.85rem; background: rgba(255, 246, 228, 0.78); border-radius: 999px; }
+body[data-tema="acogedor"] .cargando, body[data-tema="acogedor"] .aviso { background: var(--crema); color: var(--texto); border: 3px solid var(--borde); border-radius: 22px; box-shadow: 0 5px 0 var(--sombra-btn), 0 16px 30px rgba(120, 70, 30, 0.25); }
+body[data-tema="acogedor"] .aviso { border-color: var(--acento); }
+
+body[data-tema="acogedor"] .barra { gap: 8px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: none; }
+body[data-tema="acogedor"] button, body[data-tema="acogedor"] select {
+  min-height: 52px; padding: 0 16px; color: var(--texto); font-weight: 800; background: var(--crema); border: 3px solid var(--borde); border-radius: 18px;
+  box-shadow: 0 4px 0 var(--sombra-btn), 0 8px 14px rgba(120, 70, 30, 0.18); transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s; }
+body[data-tema="acogedor"] button:hover:not(:disabled) { background: #fffaf0; filter: brightness(1.03); }
+body[data-tema="acogedor"] button:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--sombra-btn), 0 3px 6px rgba(120, 70, 30, 0.18); }
+body[data-tema="acogedor"] button:disabled { opacity: 0.5; filter: saturate(0.6); }
+body[data-tema="acogedor"] button:focus-visible, body[data-tema="acogedor"] select:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px var(--acento); }
+body[data-tema="acogedor"] button.principal { color: #fff; background: var(--verde); border-color: #a5dd8b; box-shadow: 0 4px 0 var(--verde-sombra), 0 8px 14px rgba(40, 90, 30, 0.28); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18); }
+body[data-tema="acogedor"] button.principal:hover:not(:disabled) { background: #86cd68; }
+body[data-tema="acogedor"] button.principal:active:not(:disabled) { box-shadow: 0 1px 0 var(--verde-sombra); }
+body[data-tema="acogedor"] #b-ant, body[data-tema="acogedor"] #b-sig { color: #fff; background: var(--azul-btn); border-color: #b5cdee; box-shadow: 0 4px 0 var(--azul-sombra), 0 8px 14px rgba(40, 60, 110, 0.25); font-size: 1.5rem; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18); }
+body[data-tema="acogedor"] #b-salto { text-overflow: ellipsis; background: var(--crema); }
+body[data-tema="acogedor"] #b-vista { color: var(--texto); }
+
+body[data-tema="acogedor"] .ficha-fondo { background: rgba(110, 60, 20, 0.16); }
+body[data-tema="acogedor"] .ficha { color: var(--texto); background: linear-gradient(180deg, #fffaf0, var(--crema-2)); border: 3px solid var(--borde); border-bottom: 0; border-radius: 28px 28px 0 0;
+  box-shadow: 0 -6px 0 rgba(205, 178, 127, 0.5), 0 -16px 40px rgba(120, 70, 30, 0.3); }
+body[data-tema="acogedor"] .ficha[data-estado="conseguida"] { border-color: var(--ok); }
+body[data-tema="acogedor"] .ficha-cerrar { color: var(--texto); background: var(--crema); border-color: var(--borde); width: 44px; min-height: 44px; border-radius: 50%; padding: 0; top: 10px; }
+body[data-tema="acogedor"] .ficha-imagen { background: #fff; border: 4px solid #fff; border-radius: 14px; box-shadow: 0 0 0 3px var(--borde), 0 8px 16px rgba(120, 70, 30, 0.25); }
+body[data-tema="acogedor"] .ficha-sin-imagen { color: var(--suave); border-color: var(--borde); }
+body[data-tema="acogedor"] .ficha-sin-imagen strong { color: var(--texto); } body[data-tema="acogedor"] .ficha-sin-imagen em { color: var(--acento); }
+body[data-tema="acogedor"] .ficha h2 { font-size: 1.4rem; font-weight: 800; }
+body[data-tema="acogedor"] .ficha-exp { color: var(--texto); } body[data-tema="acogedor"] .ficha-num { color: var(--suave); }
+body[data-tema="acogedor"] .ficha-total strong { font-size: 2.6rem; color: var(--acento); } body[data-tema="acogedor"] .ficha-total span { color: var(--suave); }
+body[data-tema="acogedor"] .paso { border-radius: 20px; font-size: 2.1rem; }
+body[data-tema="acogedor"] .paso-mas { color: #fff; background: var(--verde); border-color: #a5dd8b; box-shadow: 0 4px 0 var(--verde-sombra), 0 8px 14px rgba(40, 90, 30, 0.28); }
+body[data-tema="acogedor"] .ficha-error { color: #c2412d; }
+@media (min-width: 760px) { body[data-tema="acogedor"] .ficha { border: 3px solid var(--borde); border-radius: 28px; box-shadow: 0 6px 0 rgba(205, 178, 127, 0.6), 0 20px 40px rgba(120, 70, 30, 0.3); } }
+@media (orientation: landscape) and (max-height: 520px) {
+  body[data-tema="acogedor"] .barra { background: none; }
+  body[data-tema="acogedor"] h1 { padding: 5px 6px 5px 12px; font-size: 0.95rem; } body[data-tema="acogedor"] h1 small { font-size: 0.78rem; }
+  body[data-tema="acogedor"] button, body[data-tema="acogedor"] select { min-height: 46px; padding: 0 4px; border-width: 2px; border-radius: 14px; }
+}

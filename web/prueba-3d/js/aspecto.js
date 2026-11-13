@@ -197,15 +197,66 @@ export function estimarSalida(hex, { luces = LUCES, exposicion = EXPOSICION, act
 export const luminanciaSrgb = (c) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
 
 // ------------------------------------------------------------------ clase Aspecto: aplica todo a la escena y lo libera
+// ------------------------------------------------------------------ TEMAS (3.7.3 · dirección «videojuego»): mismos materiales y niveles, distinta paleta/luz/escenario
+export const TEMAS = {
+  noche: { paleta: PALETA, luces: LUCES, cantos: CANTOS, exposicion: EXPOSICION, sheen: 0x7f93b8, aro: 0xe8b25a, sombraOpacidad: SOMBRA.opacidad, escenario: null },
+  acogedor: {
+    paleta: { cubierta: 0x3a7f92, pagina: 0xeadfc8, lomo: 0xb9733f, soldadura: 0xb48a58, funda: 0xffffff, mesa: 0xc9a47c },
+    luces: {
+      hemi: { cielo: 0xfff0dc, suelo: 0xb98a62, intensidad: 0.85 },
+      principal: { color: 0xffe3bd, intensidad: 2.3, pos: [-0.6, 0.62, 0.5] },
+      relleno: { color: 0xffc9b0, intensidad: 0.45, pos: [0.8, 0.3, 0.35] },
+      contorno: { color: 0xffd7a0, intensidad: 1.4, pos: [0.3, 0.5, -0.85] },
+    },
+    cantos: { cubierta: { canto: [1.3, 1.3, 1.25] }, pagina: { canto: [0.95, 0.8, 0.55] }, lomo: { curvatura: 0.62 } },      // cantos de hoja dorados
+    exposicion: 1.08, sheen: 0xffe6c4, aro: 0xf0701e, sombraOpacidad: 0.4,
+    escenario: { suelo: [0xc9a47c], alfombra: { centro: 0xf3e3c8, anillo: 0xe9a39a, borde: 0xd98a82, costura: 0xfff4e0 }, radioAlfombra: 0.42, ladoSuelo: 3 },
+  },
+};
+export const NOMBRES_TEMA = Object.keys(TEMAS);
+export const elegirTema = (p) => (TEMAS[(p || '').toLowerCase()] ? (p || '').toLowerCase() : 'acogedor');
+
+const rgb = (h) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
+/** Suelo de madera clara: tablones suaves, centro algo más luminoso y alfa que se desvanece hacia el borde (deja ver el fondo desenfocado de la página). RGBA8 sRGB. */
+export function generarSuelo(tam = 128, color = 0xc79a6b) {
+  const out = new Uint8Array(tam * tam * 4), [r, g, b] = rgb(color);
+  for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
+    const u = (i + 0.5) / tam, v = (j + 0.5) / tam, d = Math.hypot(u - 0.5, v - 0.5) * 2;
+    const tablon = Math.floor(u * 14), junta = Math.abs(((u * 14) % 1) - 0.0) < 0.04 ? 0.88 : 1;
+    const tono = (0.96 + 0.06 * hash(tablon, 3, 5)) * junta * (1.06 - 0.16 * Math.min(1, d));
+    const k = (j * tam + i) * 4;
+    out[k] = Math.min(255, r * tono); out[k + 1] = Math.min(255, g * tono); out[k + 2] = Math.min(255, b * tono);
+    out[k + 3] = Math.round(255 * (1 - suavizar(0.3, 0.95, d)));
+  }
+  return out;
+}
+/** Alfombra redonda de juego: centro crema, anillo rosado, costura discontinua y borde; alfa circular con borde suave. RGBA8 sRGB. */
+export function generarAlfombra(tam = 256, p = TEMAS.acogedor.escenario.alfombra) {
+  const out = new Uint8Array(tam * tam * 4), C = { c: rgb(p.centro), a: rgb(p.anillo), b: rgb(p.borde), s: rgb(p.costura) };
+  for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
+    const x = ((i + 0.5) / tam - 0.5) * 2, y = ((j + 0.5) / tam - 0.5) * 2, r = Math.hypot(x, y), ang = Math.atan2(y, x);
+    let col = C.c;
+    if (r > 0.64) col = C.a;
+    if (r > 0.9) col = C.b;
+    if (Math.abs(r - 0.8) < 0.012 && Math.sin(ang * 36) > 0) col = C.s;              // costura discontinua
+    if (Math.abs(r - 0.64) < 0.01) col = C.b;
+    const luz = 1.04 - 0.1 * r, k = (j * tam + i) * 4;
+    out[k] = Math.min(255, col[0] * luz); out[k + 1] = Math.min(255, col[1] * luz); out[k + 2] = Math.min(255, col[2] * luz);
+    out[k + 3] = Math.round(255 * (1 - suavizar(0.955, 0.985, r)));
+  }
+  return out;
+}
+
 export class Aspecto {
-  constructor({ renderer, scene, nivel = 'media', origen = '' }) {
+  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche' }) {
+    this.tema = TEMAS[tema] ? tema : 'noche'; this.t = TEMAS[this.tema];
     this.renderer = renderer; this.scene = scene; this.nivel = nivel; this.origen = origen;
     this.config = NIVELES[nivel] || null;                    // null = legado
     this.luces = {}; this.recursos = []; this.mallasPropias = []; this.sombra = null; this.mesa = null; this.materiales = new Map(); this.uvHechas = new WeakSet();
     this._montarLuces();
     this._montarMesa();
     if (this.config && this.config.sombra) this._montarSombra();
-    if (this.config) { renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = EXPOSICION; }
+    if (this.config) { renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = this.t.exposicion; }
     else { renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; }
   }
 
@@ -220,24 +271,39 @@ export class Aspecto {
       L.relleno = new THREE.DirectionalLight(0x9db8e6, 0.7); L.relleno.position.set(0.7, 0.5, 0.2);
     } else {
       const a = this.config.luces;
-      L.hemi = new THREE.HemisphereLight(LUCES.hemi.cielo, LUCES.hemi.suelo, LUCES.hemi.intensidad);
-      L.principal = new THREE.DirectionalLight(LUCES.principal.color, LUCES.principal.intensidad); L.principal.position.set(...LUCES.principal.pos);
-      if (a.includes('relleno')) { L.relleno = new THREE.DirectionalLight(LUCES.relleno.color, LUCES.relleno.intensidad); L.relleno.position.set(...LUCES.relleno.pos); }
-      if (a.includes('contorno')) { L.contorno = new THREE.DirectionalLight(LUCES.contorno.color, LUCES.contorno.intensidad); L.contorno.position.set(...LUCES.contorno.pos); }
+      L.hemi = new THREE.HemisphereLight(this.t.luces.hemi.cielo, this.t.luces.hemi.suelo, this.t.luces.hemi.intensidad);
+      L.principal = new THREE.DirectionalLight(this.t.luces.principal.color, this.t.luces.principal.intensidad); L.principal.position.set(...this.t.luces.principal.pos);
+      if (a.includes('relleno')) { L.relleno = new THREE.DirectionalLight(this.t.luces.relleno.color, this.t.luces.relleno.intensidad); L.relleno.position.set(...this.t.luces.relleno.pos); }
+      if (a.includes('contorno')) { L.contorno = new THREE.DirectionalLight(this.t.luces.contorno.color, this.t.luces.contorno.intensidad); L.contorno.position.set(...this.t.luces.contorno.pos); }
     }
     for (const l of Object.values(L)) this._anadir(l);
   }
 
   _montarMesa() {
+    const esc = this.config && this.t.escenario;
+    if (esc) { this._montarEscenario(esc); return; }
     const g = this._recurso(new THREE.PlaneGeometry(2, 1.4));
-    const m = this._recurso(new THREE.MeshStandardMaterial(this.config ? { color: PALETA.mesa, roughness: MATERIALES.mesa.rugosidad } : { color: 0x2a2e35, roughness: 0.92 }));
+    const m = this._recurso(new THREE.MeshStandardMaterial(this.config ? { color: this.t.paleta.mesa, roughness: MATERIALES.mesa.rugosidad } : { color: 0x2a2e35, roughness: 0.92 }));
     this.mesa = new THREE.Mesh(g, m); this.mesa.rotation.x = -Math.PI / 2; this.mesa.position.y = -0.0005; this.mesa.name = 'Mesa';
     this._anadir(this.mesa);
   }
 
+  /** Escenario de juego: suelo de madera que se desvanece + alfombra redonda (2 planos, 2 texturas, 2 materiales; sin sombras ni postprocesado). */
+  _montarEscenario(esc) {
+    const plano = (nombre, lado, tex, y, orden) => {
+      const t = this._recurso(new THREE.DataTexture(tex.datos, tex.tam, tex.tam, THREE.RGBAFormat));
+      t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
+      const m = this._recurso(new THREE.MeshStandardMaterial({ map: t, roughness: 0.95, metalness: 0, transparent: true, depthWrite: false }));
+      const o = new THREE.Mesh(this._recurso(new THREE.PlaneGeometry(lado, lado)), m);
+      o.rotation.x = -Math.PI / 2; o.position.y = y; o.renderOrder = orden; o.name = nombre; this._anadir(o); return o;
+    };
+    this.mesa = plano('Suelo', esc.ladoSuelo, { datos: generarSuelo(128, esc.suelo[0]), tam: 128 }, -0.0008, -3);
+    this.alfombra = plano('Alfombra', esc.radioAlfombra * 2, { datos: generarAlfombra(256, esc.alfombra), tam: 256 }, -0.0005, -2);
+  }
+
   _montarSombra() {
     const tam = SOMBRA.tam;
-    const t = this._recurso(new THREE.DataTexture(generarSombra(tam), tam, tam, THREE.RGBAFormat));
+    const t = this._recurso(new THREE.DataTexture(generarSombra(tam, SOMBRA.fraccion, this.t.sombraOpacidad), tam, tam, THREE.RGBAFormat));
     t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
     const g = this._recurso(new THREE.PlaneGeometry(1, 1));
     const m = this._recurso(new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false, color: 0x000000, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
@@ -270,7 +336,7 @@ export class Aspecto {
       let m = viejo;
       if (cfg.fisico && relieve) {                                // alta: tejido técnico con «sheen» (brillo suave en rasante); solo tapas y lomo
         m = this._recurso(new THREE.MeshPhysicalMaterial({ roughness: p.rugosidad, metalness: 0 }));
-        m.sheen = 0.55; m.sheenRoughness = 0.55; m.sheenColor.set(0x7f93b8);
+        m.sheen = 0.55; m.sheenRoughness = 0.55; m.sheenColor.set(this.t.sheen);
       } else if (grupo === 'lomo') m = this._recurso(viejo.clone());
       m.name = { cubierta: 'Cubierta', lomo: 'Lomo', hoja: 'Hoja', soldadura: 'Soldadura' }[grupo];
       m.color.set(hex); m.roughness = p.rugosidad; m.metalness = 0; m.vertexColors = true;
@@ -280,22 +346,22 @@ export class Aspecto {
       if (m !== viejo && grupo !== 'lomo') viejo.dispose?.();
       return m;
     };
-    if (grupos.cubierta.length) nuevoMaterial('cubierta', PALETA.cubierta, MATERIALES.cubierta, true);
+    if (grupos.cubierta.length) nuevoMaterial('cubierta', this.t.paleta.cubierta, MATERIALES.cubierta, true);
     if (grupos.lomo.length) {
       if (!grupos.cubierta.length) grupos.lomo[0].material = grupos.lomo[0].material.clone?.() || grupos.lomo[0].material;
-      nuevoMaterial('lomo', PALETA.lomo, MATERIALES.lomo, true);
+      nuevoMaterial('lomo', this.t.paleta.lomo, MATERIALES.lomo, true);
     }
-    if (grupos.hoja.length) nuevoMaterial('hoja', PALETA.pagina, MATERIALES.pagina, false);
-    if (grupos.soldadura.length) nuevoMaterial('soldadura', PALETA.soldadura, MATERIALES.soldadura, false);
+    if (grupos.hoja.length) nuevoMaterial('hoja', this.t.paleta.pagina, MATERIALES.pagina, false);
+    if (grupos.soldadura.length) nuevoMaterial('soldadura', this.t.paleta.soldadura, MATERIALES.soldadura, false);
 
     // cantos y curvatura en los vértices (una pasada por geometría; las geometrías están compartidas entre hojas/tapas)
     const pintar = (grupo, fn) => { for (const o of grupos[grupo]) if (!o.geometry.attributes.color) colorearPorNormal(o.geometry, fn); };
-    pintar('cubierta', cantoPorNormal(CANTOS.cubierta.canto)); pintar('hoja', cantoPorNormal(CANTOS.pagina.canto)); pintar('lomo', curvaturaPorNormal(CANTOS.lomo.curvatura));
+    pintar('cubierta', cantoPorNormal(this.t.cantos.cubierta.canto)); pintar('hoja', cantoPorNormal(this.t.cantos.pagina.canto)); pintar('lomo', curvaturaPorNormal(this.t.cantos.lomo.curvatura));
 
     // funda: película con reflejo en el alfa (media/alta) o velo uniforme (baja). Siempre transparente y sin depthWrite: no bloquea el raycasting (no es un objeto de picking)
     if (grupos.funda.length) {
       const f = grupos.funda[0].material;
-      f.color.set(PALETA.funda); f.roughness = MATERIALES.funda.rugosidad; f.metalness = 0; f.transparent = true; f.depthWrite = false;
+      f.color.set(this.t.paleta.funda); f.roughness = MATERIALES.funda.rugosidad; f.metalness = 0; f.transparent = true; f.depthWrite = false;
       if (cfg.reflejoFunda) {
         const t = this._recurso(new THREE.DataTexture(generarReflejoFunda(), FUNDA_REFLEJO.tam, FUNDA_REFLEJO.tam, THREE.RGBAFormat));
         t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.magFilter = t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
@@ -333,12 +399,12 @@ export class Aspecto {
 
   resumen() {
     return { nivel: this.nivel, origen: this.origen, luces: Object.keys(this.luces), relieve: this.config ? this.config.relieve : 0, mapaRugosidad: !!(this.config && this.config.mapaRugosidad),
-      sombraContacto: !!this.sombra, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
+      tema: this.tema, escenario: !!this.alfombra, sombraContacto: !!this.sombra, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
   }
 
   liberar() {
     for (const o of this.mallasPropias) this.scene.remove(o);
     for (const r of this.recursos) r.dispose?.();
-    this.mallasPropias = []; this.recursos = []; this.luces = {}; this.sombra = null; this.mesa = null;
+    this.mallasPropias = []; this.recursos = []; this.luces = {}; this.sombra = null; this.mesa = null; this.alfombra = null;
   }
 }

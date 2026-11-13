@@ -206,6 +206,21 @@ for (const vp of [{ width: 390, height: 844 }, { width: 430, height: 932 }]) {
   });
 }
 
+// ------------------------------------------------------------------ 3.7.3: tema de interfaz aplicado de verdad (estilos calculados por Chromium real; el 3D es simulado)
+for (const [consulta, esperado] of [['', 'acogedor'], ['&tema=acogedor', 'acogedor'], ['&tema=noche', 'noche']]) {
+  await sesion({ width: 390, height: 844 }, async (pag) => {
+    const r = await pag.evaluate(() => { const css = (sel, p) => getComputedStyle(document.querySelector(sel))[p];
+      return { tema: document.body.dataset.tema, boton: css('#b-sig', 'backgroundColor'), principal: css('#b-abrir', 'backgroundColor'), h1: css('h1', 'backgroundColor'), fuente: css('body', 'fontFamily'), escenario: !!window.__album3d.scene.children.find((o) => o.name === 'Alfombra'), aro: window.__album3d.resaltado.mat.color.v, ancho: document.documentElement.scrollWidth <= innerWidth }; });
+    ok(r.tema === esperado, `tema «${esperado}»${consulta ? ' (' + consulta.slice(1) + ')' : ' por defecto'}`);
+    if (esperado === 'acogedor') {
+      ok(r.h1 === 'rgb(255, 246, 228)' && r.principal === 'rgb(124, 195, 94)' && r.boton === 'rgb(127, 167, 217)', `acogedor: cabecera crema, «Abrir» verde, flechas azules (${r.h1} / ${r.principal} / ${r.boton})`);
+      ok(/rounded|Nunito|Segoe|Trebuchet/i.test(r.fuente), 'acogedor: tipografía redondeada del sistema'); ok(r.escenario, 'acogedor: suelo y alfombra en la escena'); ok(r.aro === 0xf0701e, 'acogedor: aro de selección naranja');
+    } else { ok(!r.escenario && r.aro === 0xe8b25a, 'noche: escena y aro como en 3.7.2'); }
+    ok(r.ancho, `${esperado}: sin desbordamiento horizontal en 390 px`);
+    if (process.env.CAPTURAS) { await pag.click('#b-abrir'); await dormir(2200); await pag.screenshot({ path: `${process.env.CAPTURAS}/ui-${esperado}-vertical.png` }); }
+  }, consulta);
+}
+
 // ------------------------------------------------------------------ 3.7.2a: niveles de calidad cableados en la página real (Three.js simulado: valida el cableado, no el dibujo)
 for (const nivel of ['baja', 'media', 'alta', 'legado']) {
   await sesion({ width: 390, height: 844 }, async (pag) => {

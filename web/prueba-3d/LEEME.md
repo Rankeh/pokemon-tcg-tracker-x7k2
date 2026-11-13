@@ -207,3 +207,13 @@ Con el mismo cálculo de `encuadre.js` y Three.js simulado (proporciones reales,
 
 ### Pruebas (no verifican el dibujo real)
 `pruebas/aspecto37.test.mjs` (tests 14–21 nuevos: cantos en vértices, Physical solo en alta, fundas y raycast, etiquetas y aro, fugas al cambiar de calidad, materiales compartidos, contraste estimado, selección/ficha/añadir/retirar en las 18 páginas con media y alta) y el runner de página real con 152 comprobaciones. Todas usan Three.js simulado: validan configuración, estructura y cableado, **no** el aspecto ni el rendimiento en GPU.
+
+## Fase 3.7.3 (primera pasada) — Dirección «videojuego»: tema acogedor
+
+Referencia: interfaz de juego «cozy» (paneles crema redondeados, botones gruesos con sombra, acentos naranja/verde/azul, fondo cálido desenfocado, objeto protagonista sobre una alfombra). Se implementa como **tema** sin tocar la lógica: `?tema=acogedor` (por defecto) o `?tema=noche` (el grafito de 3.7.2, para comparar).
+- **Interfaz (solo CSS):** cabecera en píldora crema con contador naranja, botones tipo juego (borde grueso, sombra inferior, se «hunden» al pulsar), «Abrir/Cerrar» verde, flechas azules, ficha como tarjeta crema con imagen enmarcada y «+» verde, tipografía redondeada del sistema (`ui-rounded`, sin descargar fuentes), fondo con bokeh hecho con degradados (sin desenfoque en tiempo real ni `backdrop-filter`).
+- **Escena (`aspecto.js`, `TEMAS`):** álbum con cubierta teal, lomo caramelo, hojas crema con canto dorado, marcos de bolsillo tostados; luces cálidas (principal ámbar, relleno melocotón, contorno dorado, exposición 1,08); **suelo de madera que se desvanece** (deja ver el fondo con bokeh) y **alfombra redonda** (2 planos, 2 texturas procedurales 128² y 256², ≈ 0,3 MB estimados; mismas draw calls +2, sin sombras dinámicas). Sombra de contacto más ligera sobre superficie clara.
+- **Legibilidad:** huecos pendientes en beis con texto marrón, aro de selección naranja sin tone mapping. Las cartas siguen con material sin iluminación (colores exactos).
+- `legado` sigue siendo la línea base de 3.7.1c (ignora el tema en escena). Calidad y tema son independientes: `?calidad=media&tema=noche`.
+- **Pruebas:** `tema37.test.mjs` (T1–T7) y 18 comprobaciones nuevas en el runner de página real (estilos calculados por Chromium real: color de cabecera/botones, tipografía, sin desbordamiento a 390 px). El dibujo 3D sigue sin verificarse en WebGL real.
+- **Pendiente de tus capturas:** cómo se ve el conjunto (equilibrio teal/crema/caramelo, alfombra y suelo, brillo de las hojas), y si prefieres otra paleta. Siguientes pasos posibles: aro de selección animado con pulso suave, cartas que «saltan» un poco al seleccionarlas, iconos en lugar de texto en la barra.

@@ -31,7 +31,7 @@ export class Mesh extends Object3D { constructor(g, m) { super(); this.isMesh = 
 export class Vector2 { constructor(x = 0, y = 0) { this.x = x; this.y = y; } set(x, y) { this.x = x; this.y = y; return this; } }
 export class MeshStandardMaterial {
   constructor(o = {}) {
-    this.map = null; this.normalMap = null; this.roughnessMap = null; this.disposed = false; this.opts = o; this.name = ''; this.opacity = 1; this.transparent = false; this.depthWrite = true;
+    this.map = o.map ?? null; this.normalMap = null; this.roughnessMap = null; this.disposed = false; this.opts = o; this.name = ''; this.opacity = 1; this.transparent = !!o.transparent; this.depthWrite = o.depthWrite ?? true;
     this.roughness = o.roughness ?? 1; this.metalness = o.metalness ?? 0; this.normalScale = new Vector2(1, 1); this.needsUpdate = false;
     this.color = { v: o.color, set(c) { this.v = c; } }; stats.materiales++;
   }
