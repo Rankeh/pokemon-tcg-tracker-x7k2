@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Integración 3.6.1 (IndexedDB real, BD de prueba)</title></head>
+<body><pre id="salida">Ejecutando…</pre>
+<script type="module">
+// Usa bases de datos de PRUEBA con nombre propio y las borra al terminar. Solo el test "extra" abre 'coleccion-teselia' y
+// únicamente dentro del navegador desechable del ejecutor (?nombre-real=1); en tu navegador no se toca nunca.
+import { ejecutarSuite } from './suite-coleccion.mjs';
+import { Almacen, NOMBRE_BD, VERSION_BD } from '../../js/almacen.js';
+import { ModeloColeccion } from '../../js/album/modelo.js';
+import { AdaptadorColeccion, crearMapa } from '../js/adaptador-coleccion.js';
+
+const salida = document.getElementById('salida');
+const lineas = [];
+const log = (e, t) => { lineas.push(e + ' ' + t); salida.textContent = lineas.join('\n'); };
+const nombres = [];
+const nuevoNombre = () => { const n = 'prueba-3d-test-' + nombres.length + '-' + Math.random().toString(36).slice(2, 8); nombres.push(n); return n; };
+const catalogo = await (await fetch('../../../datos/catalogo/coleccion-teselia.json')).json();
+const realOK = new URLSearchParams(location.search).get('nombre-real') === '1';
+
+const ent = {
+  catalogo,
+  crearAlmacen: async () => {
+    const nombre = nuevoNombre();
+    if (nombre === NOMBRE_BD) throw new Error('¡nunca la BD real!');
+    const a = await Almacen.abrir(nombre); a.__nombre = nombre;
+    const stores = [...a.db.objectStoreNames].sort().join(',');
+    if (stores !== 'copias,meta' || a.db.version !== VERSION_BD) throw new Error('esquema distinto: ' + stores + ' v' + a.db.version);
+    return a;
+  },
+  reabrir: async (almacen, mantener) => { const n = almacen.__nombre; if (!mantener) almacen.cerrar(); const b = await Almacen.abrir(n); b.__nombre = n; return b; },
+  extra: async (prueba, igual, cierto) => {
+    if (!realOK) return;
+    await prueba('10. misma BD que la app (coleccion-teselia, perfil desechable): el 3D lee y conserva lo que guardó el código original', async () => {
+      const original = await Almacen.abrir();                       // exactamente como lo hace la app anterior
+      igual(original.db.name, 'coleccion-teselia'); igual(original.db.version, 1);
+      const [a, b, c] = catalogo.cartas.slice(10, 13).map((x) => x.id);
+      await original.fijar(a, 2); await original.fijar(b, 1);
+      const mapa = crearMapa(catalogo), modelo = new ModeloColeccion(await Almacen.abrir(), mapa.cartas), ad = new AdaptadorColeccion(mapa, modelo);
+      await ad.cargar();
+      igual(ad.cantidad(a), 2); igual(ad.cantidad(b), 1); igual(ad.cantidad(c), 0);
+      await ad.anadir(c); await ad.retirar(b);
+      const otra = await Almacen.abrir(); const t = await otra.leerTodas();
+      igual(t.get(a), 2, 'no se tocó la carta A'); igual(t.get(c), 1); cierto(!t.has(b), 'B llegó a 0 y su fila se borró como en la app'); igual(t.size, 2);
+      original.cerrar(); otra.cerrar(); modelo.almacen.cerrar();
+    });
+  },
+};
+try {
+  const res = await ejecutarSuite(ent, log);
+  for (const n of nombres) indexedDB.deleteDatabase(n);
+  window.__resultado = { total: res.length, fallos: res.filter((r) => !r.ok), lineas };
+} catch (e) { window.__resultado = { total: 0, fallos: [{ nombre: 'arranque', error: String(e && e.stack || e) }], lineas }; }
+</script></body></html>

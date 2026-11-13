@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonda CORS de imágenes para WebGL</title>
+<style>body{font:15px/1.4 system-ui;background:#14171d;color:#ece6da;margin:16px}pre{white-space:pre-wrap;word-break:break-all;background:#000a;padding:10px;border-radius:8px}button{min-height:44px;padding:0 16px;font:inherit}</style></head>
+<body>
+<h1>¿Puede WebGL usar las imágenes de TCGdex?</h1>
+<p>Una imagen <code>&lt;img&gt;</code> normal se ve aunque el servidor no dé permiso CORS, pero <b>una textura de WebGL no</b>. Esta sonda lo comprueba en tu navegador (PC o iPhone) con 3 cartas reales del catálogo.</p>
+<button id="ir">Probar</button><pre id="s"></pre>
+<script type="module">
+const s = document.getElementById('s'), add = (t) => (s.textContent += t + '\n');
+const cat = (await (await fetch('../../datos/catalogo/coleccion-teselia.json')).json()).cartas.filter((c) => c.imagen).slice(0, 3);
+document.getElementById('ir').onclick = async () => {
+  s.textContent = 'Navegador: ' + navigator.userAgent + '\n';
+  for (const c of cat) {
+    const url = c.imagen.replace(/\/high\.webp$/, '/low.webp');
+    add('\n' + c.id + ' ' + url);
+    try {                                   // 1) cabecera CORS
+      const r = await fetch(url, { mode: 'cors' });
+      add('  fetch CORS: HTTP ' + r.status + ' · Access-Control-Allow-Origin = ' + r.headers.get('access-control-allow-origin') + ' · ' + r.headers.get('content-type') + ' · ' + r.headers.get('content-length') + ' bytes');
+    } catch (e) { add('  fetch CORS: BLOQUEADO (' + e.message + ')'); }
+    await new Promise((ok) => {             // 2) lo que hace Three.js: <img crossorigin=anonymous> → texImage2D
+      const img = new Image(); img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const gl = document.createElement('canvas').getContext('webgl2'), t = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+          add('  textura WebGL: OK ' + img.naturalWidth + '×' + img.naturalHeight + (gl.getError() ? ' (gl.getError=' + gl.getError() + ')' : ''));
+        } catch (e) { add('  textura WebGL: FALLA (' + e.name + ': ' + e.message + ')'); }
+        ok();
+      };
+      img.onerror = () => { add('  textura WebGL: la imagen NO carga con crossOrigin=anonymous (sin CORS o sin red)'); ok(); };
+      img.src = url;
+    });
+  }
+  add('\nSi todo dice OK: se puede usar la URL remota. Si no: hay que servir copias locales optimizadas (ver informe de la fase 3.6.1).');
+};
+</script></body></html>
