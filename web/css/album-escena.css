@@ -19,7 +19,7 @@ body { margin: 0; background: #0b0a09; color: #ececf1; font: 16px/1.4 system-ui,
 
 .aviso { margin: 0 1rem; padding: .5rem .8rem; border-radius: 10px; background: #4a1d1d; border: 1px solid #a54; font-size: .9rem; }
 
-.escena { position: relative; flex: 1; min-height: 0; container-type: size; overflow: hidden; }
+.escena { position: relative; flex: 1; min-height: 0; container-type: size; overflow: hidden; touch-action: pan-y; }
 @supports (width: 1cqw) {
   /* El ancho de la hoja se calcula con el espacio REAL de la escena: nunca se solapa con los controles. */
   .mesa { --w: min(80cqw, calc((100cqh - 1rem) * .79), 1100px); }
@@ -74,10 +74,37 @@ body { margin: 0; background: #0b0a09; color: #ececf1; font: 16px/1.4 system-ui,
 .hoja-trasera:nth-child(7) { transform: translateZ(calc(var(--w) * -0.077)) translate(2.10%, 0.0%); }
 .hoja-trasera:nth-child(8) { transform: translateZ(calc(var(--w) * -0.088)) translate(2.40%, 0.0%); }
 
-/* Hoja de plástico con sus 9 bolsillos. */
-.hoja { inset: 0; transform-style: preserve-3d; border-radius: .8%;
+/* Hoja física = dos caras unidas por el eje de las anillas. Gira con rotateY alrededor de ese eje. */
+.hoja { inset: 0; transform-style: preserve-3d; transform-origin: 4.1% 50%; }
+/* La hoja en reposo está montada pero invisible (visibility, no display: así sus imágenes sí se cargan antes del giro). */
+.hoja.reposo { visibility: hidden; pointer-events: none; }
+.cara-frontal, .cara-trasera { position: absolute; inset: 0; border-radius: .8%;
   background: radial-gradient(120% 90% at 25% 0%, #3a3d49 0%, #272a33 55%, #1d1f26 100%);
   box-shadow: 0 0 0 1px rgba(255,255,255,.14), inset 0 0 0 1px rgba(0,0,0,.45), inset 0 0 30px rgba(0,0,0,.35); }
+.cara-frontal { transform-style: preserve-3d; }
+/* Reverso neutro: mismo plástico, sin cartas; sus perforaciones quedan junto al eje (la cara está volteada 180°). */
+.cara-trasera { transform: rotateY(180deg); -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  background: radial-gradient(120% 90% at 75% 0%, #343743 0%, #23262e 55%, #1a1c22 100%); }
+.cara-trasera .perforaciones { left: auto; right: 2.4%; }
+.reverso-brillo { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(245deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.02) 26%, transparent 46%, rgba(255,255,255,.05) 72%, transparent 90%); }
+/* Velo de sombra: lo animan las transiciones (sube y baja su opacidad según la luz que recibe la hoja). */
+.velo { position: absolute; inset: 0; border-radius: inherit; opacity: 0; pointer-events: none; transform: translateZ(16px);
+  background: linear-gradient(90deg, rgba(0,0,0,.7), rgba(0,0,0,.3) 45%, rgba(0,0,0,.55)); }
+.cara-trasera .velo { transform: none; background: linear-gradient(270deg, rgba(0,0,0,.7), rgba(0,0,0,.3) 45%, rgba(0,0,0,.55)); }
+.perforaciones { left: auto; right: 2.4%; }
+.reverso-brillo { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(245deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.02) 26%, transparent 46%, rgba(255,255,255,.05) 72%, transparent 90%); }
+/* Velo de sombra: lo animan las transiciones (sube y baja su opacidad según la luz que recibe la hoja). */
+.velo { position: absolute; inset: 0; border-radius: inherit; opacity: 0; pointer-events: none; transform: translateZ(16px);
+  background: linear-gradient(90deg, rgba(0,0,0,.7), rgba(0,0,0,.3) 45%, rgba(0,0,0,.55)); }
+.cara-trasera .velo { transform: none; background: linear-gradient(270deg, rgba(0,0,0,.7), rgba(0,0,0,.3) 45%, rgba(0,0,0,.55)); }
+/* Durante un giro las caras se APLANAN: no hay capas Z que atraviesen el plano ni se vean al revés, y
+   backface-visibility oculta limpiamente la cara que mira hacia atrás (también en Safari). */
+.hoja.plana .cara-frontal, .hoja.plana .hoja-bolsillos, .hoja.plana .bolsillo { transform-style: flat; }
+.hoja.plana .cara-frontal { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.hoja.plana .hoja-reflejo, .hoja.plana .velo { transform: none; }
+.hoja.plana .bolsillo * { will-change: auto; }
 .perforaciones { position: absolute; left: 2.4%; top: 0; bottom: 0; width: 3.4%; }
 .perforacion { position: absolute; left: 0; width: 100%; aspect-ratio: 2.4; border-radius: 50%; background: radial-gradient(closest-side, #040405 68%, rgba(255,255,255,.2)); }
 .perforacion:nth-child(1) { top: 11.4%; } .perforacion:nth-child(2) { top: 46.4%; } .perforacion:nth-child(3) { top: 81.4%; }

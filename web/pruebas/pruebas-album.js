@@ -2,6 +2,8 @@
 import { distribuir, ordenarCartas, ordenarPorPokedex, numeroPokedex, esEntrenador, POR_PAGINA, DEX_AL_FINAL } from "../js/album/distribucion.js";
 import { ModeloColeccion } from "../js/album/modelo.js";
 import { Almacen } from "../js/almacen.js";
+import { siguiente, anterior, destino, sentidoEntre, leerPagina, urlConPagina, ADELANTE, ATRAS } from "../js/album/navegacion.js";
+import { clasificarGesto } from "../js/album/gestos.js";
 
 const pruebas = [];
 const prueba = (nombre, fn, { soloNavegador = false } = {}) => pruebas.push({ nombre, fn, soloNavegador });
@@ -197,6 +199,37 @@ prueba("Pokédex: cambiar el orden no cambia las cantidades, que van por id (Ind
     igual(distribuir(real).posiciones, despues, "las posiciones no dependen de las cantidades");
   } finally { a.cerrar(); indexedDB.deleteDatabase(nombre); }
 }, { soloNavegador: true });
+
+
+// ---------- Fase 3.2: navegación circular (lógica pura) ----------
+const N = 18;
+const recorrer = (inicio, paso, veces) => { const r = [inicio]; for (let i = 0; i < veces; i++) r.push(paso(r.at(-1), N)); return r; };
+prueba("Circular 1: página 18 + siguiente = página 1", () => igual(siguiente(18, N), 1));
+prueba("Circular 2: página 1 + anterior = página 18", () => igual(anterior(1, N), 18));
+prueba("Circular 3: secuencia 16 → 17 → 18 → 1 → 2 → 3", () => igual(recorrer(16, siguiente, 5), [16, 17, 18, 1, 2, 3]));
+prueba("Circular 4: secuencia 3 → 2 → 1 → 18 → 17 → 16", () => igual(recorrer(3, anterior, 5), [3, 2, 1, 18, 17, 16]));
+prueba("Circular 5: tras 18 avances desde la 1 se vuelve a la 1 (pasando por las 18)", () => {
+  const r = recorrer(1, siguiente, 18); igual(r.at(-1), 1); igual(new Set(r).size, 18);
+});
+prueba("Circular 6: tras 18 retrocesos desde la 1 se vuelve a la 1 (pasando por las 18)", () => {
+  const r = recorrer(1, anterior, 18); igual(r.at(-1), 1); igual(new Set(r).size, 18);
+});
+prueba("Circular: destino() y sentidoEntre() comparten el cálculo (18→1 es adelante, 1→18 es atrás)", () => {
+  igual([destino(18, ADELANTE, N), destino(1, ATRAS, N), destino(5, ADELANTE, N), destino(5, ATRAS, N)], [1, 18, 6, 4]);
+  igual([sentidoEntre(18, 1, N), sentidoEntre(1, 18, N), sentidoEntre(4, 5, N), sentidoEntre(5, 4, N), sentidoEntre(3, 9, N)], [ADELANTE, ATRAS, ADELANTE, ATRAS, null]);
+});
+prueba("URL: leerPagina valida y ajusta; urlConPagina conserva el resto de parámetros", () => {
+  igual([leerPagina("?pagina=18", N), leerPagina("", N), leerPagina("?pagina=abc", N), leerPagina("?pagina=99", N), leerPagina("?pagina=0", N), leerPagina("?pagina=-4", N), leerPagina("?pagina=3.5", N)], [18, 1, 1, 18, 1, 1, 1]);
+  const u = new URL(urlConPagina("http://x/web/album-prototipo.html?bd=prueba-1&pagina=18&z=2#h", 1));
+  igual([u.searchParams.get("pagina"), u.searchParams.get("bd"), u.searchParams.get("z"), u.hash], ["1", "prueba-1", "2", "#h"]);
+});
+prueba("Gestos: izquierda = adelante, derecha = atrás; el scroll vertical, el toque corto y el gesto lento no navegan", () => {
+  igual(clasificarGesto({ dx: -120, dy: 10, dt: 200 }), ADELANTE);
+  igual(clasificarGesto({ dx: 120, dy: -10, dt: 200 }), ATRAS);
+  igual(clasificarGesto({ dx: -120, dy: 140, dt: 200 }), null, "diagonal/vertical");
+  igual(clasificarGesto({ dx: -10, dy: 0, dt: 80 }), null, "toque");
+  igual(clasificarGesto({ dx: -150, dy: 0, dt: 2000 }), null, "demasiado lento");
+});
 
 export async function ejecutar(log) {
   const nav = typeof indexedDB !== "undefined" && typeof document !== "undefined";

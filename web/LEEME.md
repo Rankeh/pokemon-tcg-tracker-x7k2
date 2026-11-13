@@ -18,7 +18,7 @@ y http://localhost:8000/web/pruebas/index.html (pruebas automáticas).
 
 ---
 
-## Etapa 3.1 / 3.1.1 — Prototipo del álbum 3D (`album-prototipo.html`)
+## Etapa 3.1 / 3.1.1 / 3.2 — Prototipo del álbum 3D (`album-prototipo.html`)
 
 **Cómo abrirlo (Live Server):** abre VS Code en la carpeta raíz del repositorio (`pokemon-tcg-tracker-x7k2`, no en `web/`), clic derecho en `web/album-prototipo.html` → *Open with Live Server*. Alternativa sin extensiones: `jwebserver -d .` en la raíz y abrir `http://localhost:8000/web/album-prototipo.html`. Hace falta servidor (no doble clic) porque carga el catálogo con `fetch`. Para abrir una página concreta: `?pagina=5`.
 
@@ -35,3 +35,12 @@ y http://localhost:8000/web/pruebas/index.html (pruebas automáticas).
 - **Promos:** TCGdex no da `dexId` para las `svp`; se toma de `datos/decisiones/promociones.json` (campo `dexId`, contrastado en WikiDex) y queda anotado en el catálogo (`origenDexId`).
 - **Filtros** (Fulgor Negro, Llama Blanca, Promos, Pendientes) solo *resaltan*; no cambian el orden. Paginador ‹ › y flechas del teclado ← →; paso de página sin animación (el giro llega en la 3.2).
 - **Pruebas nuevas:** `web/pruebas/pruebas-album.js` (orden Pokédex con el catálogo real, cantidades por id, sin pérdidas ni duplicados).
+
+### Fase 3.2: giro 3D de hojas y navegación circular
+- **Giro:** el álbum tiene dos hojas físicas (`.hoja`), cada una con cara frontal (bolsillos) y reverso neutro. Al navegar, la página de destino se monta en la hoja de reposo y la hoja que corresponde gira con `rotateY` alrededor del eje de las anillas (700 ms, WAAPI). Avanzar: la activa gira 0 → -180°. Retroceder: la hoja de la página anterior vuelve de -180° a 0° sobre la actual. Código en `js/album/giro.js`; estructura en `escena.js`; aspecto en `css/album-escena.css`.
+- **Navegación circular:** `js/album/navegacion.js` (lógica pura). 18 → 1 es un giro hacia delante y 1 → 18 uno hacia atrás; los botones nunca se desactivan. Botones, teclado (← →) y gestos llaman a la misma función `navegar()`.
+- **Gestos (iPhone):** deslizar a la izquierda = avanzar, a la derecha = retroceder (`js/album/gestos.js`); el scroll vertical y los toques sobre cartas no cambian de página.
+- **URL:** `?pagina=N` se actualiza con `replaceState` (sin llenar el historial) y conserva otros parámetros.
+- **Movimiento reducido** (botón o ajuste del sistema): cambio inmediato, sin giro.
+- **Pruebas:** `web/pruebas/index-giro.html` (navegador, necesita Live Server: abre el álbum en un iframe con una base temporal `prueba-…`, no toca tu colección) y las lógicas en `index-album.html` / `node web/pruebas/node-album.mjs`.
+- **Dos páginas enfrentadas (futuro):** bastaría que cada hoja guarde dos páginas de datos (2k-1 delante, 2k detrás) y que la cara trasera monte bolsillos en lugar del reverso neutro; el giro, la navegación y la URL no cambian.
