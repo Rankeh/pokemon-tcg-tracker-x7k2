@@ -11,7 +11,9 @@ const Y_FANTASMA = 0.0003;                  // la placa «pendiente» queda just
 const salida = (t) => 1 - Math.pow(1 - t, 3);
 
 export class VistaBolsillos {
-  constructor({ album, adaptador, cache, productores, reducirMovimiento = () => false }) {
+  constructor({ album, adaptador, cache, productores, reducirMovimiento = () => false, materialCarta = null }) {
+    // `materialCarta(color, rugosidad)`: lo aporta Aspecto (3.7.2a). Por defecto, el material iluminado de siempre.
+    this.materialCarta = materialCarta || ((color, rough) => new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 }));
     this.album = album; this.adaptador = adaptador; this.cache = cache; this.prod = productores; this.reducir = reducirMovimiento;
     this.bolsillos = new Map(); this.porId = new Map(); this.paginas = new Set(); this.animaciones = new Set();
     for (const [nombre, b] of adaptador.mapa.porNombre) {
@@ -53,7 +55,7 @@ export class VistaBolsillos {
 
   // ------------------------------------------------------------ mallas
   _malla(b, color, rough) {
-    const m = new THREE.Mesh(this.album.geomCarta[b.cara], new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 }));
+    const m = new THREE.Mesh(this.album.geomCarta[b.cara], this.materialCarta(color, rough));
     m.userData = { tipo: 'vista-carta' };
     return m;
   }

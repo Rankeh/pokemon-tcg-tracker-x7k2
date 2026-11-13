@@ -199,11 +199,11 @@ test('resalte de la carta seleccionada: aro de 8 vértices y 8 triángulos, inte
   assert.ok(Math.abs(d.posiciones[12]) > 0.063 / 2, 'rodea la carta (63 mm de ancho en el modelo)');
 });
 
-test('13 sin regresiones de IndexedDB/colección: los módulos protegidos no han cambiado desde 3.6.2 (1230f6f)', (t) => {
+test('13 sin regresiones de IndexedDB/colección: los módulos protegidos no han cambiado desde 3.6.2 (1230f6f) (bolsillos3d.js sale de la lista en 3.7.2a: solo se admite el cambio de material de carta, ver aspecto37.test.mjs)', (t) => {
   let cambiados;
   try { cambiados = execSync('git diff --name-only 1230f6f', { cwd: new URL('../../..', import.meta.url).pathname, encoding: 'utf8' }).split('\n').filter(Boolean); }
   catch { t.skip('git no disponible'); return; }
   const protegidos = ['web/js/almacen.js', 'web/js/coleccion.js', 'web/js/album/modelo.js', 'web/js/album/distribucion.js', 'web/prueba-3d/js/adaptador-coleccion.js', 'web/prueba-3d/js/texturas.js',
-    'web/prueba-3d/js/texturas3d.js', 'web/prueba-3d/js/controlador.js', 'web/prueba-3d/js/bolsillos3d.js', 'web/prueba-3d/js/picking.js', 'datos/catalogo/coleccion-teselia.json', 'web/prueba-3d/modelo/album.glb'];
+    'web/prueba-3d/js/texturas3d.js', 'web/prueba-3d/js/controlador.js', 'web/prueba-3d/js/picking.js', 'datos/catalogo/coleccion-teselia.json', 'web/prueba-3d/modelo/album.glb'];
   assert.deepEqual(cambiados.filter((f) => protegidos.includes(f)), []);
 });

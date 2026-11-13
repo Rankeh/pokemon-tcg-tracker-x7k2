@@ -10,6 +10,7 @@ import { dimensiones, puntosVista, puntosGiro, calcularEncuadre, elevacionPara, 
 import { crearGeometria } from './logica.js';
 import { Resaltado } from './resaltado.js';
 import { Metricas } from './metricas.js';
+import { Aspecto, elegirCalidad } from './aspecto.js';
 import { Diagnostico } from './diagnostico.js';
 import { CacheTexturas } from './texturas.js';
 import { crearProductores, cargarManifiesto } from './texturas3d.js';
@@ -30,17 +31,14 @@ mq.addEventListener?.('change', () => { reducirMovimiento = mq.matches; });
 const canvas = $('lienzo');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, +params.get('pr') || 2));
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
 
 const scene = new THREE.Scene();
 const FOV = 32;
 const camara = new THREE.PerspectiveCamera(FOV, 1, 0.02, 5);
-scene.add(new THREE.HemisphereLight(0xbfd2f2, 0x2a2018, 0.9));
-const luzPrincipal = new THREE.DirectionalLight(0xffe1c0, 2.4); luzPrincipal.position.set(-0.5, 0.9, 0.5); scene.add(luzPrincipal);
-const luzRelleno = new THREE.DirectionalLight(0x9db8e6, 0.7); luzRelleno.position.set(0.7, 0.5, 0.2); scene.add(luzRelleno);
-const mesa = new THREE.Mesh(new THREE.PlaneGeometry(2, 1.4), new THREE.MeshStandardMaterial({ color: 0x2a2e35, roughness: 0.92 }));
-mesa.rotation.x = -Math.PI / 2; mesa.position.y = -0.0005; scene.add(mesa);
+// Fase 3.7.2a: luces, mesa, sombra de contacto, materiales y tone mapping los gestiona Aspecto según el nivel de calidad (?calidad=baja|media|alta|legado).
+const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchMedia('(pointer: coarse)').matches,
+  nucleos: navigator.hardwareConcurrency || 0, memoriaGb: navigator.deviceMemory || 0 });
+const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen });
 
 const orbita = new OrbitaLigera();
 let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl = null, adaptador = null, ficha = null;
@@ -317,6 +315,46 @@ function medir() {
   actualizarUi(); paso();
 }
 
+// ------------------------------------------------------------------ medición por ESCENAS (3.7.2a): las mismas 6 escenas para comparar `?calidad=legado` con baja/media/alta
+// Uso (Chrome o Safari, en el dispositivo real):  .../prueba-3d/?calidad=legado&auto=escenas   y luego   ?calidad=media&auto=escenas ...
+// El resultado (JSON) aparece en el cuadro de texto «informe» para copiarlo. Todo es medición real del navegador donde se abre; no se inventa nada.
+const esperarMs = (ms) => new Promise((ok) => setTimeout(ok, ms));
+const ESCENAS = [
+  { id: 'cerrado', vueltas: 0 }, { id: 'pagina-1', vueltas: 1 }, { id: 'paginas-4-5', vueltas: 3 }, { id: 'pagina-18', vueltas: 10 },
+  { id: 'carta-seleccionada', vueltas: 3, seleccionar: true }, { id: 'giro-de-hoja', vueltas: 3, giro: true },
+];
+async function medirEscenas(segundos = 4) {
+  if (!album || ctrl.fichaAbierta || continuo) return null;
+  const salida = { fecha: new Date().toISOString(), calidad: aspecto.resumen(), pixelRatio: renderer.getPixelRatio(), escenas: [] };
+  const antes = performance.now();
+  continuo = true;
+  for (const e of ESCENAS) {
+    album.estado.irA(e.vueltas); album.aplicar(); sincronizarTexturas(); claveCamara = huellaCamara(); aplicarCamara(false); actualizarUi();
+    await esperarMs(1500);                                      // deja cargar texturas y acabar el encuadre antes de medir
+    if (e.seleccionar) {
+      const t = album.estado.tocables().find((x) => x.cara === 'F') || album.estado.tocables()[0];
+      const nombre = t && `Hoja_${t.hoja - 1}_${t.cara}_Bolsillo_4`;
+      if (nombre && ctrl.seleccionar(nombre)) { resaltado.mostrar(album.nodo.get(nombre)); claveCamara = huellaCamara(); aplicarCamara(true); actualizarUi(); await esperarMs(900); }
+    }
+    metricas.iniciarBench();
+    const t0 = performance.now();
+    while (performance.now() - t0 < segundos * 1000) {
+      if (e.giro && !album.estado.animando) { (album.estado.vueltas <= 3 ? album.estado.avanzar() : album.estado.retroceder()); sincronizarTexturas(); }
+      await esperarMs(100);
+    }
+    const r = metricas.terminarBench(), i = metricas.instantanea();
+    salida.escenas.push({ escena: e.id, ...r, llamadasDibujo: i.ultimoFrame.llamadasDibujo, triangulos: i.ultimoFrame.triangulosDibujados, geometrias: i.memoriaRenderer.geometrias,
+      texturas: i.memoriaRenderer.texturas, texturasMB_estimados: i.texturasEstimadas.megabytes });
+    if (e.seleccionar && ctrl.fichaAbierta) cerrarFicha();
+  }
+  continuo = false;
+  salida.duracionTotalS = +((performance.now() - antes) / 1000).toFixed(1);
+  salida.carga = { ...album.carga, ...metricas.tiempos };
+  $('informe').hidden = false; $('informe').value = JSON.stringify(salida, null, 1); $('estado').textContent = 'Medición por escenas terminada: copia el informe.';
+  actualizarUi(); pedirFrame();
+  return salida;
+}
+
 // ------------------------------------------------------------------ bucle: solo dibuja cuando hay algo que mostrar (ahorra batería en iPhone)
 let tPrev = performance.now(), primerFrame = false;
 function bucle(ahora) {
@@ -333,6 +371,7 @@ function bucle(ahora) {
   const hc = huellaCamara();
   if (hc !== claveCamara) { claveCamara = hc; aplicarCamara(true); }      // cambio de estado: cerrado ↔ abierto, giro, página enfocada…
   if (!(activo || continuo || forzarDibujo || ahora < sucioHasta)) { metricas.pausa(); return; }
+  aspecto.sincronizar(album);                                              // la sombra de contacto sigue al estado (cerrado/abierto/giro)
   const [x, y, z] = orbita.posicion();
   camara.position.set(x, y, z);
   camara.lookAt(...orbita.objetivo);
@@ -365,12 +404,13 @@ async function arrancar() {
   album.onCambio = () => pedirFrame();
   if (reducirMovimiento) album.estado.duracion = 0.01;
   scene.add(album.escena);
+  aspecto.aplicarAlbum(album);
   dim = dimensiones(album.params);
   resaltado = new Resaltado({ reducirMovimiento: () => reducirMovimiento });
 
   const manifiesto = await cargarManifiesto();
   cache = new CacheTexturas({ presupuestoBytes: (+params.get('mem') || 32) * 1048576, concurrencia: 4 });
-  vista = new VistaBolsillos({ album, adaptador, cache, reducirMovimiento: () => reducirMovimiento,
+  vista = new VistaBolsillos({ album, adaptador, cache, materialCarta: (c, r) => aspecto.materialCarta(c, r), reducirMovimiento: () => reducirMovimiento,
     productores: crearProductores({ manifiesto, anisotropia: Math.min(4, renderer.capabilities.getMaxAnisotropy()) }) });
   vista.animandoTurno = () => album.estado.animando;
 
@@ -402,9 +442,10 @@ async function arrancar() {
   ajustarTamano();                                              // primer encuadre (instantáneo) con la interfaz ya montada
   $('cargando').hidden = true;
   setInterval(() => { if (!$('panel').hidden) metricas.pintar(); }, 500);
-  window.__album3d = { dim, resaltado, diagCam, reservado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
+  window.__album3d = { medirEscenas, aspecto, dim, resaltado, diagCam, reservado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
   requestAnimationFrame(bucle);
   if (params.get('auto') === 'medir') setTimeout(medir, 800);
+  if (params.get('auto') === 'escenas') setTimeout(() => medirEscenas(), 1500);
 }
 
 arrancar().catch((err) => {

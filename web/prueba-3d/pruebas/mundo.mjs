@@ -23,7 +23,7 @@ export const lienzoFalso = (w, h) => {
   return { width: w, height: h, getContext: () => ctx, textos: llamadas };
 };
 
-export async function crearMundo({ manifiesto = null, reducir = false, presupuestoMB = 32, cantidades = {} } = {}) {
+export async function crearMundo({ manifiesto = null, reducir = false, presupuestoMB = 32, cantidades = {}, materialCarta = null } = {}) {
   const album = await cargarAlbum('x.glb', { renderer: {} });
   const mapa = crearMapa(catalogo);
   const almacen = new AlmacenMemoria();
@@ -35,7 +35,7 @@ export async function crearMundo({ manifiesto = null, reducir = false, presupues
   const lienzos = [];
   const productores = crearProductores({ manifiesto, anisotropia: 1, crearLienzo: (w, h) => { const l = lienzoFalso(w, h); lienzos.push(l); return l; } });
   let reducirMov = reducir;
-  const vista = new VistaBolsillos({ album, adaptador, cache, productores, reducirMovimiento: () => reducirMov });
+  const vista = new VistaBolsillos({ album, adaptador, cache, productores, materialCarta, reducirMovimiento: () => reducirMov });
   return { album, mapa, almacen, modelo, adaptador, cache, productores, vista, lienzos, setReducir: (v) => { reducirMov = v; } };
 }
 export const esperar = (ms = 0) => new Promise((r) => setTimeout(r, ms));

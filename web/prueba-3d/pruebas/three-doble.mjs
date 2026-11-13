@@ -28,11 +28,28 @@ export class Object3D {
   }
 }
 export class Mesh extends Object3D { constructor(g, m) { super(); this.isMesh = true; this.geometry = g; this.material = m; } }
+export class Vector2 { constructor(x = 0, y = 0) { this.x = x; this.y = y; } set(x, y) { this.x = x; this.y = y; return this; } }
 export class MeshStandardMaterial {
-  constructor(o = {}) { this.map = null; this.disposed = false; this.opts = o; this.color = { v: o.color, set(c) { this.v = c; } }; stats.materiales++; }
+  constructor(o = {}) {
+    this.map = null; this.normalMap = null; this.roughnessMap = null; this.disposed = false; this.opts = o; this.name = ''; this.opacity = 1; this.transparent = false; this.depthWrite = true;
+    this.roughness = o.roughness ?? 1; this.metalness = o.metalness ?? 0; this.normalScale = new Vector2(1, 1); this.needsUpdate = false;
+    this.color = { v: o.color, set(c) { this.v = c; } }; stats.materiales++;
+  }
+  clone() { const m = new MeshStandardMaterial(this.opts); Object.assign(m, { name: this.name, opacity: this.opacity, transparent: this.transparent, depthWrite: this.depthWrite, roughness: this.roughness, metalness: this.metalness, normalMap: this.normalMap, roughnessMap: this.roughnessMap }); m.color.v = this.color.v; m.normalScale = new Vector2(this.normalScale.x, this.normalScale.y); return m; }
   dispose() { if (!this.disposed) { this.disposed = true; stats.materialesLiberados++; } }
 }
+export class MeshBasicMaterial {
+  constructor(o = {}) { this.map = null; this.disposed = false; this.opts = o; this.toneMapped = o.toneMapped ?? true; this.transparent = !!o.transparent; this.color = { v: o.color, set(c) { this.v = c; } }; if (o.map) this.map = o.map; stats.materiales++; }
+  dispose() { if (!this.disposed) { this.disposed = true; stats.materialesLiberados++; } }
+}
+export class PlaneGeometry { constructor(w, h) { this.w = w; this.h = h; this.disposed = false; } dispose() { this.disposed = true; } }
+export class Float32BufferAttribute { constructor(a, n) { this.array = a; this.itemSize = n; this.count = a.length / n; } }
+class Luz extends Object3D { constructor(...a) { super(); this.args = a; this.color = {}; } }
+export class HemisphereLight extends Luz {}
+export class DirectionalLight extends Luz {}
+export const ACESFilmicToneMapping = 4, DoubleSide = 2, RGBAFormat = 1023, LinearFilter = 1006, LinearMipmapLinearFilter = 1008, RepeatWrapping = 1000, ClampToEdgeWrapping = 1001;
 export class Texture { constructor(tag) { this.tag = tag; this.disposed = false; stats.texturasCreadas++; } dispose() { if (!this.disposed) { this.disposed = true; stats.texturasLiberadas++; } } }
+export class DataTexture extends Texture { constructor(datos, w, h) { super('datos'); this.datos = datos; this.ancho = w; this.alto = h; this.isDataTexture = true; } }
 export class CanvasTexture extends Texture { constructor(lienzo) { super('canvas'); this.lienzo = lienzo; this.isCanvasTexture = true; } }
 export class TextureLoader {
   async loadAsync(url) {

@@ -137,3 +137,40 @@ Aspecto real de la franja y del lomo; cómo se lee la composición con luz y mat
 **Corrección (estructural, sin tocar el GLB).** `Album3D` separa el *cuerpo* de cada elemento (`Tapa_Malla`, `Hoja_n_Losa`; 10 mallas sencillas) del *detalle* (fundas, soldaduras, 9 bolsillos por cara). El cuerpo y las piezas estáticas (`Contratapa`, `Lomo`) se dibujan SIEMPRE; solo el detalle sigue la ventana de `visibles()`. Coste: ~9 mallas más de geometría trivial. No cambian poses, animaciones, catálogo, IndexedDB, texturas ni el orden de cartas.
 
 **Verificación.** `pruebas/tapa37c.test.mjs` (5 pruebas, Three.js simulado + GLB real): cuerpos y tapas dibujados en los estados 0..10, detalle aún recortado, tapa izquierda en su sitio (girada π, bajo las hojas, pegada al lomo), avance/retroceso paso a paso (1→2, 2–3, 4–5, 8–9, final, vuelta a 1, cerrar y reabrir), y encaje con el lomo. Vista previa numpy antes/después (`blender/previsualizar_glb.py`): en v=3 la tapa y la pila izquierda aparecen tras el arreglo. **Pendiente: comprobación visual real en Chrome/Safari** (aquí no hay WebGL con Three.js real).
+
+## Fase 3.7.2a — Iluminación cinematográfica y materiales principales
+
+### Diagnóstico (antes de cambiar nada)
+- **Por qué se veía oscuro y sin separación.** Los albedos del GLB son casi negros (Cubierta lineal ≈ 0,011/0,019/0,036; Hoja ≈ 0,02) y la mesa (`#2a2e35`) tenía una luminancia parecida. Con las luces y ACES de 3.7.1c, una estimación analítica (`estimarSalida`, test 10) da: **cubierta ≈ (6,10,21), página ≈ (13,13,15), mesa ≈ (17,18,22)** en sRGB 0‑255; es decir, *la mesa era más clara que la tapa y la página*. Subir todas las luces no lo arregla (también lava la mesa y ACES recorta los azules oscuros): hacía falta **cambiar el reparto de luminancias** y dar volumen con luz direccional + contorno.
+- En Three r155+ las luces ya no llevan el factor π: key 2,4 + hemisférica 0,9 dan ≈ 1× el albedo, poco para materiales tan oscuros.
+- No había luz de contorno, ni variación de rugosidad/relieve, y la funda tenía rugosidad 0,1 (brillos nítidos sobre el arte). Las cartas eran PBR iluminadas + ACES: su color cambiaba con la luz.
+- `tapa`, `lomo` y `losa_hoja` traen **UV = 0** en el GLB: sin UV no hay relieve. Solución sin tocar el archivo: UV planares generadas **en memoria** (`rellenarUV`) solo donde hay relieve.
+
+### Qué se ha implementado (`js/aspecto.js`, único sitio con los números artísticos)
+- **Luces** (sin sombras dinámicas, sin postprocesado/bloom, sin animación): hemisférica ambiente (cielo azulado, suelo grafito), **principal** cálida lateral‑izquierda y alta, **relleno** frío tenue del lado contrario, **contorno** azul noche por detrás (discreto). Exposición 1,15.
+- **Cubiertas:** grafito azulado `#344052`, rugosidad 0,78, metalness 0, **relieve fino procedural** (grano + trama, mosaico sin costuras, 128 px en media / 256 px en alta, `normalScale` 0,42). **Lomo:** material propio (un solo clon), `#384562`, más liso (0,58) para que la luz de contorno dibuje su redondeo; jerarquía y pivotes intactos. **Páginas:** grafito neutro `#40444d`, satinado (0,62), sin relieve. **Soldaduras/bordes de funda:** algo más claros (costuras discretas). **Funda:** opacidad 0,06, rugosidad 0,5, sin `depthWrite`: no puede tapar ni reflejar sobre la ilustración.
+- **Cartas:** material **sin iluminación ni tone mapping** (`MeshBasicMaterial`, `toneMapped:false`): colores exactos de la textura (sRGB, sin cambios en `texturas3d.js`). Las casillas vacías siguen mostrando su etiqueta «pendiente». Es el único cambio en `bolsillos3d.js` (una fábrica de material inyectable, el valor por defecto es el de antes).
+- **Sombra de contacto falsa:** un plano con textura procedural 96×96 (rectángulo redondeado difuminado, más oscura junto al borde, transparente en el límite), desplazada ligeramente lejos de la luz principal; se **redimensiona con las cajas reales** de Contratapa/Tapa/Lomo en cada frame, así que sigue al álbum cerrado, abierto y todo girado. Mesa más oscura y neutra (`#22262d`) para que la sombra se lea.
+- **Renderer:** se mantiene ACESFilmic y `outputColorSpace` por defecto (sRGB); solo cambia la exposición (afecta al álbum, no a las cartas porque `toneMapped:false`). Sin WebGPU ni extensiones de escritorio. Antialias y límite de pixel ratio como antes.
+
+### Niveles de calidad (mismo código, distintos números)
+`?calidad=baja|media|alta|legado`
+| nivel | luces | relieve | rugosidad variable | sombra de contacto |
+|---|---|---|---|---|
+| baja | hemisférica + principal | no | no | sí |
+| media | + relleno + contorno | 128 px | no | sí |
+| alta | + relleno + contorno | 256 px | sí (mapa) | sí |
+| legado | **idéntico a 3.7.1c** (línea base para medir) | no | no | no |
+
+Automático: **móvil/táctil** → `media` solo si hay ≥ 6 núcleos y (memoria desconocida o ≥ 4 GB); si no, `baja`. Escritorio → `alta` con ≥ 8 núcleos, si no `media`. Safari no expone `deviceMemory`, por eso se decide por núcleos y no por el nombre del dispositivo. El panel de métricas/informe muestra el nivel aplicado.
+
+### Cómo medir el rendimiento (en tu iPhone y en Chrome)
+Mismas 6 escenas (cerrado, página 1, páginas 4–5, página 18, carta seleccionada, giro de hoja), 4 s cada una:
+1. Línea base: abre `…/web/prueba-3d/index.html?calidad=legado&auto=escenas` y espera ~45 s. El informe JSON aparece en el cuadro de texto (cópialo).
+2. Repite con `?calidad=baja&auto=escenas`, `media` y `alta` (y pasa `&pr=1` si quieres fijar el pixel ratio).
+3. Cada escena da FPS medio, mínimo, p95 del tiempo de fotograma, llamadas de dibujo, triángulos, geometrías, texturas y MB estimados; más tiempos de carga. Tras cada medición cierra y vuelve a abrir la página (las pestañas en segundo plano falsean los FPS).
+No hay medición de GPU real en este entorno: lo medido con Three.js simulado **no** cuenta como rendimiento. No se promete ningún FPS.
+
+### Límites y propuestas (no aplicadas)
+- **No verificado en Safari/WebGL real:** aspecto final, que el relieve no muestre costuras en las esquinas biseladas (UV por eje dominante), el brillo del contorno y la lectura de la sombra sobre la mesa. Es la comprobación visual pendiente; los números de color son una estimación analítica.
+- Propuesta de GLB (requiere aprobación): UV reales y un bisel algo mayor en tapas/lomo; costuras como geometría con vértices coloreados. No se ha tocado el GLB.

@@ -25,14 +25,14 @@ const resultados = []; let fallos = 0;
 const ok = (c, msg) => { resultados.push((c ? 'OK      ' : 'FALLO   ') + msg); if (!c) fallos++; };
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function sesion(viewport, fn) {
+async function sesion(viewport, fn, consulta = '') {
   const ctx = await nav.newContext({ viewport, deviceScaleFactor: 2, hasTouch: false });
   const pag = await ctx.newPage(); const errores = [];
   pag.on('pageerror', (e) => errores.push(String(e))); pag.on('console', (m) => m.type() === 'error' && !/404/.test(m.text()) && errores.push(m.text()));     // 404 esperados: copia local de Three.js y manifiesto de imágenes (no existen en este entorno)
   // Three.js simulado en lugar del CDN (el entorno no tiene red ni WebGL)
   await pag.route('**/cdn.jsdelivr.net/**/build/three.module.js', (r) => r.fulfill({ contentType: 'text/javascript', body: `export * from '${base}/web/prueba-3d/pruebas/three-navegador.mjs';` }));
   await pag.route('**/cdn.jsdelivr.net/**/GLTFLoader.js', (r) => r.fulfill({ contentType: 'text/javascript', body: `export * from '${base}/web/prueba-3d/pruebas/gltfloader-doble.mjs';` }));
-  await pag.goto(`${base}/web/prueba-3d/index.html?bd=prueba371-${Math.random().toString(36).slice(2)}`);
+  await pag.goto(`${base}/web/prueba-3d/index.html?bd=prueba371-${Math.random().toString(36).slice(2)}${consulta}`);
   await pag.waitForFunction(() => window.__album3d && document.getElementById('cargando').hidden, null, { timeout: 20000 });
   await fn(pag, errores);
   ok(errores.length === 0, `sin errores de consola/JS (${viewport.width}×${viewport.height})` + (errores.length ? ': ' + errores.join(' | ') : ''));
@@ -191,6 +191,28 @@ for (const vp of [{ width: 844, height: 390 }, { width: 750, height: 340 }, { wi
     await pag.keyboard.press('Escape'); await dormir(900);
   });
 }
+
+// ------------------------------------------------------------------ 3.7.2a: niveles de calidad cableados en la página real (Three.js simulado: valida el cableado, no el dibujo)
+for (const nivel of ['baja', 'media', 'alta', 'legado']) {
+  await sesion({ width: 390, height: 844 }, async (pag) => {
+    const r = await pag.evaluate(() => { const a = window.__album3d; return { res: a.aspecto.resumen(), luces: a.scene.children.filter((o) => o.args).length, sombra: !!a.scene.children.find((o) => o.name === 'SombraContacto'),
+      carta: a.vista.materialCarta(0xffffff, 0.5).constructor.name, cubierta: a.album.nodo.get('Tapa_Malla').material.name, info: a.metricas.instantanea().calidad }; });
+    ok(r.res.nivel === nivel, `calidad «${nivel}» elegida por ?calidad=`);
+    ok(r.luces === { baja: 2, media: 4, alta: 4, legado: 3 }[nivel], `calidad ${nivel}: ${r.luces} luces`);
+    ok(r.sombra === (nivel !== 'legado'), `calidad ${nivel}: sombra de contacto ${r.sombra ? 'sí' : 'no'}`);
+    ok(r.carta === (nivel === 'legado' ? 'MeshStandardMaterial' : 'MeshBasicMaterial'), `calidad ${nivel}: material de carta ${r.carta}`);
+    ok(r.info && r.info.nivel === nivel, `calidad ${nivel}: aparece en el informe de métricas`);
+    await pag.click('#b-abrir'); await dormir(2000);
+    const e = await etiqueta(pag); ok(/1/.test(e), `calidad ${nivel}: la navegación sigue funcionando («${e}»)`);
+  }, `&calidad=${nivel}`);
+}
+await sesion({ width: 844, height: 390 }, async (pag) => {
+  const r = await pag.evaluate(() => window.__album3d.medirEscenas(0.3));
+  ok(r && r.escenas.length === 6 && r.escenas.map((x) => x.escena).join() === 'cerrado,pagina-1,paginas-4-5,pagina-18,carta-seleccionada,giro-de-hoja', 'medición por escenas: las 6 escenas pedidas');
+  ok(r.escenas.every((x) => 'fpsMedio' in x && 'p95_ms' in x && 'fpsMinimo' in x && 'llamadasDibujo' in x && 'triangulos' in x && 'geometrias' in x && 'texturas' in x && 'texturasMB_estimados' in x), 'medición por escenas: FPS medio/mínimo, p95, draw calls, triángulos, geometrías, texturas y memoria');
+  ok(await pag.evaluate(() => !document.getElementById('informe').hidden && document.getElementById('informe').value.includes('"escenas"')), 'medición por escenas: el informe queda en el cuadro para copiarlo');
+  ok(await pag.evaluate(() => !document.getElementById('ficha').hidden === false), 'medición por escenas: no deja la ficha abierta');
+}, '&calidad=media');
 
 console.log(resultados.join('\n') + `\n\n${resultados.length} comprobaciones, ${fallos} fallos`);
 await nav.close(); servidor.close();

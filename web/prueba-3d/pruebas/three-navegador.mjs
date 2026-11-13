@@ -1,19 +1,11 @@
 // Three.js SIMULADO para ejecutar main.js en Chromium real (DOM, CSS, IndexedDB y eventos reales; SIN WebGL): amplía three-doble.mjs con lo que main.js necesita.
 // Sirve para comprobar el cableado (cámara, interfaz, gestos, ficha, persistencia), no el dibujo.
-import { Object3D, Mesh, MeshStandardMaterial, Texture, CanvasTexture, TextureLoader, SRGBColorSpace } from './three-doble.mjs';
+import { Object3D, Mesh, MeshStandardMaterial, MeshBasicMaterial, Texture, CanvasTexture, DataTexture, TextureLoader, SRGBColorSpace, Vector2, PlaneGeometry, Float32BufferAttribute, HemisphereLight, DirectionalLight, ACESFilmicToneMapping, DoubleSide, RGBAFormat, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, ClampToEdgeWrapping } from './three-doble.mjs';
 import { rayoNDC } from '../js/encuadre.js';
-export { Object3D, Mesh, MeshStandardMaterial, Texture, CanvasTexture, TextureLoader, SRGBColorSpace };
-export const ACESFilmicToneMapping = 4, DoubleSide = 2;
+export { Object3D, Mesh, MeshStandardMaterial, MeshBasicMaterial, Texture, CanvasTexture, DataTexture, TextureLoader, SRGBColorSpace, Vector2, PlaneGeometry, Float32BufferAttribute, HemisphereLight, DirectionalLight, ACESFilmicToneMapping, DoubleSide, RGBAFormat, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, ClampToEdgeWrapping };
 export class Scene extends Object3D {}
 export class Group extends Object3D {}
-class Luz extends Object3D { constructor() { super(); this.color = {}; } }
-export class HemisphereLight extends Luz {}
-export class DirectionalLight extends Luz {}
-export class PlaneGeometry { dispose() {} }
 export class BufferGeometry { constructor() { this.attributes = {}; this.index = null; } setAttribute(n, a) { this.attributes[n] = a; } setIndex(i) { this.index = { count: i.length }; } dispose() {} }
-export class Float32BufferAttribute { constructor(a, n) { this.array = a; this.count = a.length / n; } }
-export class MeshBasicMaterial { constructor(o = {}) { Object.assign(this, o); } dispose() {} }
-export class Vector2 { constructor(x = 0, y = 0) { this.x = x; this.y = y; } }
 export class PerspectiveCamera extends Object3D {
   constructor(fov, aspect, near, far) { super(); Object.assign(this, { fov, aspect, near, far }); this.mira = [0, 0, 0]; this.position.set = function (x, y, z) { this.x = x; this.y = y; this.z = z; }; }
   lookAt(x, y, z) { this.mira = [x, y, z]; }
