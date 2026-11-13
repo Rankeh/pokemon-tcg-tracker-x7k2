@@ -1,0 +1,67 @@
+{
+  "comentario": "Promociones candidatas de la categoría D. NINGUNA cuenta en el progreso hasta que 'estado' sea 'confirmada' y tenga 'tcgdex' (id exacto, p. ej. svp-123). 'busqueda' es el nombre con el que el programa pide a TCGdex las cartas de la serie svp que coinciden, para que puedas elegir la correcta mirando la imagen. Las fuentes son las páginas consultadas; ninguna da el número de carta.",
+  "candidatas": [
+    {
+      "clave": "victini-coleccion-ilustracion",
+      "busqueda": "Victini",
+      "pokemon": "Victini (dex 494)",
+      "estado": "candidata",
+      "tcgdex": null,
+      "producto": "Unova Victini Illustration Collection (1 ago 2025)",
+      "tipoIlustracion": "promo de ilustración completa estilo ilustración rara",
+      "nota": "La colección trae 3 cartas: la promo, la misma con acabado Poké Ball (mismo arte: NO es otro objetivo) y una versión grande (jumbo: excluida).",
+      "fuentes": ["PokeBeach (guía de sets, jul 2025)", "dexhaul.com (contenido de la colección)"]
+    },
+    {
+      "clave": "tornadus-etb-llama-blanca",
+      "busqueda": "Tornadus",
+      "pokemon": "Tornadus (dex 641)",
+      "estado": "candidata",
+      "tcgdex": null,
+      "producto": "Elite Trainer Box de Llama Blanca (18 jul 2025)",
+      "tipoIlustracion": "promo estilo ilustración rara",
+      "nota": "Existe además un Tornadus con sello de Pokémon Center (#210 en PriceCharting): si solo cambia el sello, es el mismo arte y no es otro objetivo.",
+      "fuentes": ["PokeBeach (guía de sets, jul 2025)", "PriceCharting (Tornadus [Pokemon Center] #210)"]
+    },
+    {
+      "clave": "thundurus-etb-fulgor-negro",
+      "busqueda": "Thundurus",
+      "pokemon": "Thundurus (dex 642)",
+      "estado": "candidata",
+      "tcgdex": null,
+      "producto": "Elite Trainer Box de Fulgor Negro (18 jul 2025)",
+      "tipoIlustracion": "promo estilo ilustración rara",
+      "nota": "Una venta en PriceCharting lo cita como 'Thundurus SVP 09'; sin confirmar.",
+      "fuentes": ["PokeBeach (guía de sets, jul 2025)", "PriceCharting (mención en un título)"]
+    },
+    {
+      "clave": "reuniclus-tech-sticker-fulgor-negro",
+      "busqueda": "Reuniclus",
+      "pokemon": "Reuniclus (dex 579)",
+      "estado": "candidata",
+      "tcgdex": null,
+      "producto": "Tech Sticker Collection de Fulgor Negro (1 ago 2025)",
+      "tipoIlustracion": "promo estilo ilustración rara",
+      "nota": "",
+      "fuentes": ["PokeBeach (guía de sets, jul 2025)"]
+    },
+    {
+      "clave": "gothitelle-tech-sticker-llama-blanca",
+      "busqueda": "Gothitelle",
+      "pokemon": "Gothitelle (dex 576)",
+      "estado": "candidata",
+      "tcgdex": null,
+      "producto": "Tech Sticker Collection de Llama Blanca (1 ago 2025)",
+      "tipoIlustracion": "promo estilo ilustración rara",
+      "nota": "",
+      "fuentes": ["PokeBeach (guía de sets, jul 2025)"]
+    }
+  ],
+  "descartadasPorRegla": [
+    "BWR Victini/Reshiram/Zekrom (171-173/086): Rara Blanca y Negra, excluidas expresamente",
+    "Zekrom ex 034, Reshiram ex 020, Victini 012, Zoroark 062 con sello 'Black Bolt'/'White Flare' (Unova Heavy Hitters): solo cambia el sello, mismo arte",
+    "Kyurem ex 028 Jumbo: variante jumbo",
+    "Snivy 001, Tepig 011, Oshawott 021 (Poster Collection): consta solo acabado Tinsel Holo; no hay constancia de arte distinto",
+    "Air Balloon 079, Tool Scrapper 085, Professor's Research 085, Archeops 051 (Excavator Pikachu): Entrenadores/otros, solo acabado o sello"
+  ]
+}
