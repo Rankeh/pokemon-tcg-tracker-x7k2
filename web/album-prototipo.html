@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0a09">
+  <title>Álbum Teselia — prototipo 3.1</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/album-escena.css">
+  <link rel="stylesheet" href="css/album-bolsillos.css">
+  <link rel="stylesheet" href="css/album-ficha.css">
+</head>
+<body>
+<div class="app">
+  <header class="cabecera">
+    <h1>Álbum Teselia <small style="font-weight:400;color:#9a9aa8">prototipo 3.1</small></h1>
+    <p class="progreso" id="progreso" aria-live="polite">Cargando…</p>
+    <div class="barra-progreso" aria-hidden="true"><i id="barra"></i></div>
+    <p class="info" id="pagina-info"></p>
+  </header>
+  <p class="aviso" id="aviso" role="alert" hidden></p>
+  <main class="escena" id="escena" aria-label="Página del álbum con nueve bolsillos"></main>
+  <footer class="pie">
+    <span role="group" aria-label="Página de prueba">
+      <button type="button" class="boton" data-seccion="fn" aria-pressed="false">Fulgor Negro</button>
+      <button type="button" class="boton" data-seccion="lw" aria-pressed="false">Llama Blanca</button>
+      <button type="button" class="boton" data-seccion="promo" aria-pressed="false">Promociones</button>
+    </span>
+    <button type="button" class="boton" id="movimiento" aria-pressed="false">Reducir movimiento</button>
+    <small><a href="prueba-almacenamiento.html">Copias de seguridad</a></small>
+  </footer>
+</div>
+<div class="ficha" id="ficha" hidden></div>
+<script type="module" src="js/album-prototipo.js"></script>
+</body>
+</html>

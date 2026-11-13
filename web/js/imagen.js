@@ -10,8 +10,13 @@ export function tieneImagenUsable(carta) {
  *  - el sustituto (nombre, número y "Sin imagen") mientras carga o si no hay imagen;
  *  - la foto real solo cuando el navegador la ha cargado bien (evento load).
  * Si la carga falla (error) la foto se elimina y se queda el sustituto.
+ *
+ * opciones (todas opcionales, la Fase 2 no las usa):
+ *  - calidad: "low" pide la miniatura de TCGdex (…/low.webp) y, si no existe, reintenta con la original.
+ *  - estado: texto del estado que se muestra en el sustituto (por defecto "Sin imagen").
+ *  - mostrarId: añade el identificador TCGdex al sustituto.
  */
-export function crearImagenCarta(carta, documento = document) {
+export function crearImagenCarta(carta, documento = document, opciones = {}) {
   const caja = documento.createElement("div");
   caja.className = "carta-imagen";
 
@@ -24,8 +29,14 @@ export function crearImagenCarta(carta, documento = document) {
   const numero = documento.createElement("span");
   numero.textContent = `${carta.numero ?? ""} · ${carta.expansion ?? ""}`;
   const aviso = documento.createElement("em");
-  aviso.textContent = "Sin imagen";
-  sustituto.append(nombre, numero, aviso);
+  aviso.textContent = opciones.estado ?? "Sin imagen";
+  sustituto.append(nombre, numero);
+  if (opciones.mostrarId) {
+    const id = documento.createElement("small");
+    id.textContent = carta.id ?? "";
+    sustituto.append(id);
+  }
+  sustituto.append(aviso);
   caja.append(sustituto);
 
   if (tieneImagenUsable(carta)) {
@@ -41,11 +52,17 @@ export function crearImagenCarta(carta, documento = document) {
       sustituto.hidden = true;
       caja.dataset.imagen = "cargada";
     });
+    const urlInicial = opciones.calidad === "low" ? carta.imagen.replace(/\/high\.webp$/, "/low.webp") : carta.imagen;
     foto.addEventListener("error", () => {
+      if (foto.src !== carta.imagen && urlInicial !== carta.imagen && !foto.dataset.reintento) {
+        foto.dataset.reintento = "1"; // la miniatura no existe: se prueba con la imagen original
+        foto.src = carta.imagen;
+        return;
+      }
       foto.remove();
       caja.dataset.imagen = "fallida";
     });
-    foto.src = carta.imagen;
+    foto.src = urlInicial;
     caja.append(foto);
     caja.dataset.imagen = "cargando";
   } else {
