@@ -60,3 +60,16 @@ Solo cambia el aspecto; no se ha tocado la lógica, IndexedDB, los datos ni las 
 | `js/album/escena.js` | Añade solo el contenedor decorativo `.objetos` (aria-hidden). |
 
 **Procedencia de recursos:** todo es propio. Las texturas (cuero, madera, papel) se generan con filtros SVG (`feTurbulence`) incrustados en `tokens.css`; la etiqueta y el lápiz se dibujan con CSS. No hay imágenes ni fuentes descargadas, ni URLs externas. Tipografías: serif editorial del sistema (Iowan Old Style / Palatino / Georgia) para títulos y `system-ui` para el resto.
+
+## Propuesta cinematográfica (prueba visual aislada)
+
+`web/album-cine.html` es una **propuesta de composición**, no sustituye a `album-prototipo.html`. Usa exactamente la misma lógica (`js/album-prototipo.js`, sin modificar) y el mismo archivador; solo cambia la escena y la colocación de los controles.
+
+| Archivo | Qué hace |
+|---|---|
+| `album-cine.html` | Estructura de la escena y de los controles (mismos `id` que la página principal). |
+| `css/cine.css` | Capas del escenario, pestañas, ficha con clip, flechas, placa de página, ajustes y versión móvil. |
+| `js/cine.js` | Solo coloca esos elementos dentro del álbum/mesa 3D y gestiona el panel de ajustes (no toca datos). |
+| `assets/cine/*.svg` | `sala`, `lampara`, `objetos-fondo`, `clip`: dibujados por mí en SVG, sin imágenes ni fuentes externas ni licencias. |
+
+Para comparar con Live Server: abre `web/album-prototipo.html` (versión funcional actual) y `web/album-cine.html` (propuesta) en dos pestañas.

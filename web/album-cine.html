@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2b1f17">
+  <title>Álbum Teselia — propuesta de escena cinematográfica</title>
+  <!-- PRUEBA VISUAL AISLADA: no sustituye a album-prototipo.html. Misma lógica (js/album-prototipo.js), otra composición. -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/album-escena.css">
+  <link rel="stylesheet" href="css/archivador.css">
+  <link rel="stylesheet" href="css/cine.css">
+  <link rel="stylesheet" href="css/album-bolsillos.css">
+  <link rel="stylesheet" href="css/album-ficha.css">
+</head>
+<body class="cine">
+  <!-- Capas del escenario, de atrás hacia delante -->
+  <div class="sala" aria-hidden="true"></div>
+  <div class="haz-luz" aria-hidden="true"></div>
+  <div class="escritorio" aria-hidden="true"><div class="tablero"></div></div>
+  <div class="props" aria-hidden="true">
+    <img class="prop-lampara" src="assets/cine/lampara.svg" alt="">
+    <img class="prop-fondo" src="assets/cine/objetos-fondo.svg" alt="">
+  </div>
+  <div class="vineta" aria-hidden="true"></div>
+
+  <h1 class="titulo">Álbum Teselia</h1>
+  <p class="aviso" id="aviso" role="alert" hidden></p>
+  <main class="escena" id="escena" aria-label="Página del álbum con nueve bolsillos"></main>
+
+  <!-- Estos elementos los coloca js/cine.js DENTRO de la escena (en el álbum o sobre la mesa); mantienen sus id y listeners -->
+  <nav class="pestanas" role="group" aria-label="Resaltar cartas (no cambia el orden)">
+    <button type="button" class="pestana" data-filtro="todas" aria-pressed="true"><span>Todas</span></button>
+    <button type="button" class="pestana" data-filtro="sv10.5b" aria-pressed="false" aria-label="Fulgor Negro"><span>Fulgor</span></button>
+    <button type="button" class="pestana" data-filtro="sv10.5w" aria-pressed="false" aria-label="Llama Blanca"><span>Llama</span></button>
+    <button type="button" class="pestana" data-filtro="svp" aria-pressed="false" aria-label="Promociones"><span>Promos</span></button>
+    <button type="button" class="pestana" data-filtro="pendientes" aria-pressed="false" aria-label="Pendientes"><span>Faltan</span></button>
+  </nav>
+  <aside class="ficha-clip" aria-label="Progreso de la colección">
+    <span class="ficha-clip-etiqueta" aria-hidden="true">Mi colección</span>
+    <p class="progreso" id="progreso" aria-live="polite">Cargando…</p>
+    <div class="barra-progreso" aria-hidden="true"><i id="barra"></i></div>
+  </aside>
+  <button type="button" class="flecha flecha-izq" id="anterior" aria-label="Página anterior"><span aria-hidden="true">‹</span></button>
+  <button type="button" class="flecha flecha-der" id="siguiente" aria-label="Página siguiente"><span aria-hidden="true">›</span></button>
+  <div class="placa-pagina" aria-live="polite">
+    <strong id="pagina-numero">Página –</strong>
+    <small id="pagina-rango"></small>
+  </div>
+  <div class="ajustes">
+    <button type="button" class="ajustes-boton" aria-label="Ajustes" aria-expanded="false" aria-controls="ajustes-tarjeta"><span aria-hidden="true">⋯</span></button>
+    <div class="ajustes-tarjeta" id="ajustes-tarjeta" hidden>
+      <strong>Ajustes</strong>
+      <button type="button" class="boton" id="movimiento" aria-pressed="false">Reducir movimiento</button>
+      <a class="enlace-copias" href="prueba-almacenamiento.html">Copias de seguridad</a>
+    </div>
+  </div>
+
+  <div class="ficha" id="ficha" hidden></div>
+  <script type="module" src="js/album-prototipo.js"></script>
+  <script type="module" src="js/cine.js"></script>
+</body>
+</html>

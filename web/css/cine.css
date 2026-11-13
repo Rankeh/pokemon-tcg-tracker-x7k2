@@ -1,0 +1,152 @@
+/* ============================================================================
+   ESCENA CINEMATOGRÁFICA — propuesta aislada (album-cine.html).
+   Capas, de atrás hacia delante:
+     1 .sala        pared, estantería, ventana, cuadros (SVG propio, desenfocado)
+     2 .haz-luz     haces de luz de la ventana sobre la sala
+     3 .escritorio  tablero de nogal en perspectiva (plano 3D real), con niebla en el horizonte y charcos de luz
+     4 .props       lámpara, libros y taza en segundo plano (ligeramente desenfocados)
+     5 .vineta      viñeteado de cámara
+     6 .escena      EL ÁLBUM (enfocado, 3D) con pestañas, ficha con clip, flechas, placa de página y ajustes
+   Materiales y geometría del álbum: archivador.css y album-escena.css (sin cambios).
+   ============================================================================ */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body.cine { margin: 0; overflow: hidden; background: #1b120c; color: var(--texto-album); font: 16px/1.4 var(--fuente-texto); }
+
+/* ------------------------------------------------------------ 1-5: escenario */
+.sala { position: fixed; inset: -24px; background: url("../assets/cine/sala.svg") center top / cover no-repeat; filter: blur(4.5px) brightness(.95); }
+.haz-luz { position: fixed; inset: 0; pointer-events: none; mix-blend-mode: screen; filter: blur(10px);
+  background:
+    linear-gradient(104deg, transparent 50%, rgba(255, 214, 160, .17) 58%, transparent 68%),
+    linear-gradient(111deg, transparent 63%, rgba(255, 214, 160, .11) 70%, transparent 79%); }
+
+.escritorio { position: fixed; left: 0; right: 0; top: 47%; bottom: 0; perspective: 780px; perspective-origin: 50% 0; overflow: hidden; filter: blur(1.2px); }
+.tablero { position: absolute; left: -45%; right: -45%; top: 0; height: 320%; transform-origin: 50% 0; transform: rotateX(68deg);
+  background:
+    var(--textura-madera-clara) 0 0 / 1100px 700px,
+    var(--textura-madera-oscura) 0 0 / 1100px 700px,
+    linear-gradient(180deg, var(--nogal-claro), var(--nogal) 40%, var(--nogal-oscuro)); }
+.escritorio::after { /* niebla del horizonte + charcos de luz de la lámpara (izq.) y de la ventana (der.) */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(50, 36, 27, .96) 0, rgba(50, 36, 27, .0) 34%),
+    radial-gradient(55% 65% at 12% 22%, rgba(255, 188, 118, .30), transparent 72%),
+    radial-gradient(48% 58% at 88% 4%, rgba(255, 214, 160, .24), transparent 70%); }
+
+.props { position: fixed; inset: 0; pointer-events: none; }
+.prop-lampara { position: absolute; left: 3.5%; top: 26%; height: 44vh; filter: blur(3px) drop-shadow(0 0 40px rgba(255, 188, 118, .4)); opacity: .95; }
+.prop-fondo { position: absolute; right: 3%; top: 48%; width: min(26vw, 420px); filter: blur(3px); opacity: .92; }
+.vineta { position: fixed; inset: 0; pointer-events: none; background: radial-gradient(120% 100% at 50% 46%, transparent 52%, rgba(10, 5, 2, .6) 100%); }
+
+/* ------------------------------------------------------------ título discreto en una esquina */
+.titulo { position: fixed; z-index: 4; top: max(1rem, env(safe-area-inset-top)); left: max(1.3rem, env(safe-area-inset-left)); margin: 0; padding-bottom: .5rem;
+  font: 700 .95rem var(--fuente-titulo); letter-spacing: .3em; text-transform: uppercase; color: var(--papel-claro); text-shadow: 0 1px 6px rgba(0, 0, 0, .8); }
+.titulo::after { content: ""; display: block; width: 2.4rem; height: 2px; margin-top: .5rem; background: var(--laton); }
+.aviso { position: fixed; z-index: 30; top: .8rem; left: 50%; transform: translateX(-50%); margin: 0; padding: .5rem .8rem; border-radius: var(--radio-m); background: #4a1d1d; border: 1px solid #a54; font-size: .9rem; max-width: 92vw; }
+
+/* ------------------------------------------------------------ el álbum domina la escena */
+.escena { position: fixed; inset: 0; z-index: 2; flex: none; container-type: size; overflow: hidden; touch-action: pan-y; }
+@supports (width: 1cqw) { .mesa { --w: min(60cqw, calc((100cqh - 5.2rem) * .72), 1000px); } }
+.album { margin-left: calc(var(--w) * .02); transform: translateY(calc(var(--w) * -.1)) rotateX(26deg) rotateY(-9deg) rotateZ(.6deg); }
+.objetos { display: none; }
+
+/* Elementos que aún no se han colocado en la escena no deben verse sueltos */
+.cine > .pestanas, .cine > .ficha-clip, .cine > .flecha, .cine > .placa-pagina, .cine > .ajustes { display: none; }
+
+/* ------------------------------------------------------------ pestañas de cartulina que sobresalen del archivador */
+.pestanas { inset: 0; transform-style: preserve-3d; pointer-events: none; }
+.pestana { position: absolute; left: 97.4%; width: calc(var(--w) * .105); height: 15.6%; padding: 0; pointer-events: auto; cursor: pointer; border: 0; border-radius: 0 calc(var(--w) * .014) calc(var(--w) * .014) 0;
+  transform: translateZ(calc(var(--w) * -.05)); transition: transform .22s cubic-bezier(.2, .8, .2, 1), filter .2s;
+  color: var(--tinta); font: 700 max(11px, calc(var(--w) * .024)) var(--fuente-titulo); letter-spacing: .06em;
+  background: var(--textura-papel), linear-gradient(90deg, var(--papel-oscuro), var(--papel) 18%, var(--papel-claro)); background-blend-mode: multiply, normal;
+  box-shadow: 2px 3px 5px rgba(14, 7, 2, .55), inset 0 0 0 1px rgba(255, 255, 255, .22), inset -2px 0 3px rgba(80, 55, 30, .25); }
+.pestana span { display: block; writing-mode: vertical-rl; margin: auto; white-space: nowrap; }
+.pestana:nth-child(1) { top: 6%; }  .pestana:nth-child(2) { top: 23%; } .pestana:nth-child(3) { top: 40%; } .pestana:nth-child(4) { top: 57%; } .pestana:nth-child(5) { top: 74%; }
+.pestana:nth-child(2) { color: var(--papel-claro); background: var(--textura-cuero), linear-gradient(90deg, #17181a, #34373a 30%, #26282a); background-blend-mode: soft-light, normal; background-size: 160px, auto; }
+.pestana:nth-child(3) { background: var(--textura-papel), linear-gradient(90deg, #cfc5b0, #f4ecdb 25%, #fffaf0); background-blend-mode: multiply, normal; }
+.pestana:nth-child(4) { background: linear-gradient(90deg, var(--laton-oscuro), var(--laton-claro) 28%, var(--laton)); }
+.pestana:nth-child(5) { color: #1c241e; background: var(--textura-papel), linear-gradient(90deg, #5f7164, var(--salvia) 22%, var(--salvia-claro)); background-blend-mode: multiply, normal; }
+.pestana:hover { transform: translateZ(calc(var(--w) * -.05)) translateX(calc(var(--w) * .012)); filter: brightness(1.08); }
+.pestana[aria-pressed="true"] { transform: translateZ(calc(var(--w) * -.05)) translateX(calc(var(--w) * .03)); filter: brightness(1.12) drop-shadow(0 0 6px rgba(211, 180, 127, .55)); }
+.pestana:focus-visible { outline: 2px solid var(--laton-claro); outline-offset: 2px; }
+
+/* ------------------------------------------------------------ ficha de progreso prendida con un clip al borde superior */
+.ficha-clip { left: auto; right: 9%; bottom: calc(100% + var(--w) * .004); width: calc(var(--w) * .3); padding: calc(var(--w) * .016) calc(var(--w) * .02) calc(var(--w) * .022); pointer-events: none;
+  transform: translateZ(calc(var(--w) * .02)) rotate(2.5deg); transform-origin: 50% 100%; border-radius: 3px; color: var(--tinta);
+  background: var(--textura-papel), linear-gradient(165deg, var(--papel-claro), var(--papel)); background-blend-mode: multiply, normal;
+  box-shadow: var(--sombra-objeto), inset 0 0 0 1px rgba(255, 255, 255, .3); }
+.ficha-clip::after { content: ""; position: absolute; left: 50%; bottom: calc(var(--w) * -.052); width: calc(var(--w) * .1); aspect-ratio: 120 / 90; transform: translateX(-50%);
+  background: url("../assets/cine/clip.svg") center / contain no-repeat; filter: drop-shadow(0 3px 3px rgba(14, 7, 2, .6)); }
+.ficha-clip-etiqueta { display: block; white-space: nowrap; font: 600 max(9px, calc(var(--w) * .0145)) var(--fuente-texto); letter-spacing: .2em; text-transform: uppercase; color: var(--laton-oscuro); }
+.ficha-clip .progreso { margin: calc(var(--w) * .004) 0 calc(var(--w) * .01); font: max(11px, calc(var(--w) * .021)) var(--fuente-texto); font-variant-numeric: tabular-nums; color: rgba(43, 33, 24, .85); white-space: nowrap; }
+.ficha-clip .progreso strong { font: 700 max(20px, calc(var(--w) * .052)) var(--fuente-titulo); color: var(--tinta); margin-right: .1em; }
+.barra-progreso { height: calc(var(--w) * .01); min-height: 5px; border-radius: 3px; background: rgba(43, 33, 24, .25); overflow: hidden; }
+.barra-progreso > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #5f7164, var(--salvia)); transition: width .5s cubic-bezier(.2, .8, .2, 1); }
+
+/* ------------------------------------------------------------ flechas (sobre la mesa, a ambos lados del álbum) */
+.flecha { position: absolute; z-index: 5; top: 44%; width: clamp(3.2rem, calc(var(--w) * .105), 4.6rem); aspect-ratio: 1; padding: 0 0 .15em; display: grid; place-items: center; cursor: pointer;
+  border-radius: 50%; border: 2px solid var(--laton); color: var(--papel-claro); font: 400 clamp(2rem, calc(var(--w) * .075), 3.2rem)/1 var(--fuente-texto);
+  background: var(--textura-cuero), radial-gradient(circle at 35% 25%, #4a4d50, var(--grafito) 72%); background-blend-mode: soft-light, normal; background-size: 160px, auto;
+  box-shadow: 0 0 0 4px rgba(20, 12, 8, .55), var(--sombra-flotante), inset 0 1px 1px rgba(255, 255, 255, .25);
+  transition: transform .14s ease, border-color .15s, box-shadow .2s; }
+.flecha-izq { right: calc(50% + var(--w) * .66); }
+.flecha-der { left: calc(50% + var(--w) * .76); }
+.flecha:hover { border-color: var(--laton-claro); }
+.flecha:active { transform: scale(.93); box-shadow: 0 0 0 4px rgba(20, 12, 8, .55), var(--sombra-contacto); }
+.flecha:focus-visible, .ajustes-boton:focus-visible, .boton:focus-visible { outline: 2px solid var(--laton-claro); outline-offset: 3px; }
+
+/* ------------------------------------------------------------ placa metálica con la página actual */
+.placa-pagina { position: absolute; z-index: 5; left: 50%; bottom: max(.9rem, env(safe-area-inset-bottom)); transform: translateX(-50%); min-width: clamp(11rem, calc(var(--w) * .46), 17rem); padding: .45rem 1.4rem .5rem; text-align: center; pointer-events: none;
+  border-radius: 5px; color: var(--tinta); line-height: 1.15;
+  background: var(--textura-papel), linear-gradient(100deg, var(--laton-oscuro), var(--laton-claro) 30%, var(--laton) 62%, var(--laton-oscuro)); background-blend-mode: soft-light, normal;
+  box-shadow: var(--sombra-objeto), inset 0 1px 1px rgba(255, 244, 224, .55), inset 0 -2px 2px rgba(60, 40, 15, .4); }
+.placa-pagina::before, .placa-pagina::after { content: ""; position: absolute; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f6e9c8, #6a512c); box-shadow: 0 1px 1px rgba(0, 0, 0, .5); }
+.placa-pagina::before { left: .55rem; } .placa-pagina::after { right: .55rem; }
+.placa-pagina strong { display: block; font: 700 clamp(1rem, calc(var(--w) * .036), 1.4rem) var(--fuente-titulo); letter-spacing: .04em; font-variant-numeric: tabular-nums; text-shadow: 0 1px 0 rgba(255, 244, 224, .4); }
+.placa-pagina small { display: block; margin-top: .12rem; font: 600 max(11px, calc(var(--w) * .02)) var(--fuente-texto); color: rgba(43, 33, 24, .78); }
+
+/* ------------------------------------------------------------ ajustes: ocultos hasta que se necesitan */
+.ajustes { position: absolute; z-index: 6; right: max(1.1rem, env(safe-area-inset-right)); bottom: max(.9rem, env(safe-area-inset-bottom)); }
+.ajustes-boton { width: 2.9rem; height: 2.9rem; padding: 0 0 .25rem; display: grid; place-items: center; cursor: pointer; border-radius: 50%; border: 1.5px solid rgba(173, 137, 86, .8); color: var(--papel); font: 700 1.5rem/1 var(--fuente-texto);
+  background: radial-gradient(circle at 35% 25%, #3d4043, var(--grafito) 75%); box-shadow: var(--sombra-objeto); opacity: .8; transition: opacity .2s, transform .15s; }
+.ajustes-boton:hover, .ajustes-boton[aria-expanded="true"] { opacity: 1; }
+.ajustes-tarjeta { position: absolute; right: 0; bottom: calc(100% + .7rem); width: 14.5rem; padding: .9rem 1rem 1rem; display: grid; gap: .6rem; border-radius: 4px; color: var(--tinta);
+  background: var(--textura-papel), linear-gradient(165deg, var(--papel-claro), var(--papel)); background-blend-mode: multiply, normal; box-shadow: var(--sombra-flotante); transform: rotate(-1.5deg); transform-origin: 100% 100%;
+  animation: tarjeta-entra .22s cubic-bezier(.2, .8, .2, 1); }
+.ajustes-tarjeta[hidden] { display: none; }
+.ajustes-tarjeta strong { font: 700 .95rem var(--fuente-titulo); letter-spacing: .12em; text-transform: uppercase; color: var(--laton-oscuro); }
+.ajustes-tarjeta .boton { color: var(--tinta); background: rgba(43, 33, 24, .08); border-color: rgba(43, 33, 24, .3); box-shadow: none; }
+.ajustes-tarjeta .boton[aria-pressed="true"] { background: var(--salvia); color: #14201a; border-color: #5f7164; }
+.ajustes-tarjeta .boton[aria-pressed="true"]::before { content: "✓ "; }
+.enlace-copias { color: var(--tinta); font-size: .85rem; text-decoration-color: var(--laton); padding: .35rem 0; }
+@keyframes tarjeta-entra { from { opacity: 0; transform: translateY(8px) rotate(-1.5deg); } }
+@media (prefers-reduced-motion: reduce) { .ajustes-tarjeta { animation: none; } .pestana, .flecha { transition: none; } }
+
+/* Botones base (los usa también la ficha) */
+.boton { min-height: 44px; font: inherit; font-size: .9rem; padding: .4rem .75rem; border-radius: var(--radio-m); border: 1px solid rgba(215, 197, 165, .26); background: rgba(215, 197, 165, .07); color: var(--papel-claro); cursor: pointer; box-shadow: var(--sombra-contacto); transition: transform .12s ease, background-color .15s ease; }
+.boton:active { transform: translateY(1px) scale(.98); }
+.boton[aria-pressed="true"] { border-color: var(--laton); color: #fff; background: rgba(173, 137, 86, .24); }
+.boton:disabled { opacity: .45; cursor: default; }
+.boton-principal { background: linear-gradient(180deg, var(--laton-claro), var(--laton)); color: var(--tinta); border-color: var(--laton-claro); font-weight: 650; }
+.ficha-cerrar:focus-visible { outline: 2px solid var(--laton-claro); outline-offset: 2px; }
+
+/* ------------------------------------------------------------ móvil: el álbum domina, controles al pie */
+@media (max-width: 700px), (max-aspect-ratio: 1/1) {
+  @supports (width: 1cqw) { .mesa { --w: min(70cqw, calc((100cqh - 9rem) * .72)); } }
+  .album { margin-left: calc(var(--w) * .03); transform: translateY(calc(var(--w) * .05)) rotateX(24deg) rotateY(-7deg) rotateZ(.5deg); }
+  .titulo { font-size: .8rem; letter-spacing: .26em; }
+  .sala { background-position: 82% top; }
+  .prop-lampara, .prop-fondo { display: none; }
+  .escritorio { top: 40%; }
+  .ficha-clip { width: calc(var(--w) * .36); }
+  .flecha { top: auto; bottom: max(.7rem, env(safe-area-inset-bottom)); width: 3.4rem; font-size: 2.2rem; }
+  .flecha-izq { right: auto; left: max(.9rem, env(safe-area-inset-left)); }
+  .flecha-der { left: auto; right: max(.9rem, env(safe-area-inset-right)); }
+  /* La placa queda entre las dos flechas */
+  .placa-pagina { bottom: max(.8rem, env(safe-area-inset-bottom)); min-width: 0; width: calc(100% - 2 * (max(.9rem, env(safe-area-inset-left)) + 4rem)); padding: .35rem .8rem .4rem; }
+  .placa-pagina::before, .placa-pagina::after { display: none; }
+  /* Ajustes: esquina superior derecha; la tarjeta se despliega hacia abajo */
+  .ajustes { bottom: auto; top: max(.8rem, env(safe-area-inset-top)); right: max(.9rem, env(safe-area-inset-right)); }
+  .ajustes-boton { width: 2.8rem; height: 2.8rem; }
+  .ajustes-tarjeta { bottom: auto; top: calc(100% + .6rem); transform-origin: 100% 0; }
+}
