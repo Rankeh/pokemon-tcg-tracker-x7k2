@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +22,8 @@ import java.util.TreeSet;
  *
  * El catálogo solo contiene datos oficiales de las cartas. Tu colección (cuántas copias tienes
  * de cada variante) se guardará aparte, en el móvil, así que regenerar este archivo nunca la toca.
- * Las variantes salen únicamente de variants_detailed: no se inventa ninguna.
+ * Las variantes salen únicamente de variants_detailed: no se inventa ni se elimina ninguna.
+ * Cada variante lleva una "clave" única (idCarta|variantId) para asociar las cantidades.
  */
 public class GeneradorCatalogo {
 
@@ -52,13 +55,17 @@ public class GeneradorCatalogo {
 
         int totalVariantes = 0;
         int cartasSinVariantes = 0;
+        Set<String> clavesUsadas = new HashSet<>();
+        List<String> clavesRepetidas = new ArrayList<>();
         ArrayNode listaCartas = raiz.putArray("cartas");
+
         for (JsonNode carta : cartas) {
+            String idCarta = carta.path("id").asText();
             String idExpansion = carta.path("set").path("id").asText();
             String numero = carta.path("localId").asText();
 
             ObjectNode salida = listaCartas.addObject();
-            salida.put("id", carta.path("id").asText());
+            salida.put("id", idCarta);
             salida.put("expansion", idExpansion);
             salida.put("numero", numero);
             salida.put("numerada", esNumerada(numero, oficialesPorExpansion.getOrDefault(idExpansion, 0)));
@@ -75,16 +82,34 @@ public class GeneradorCatalogo {
                 }
             }
 
-            // Cada variante se copia tal cual (variantId, type, foil, size y cualquier otro campo).
+            // Cada variante se copia tal cual (variantId, type, foil, size y cualquier otro campo)
+            // y se le añade su clave única. No se descarta ninguna.
             ArrayNode variantes = salida.putArray("variantes");
             for (JsonNode variante : carta.path("variants_detailed")) {
-                JsonNode copia = variante.deepCopy();
-                variantes.add(copia);
+                if (!variante.isObject()) {
+                    throw new IOException("Variante con formato inesperado en " + idCarta + ": " + variante);
+                }
+                String clave = ClavesDeVariante.clave(idCarta, variante);
+                if (!clavesUsadas.add(clave)) {
+                    clavesRepetidas.add(clave);
+                }
+
+                ObjectNode salidaVariante = variantes.addObject();
+                salidaVariante.put("clave", clave);
+                ObjectNode copia = variante.deepCopy();
+                salidaVariante.setAll(copia);
                 totalVariantes++;
             }
             if (variantes.size() == 0) {
                 cartasSinVariantes++;
             }
+        }
+
+        // Si la clave no fuera única se mezclarían cantidades: mejor no guardar nada.
+        if (!clavesRepetidas.isEmpty()) {
+            throw new IOException("Hay " + clavesRepetidas.size() + " claves de variante repetidas, por ejemplo "
+                    + clavesRepetidas.subList(0, Math.min(5, clavesRepetidas.size()))
+                    + ". No se guarda el catálogo; revisa informe-variantes.txt.");
         }
 
         compararConAnterior(archivoSalida, raiz);
@@ -95,7 +120,7 @@ public class GeneradorCatalogo {
         System.out.println();
         System.out.println("Catálogo guardado en: " + archivoSalida.toAbsolutePath().normalize());
         System.out.println("  " + expansiones.size() + " expansiones, " + cartas.size()
-                + " cartas, " + totalVariantes + " variantes");
+                + " cartas, " + totalVariantes + " variantes (todas con clave única)");
         if (cartasSinVariantes > 0) {
             System.out.println("ATENCIÓN: " + cartasSinVariantes
                     + " cartas no tienen variantes en TCGdex y no se podrán registrar en la colección.");
@@ -140,12 +165,16 @@ public class GeneradorCatalogo {
         }
     }
 
-    /** Clave única de cada variante: idCarta|variantId. */
+    /** Conjunto de claves de variante de un catálogo (sirve también para catálogos sin campo "clave"). */
     private static Set<String> clavesDeVariantes(JsonNode catalogo) {
         Set<String> claves = new TreeSet<>();
         for (JsonNode carta : catalogo.path("cartas")) {
             for (JsonNode variante : carta.path("variantes")) {
-                claves.add(carta.path("id").asText() + "|" + variante.path("variantId").asText(""));
+                if (variante.hasNonNull("clave")) {
+                    claves.add(variante.get("clave").asText());
+                } else {
+                    claves.add(carta.path("id").asText() + "|" + variante.path("variantId").asText(""));
+                }
             }
         }
         return claves;

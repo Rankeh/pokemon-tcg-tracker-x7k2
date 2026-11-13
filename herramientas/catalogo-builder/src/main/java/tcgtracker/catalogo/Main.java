@@ -10,10 +10,12 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        // Desde catalogo-builder/, "../.." es la raíz del repositorio.
-        Path raizRepositorio = Path.of("..", "..");
-        Path carpetaCrudo = raizRepositorio.resolve(Path.of("datos", "crudo", "es"));
-        Path archivoCatalogo = raizRepositorio.resolve(Path.of("datos", "catalogo", "catalogo.json"));
+        // La raíz se busca sola, ejecutes el programa desde VS Code o desde la carpeta que sea.
+        Path raizRepositorio = RaizRepositorio.encontrar();
+        System.out.println("Raíz del repositorio: " + raizRepositorio);
+
+        Path carpetaCrudo = raizRepositorio.resolve("datos").resolve("crudo").resolve("es");
+        Path archivoCatalogo = raizRepositorio.resolve("datos").resolve("catalogo").resolve("catalogo.json");
 
         TcgdexCliente cliente = new TcgdexCliente("es", carpetaCrudo);
         List<String> idsExpansiones = List.of("sv10.5b", "sv10.5w");
@@ -61,6 +63,13 @@ public class Main {
             return;
         }
 
-        GeneradorCatalogo.generar(expansiones, todasLasCartas, archivoCatalogo);
+        Auditoria.informeGlobal(todasLasCartas, carpetaCrudo);
+
+        try {
+            GeneradorCatalogo.generar(expansiones, todasLasCartas, archivoCatalogo);
+        } catch (IOException e) {
+            System.out.println();
+            System.out.println("NO se ha guardado el catálogo: " + e.getMessage());
+        }
     }
 }
