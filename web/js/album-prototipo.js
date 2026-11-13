@@ -11,7 +11,7 @@ import { ajustes, insertarCarta, extraerCarta, pulsoCantidad, movimientoReducido
 import { ADELANTE, ATRAS, destino, leerPagina, urlConPagina } from "./album/navegacion.js";
 import { girar } from "./album/giro.js";
 import { instalarGestos } from "./album/gestos.js";
-import { esperarImagenes } from "./album/precarga.js";
+import { esperarImagenes, precargarCartas } from "./album/precarga.js";
 
 const $ = (id) => document.getElementById(id);
 const URL_CATALOGO = "../datos/catalogo/coleccion-teselia.json";
@@ -68,11 +68,20 @@ function fijarIndicador(n) {
   try { history.replaceState(history.state, "", urlConPagina(location.href, n)); } catch { /* sin History API: no pasa nada */ }
 }
 
+/** Precarga las miniaturas de las páginas vecinas (anterior y siguiente, también la vuelta circular 18↔1). */
+function precargarVecinas(n) {
+  const total = distribucion.paginas.length;
+  for (const sentido of ["adelante", "atras"]) {
+    precargarCartas(distribucion.paginas[destino(n, sentido, total) - 1].bolsillos.filter(Boolean));
+  }
+}
+
 /** Cambio inmediato (carga inicial y movimiento reducido): sin giro. */
 function mostrarPagina(n) {
   paginaActual = n;
   pagina = montarPagina(n, escena.bolsillos);
   fijarIndicador(n);
+  precargarVecinas(n);
 }
 
 const puedeNavegar = () => !bloqueado && !navegando && !ficha.abierta;
@@ -91,11 +100,12 @@ async function navegar(sentido) {
       return;
     }
     const siguiente = montarPagina(n, escena.reposo.bolsillos);
-    await esperarImagenes(escena.reposo.hoja, 350); // que la hoja que aparece no muestre imágenes a medias
+    await esperarImagenes(escena.reposo.hoja, 120); // pausa breve y acotada: las vecinas ya están precargadas
     fijarIndicador(n);
     await girar(escena, sentido);
     pagina = siguiente;
     paginaActual = n;
+    precargarVecinas(n);
   } catch (error) {
     avisar(`Error al girar la hoja: ${error?.message ?? error}`);
     mostrarPagina(n);
