@@ -50,6 +50,18 @@ public class SeleccionColeccion {
         List<ObjectNode> objetivo = new ArrayList<>(seleccion.incluidas);
         objetivo.addAll(promos.confirmadas);
 
+        // 2b) Imagen: comprueba que cada una carga de verdad (las promociones ya vienen comprobadas).
+        System.out.println("Comprobando que las imágenes cargan (" + objetivo.size() + " cartas)...");
+        for (ObjectNode c : objetivo) {
+            if (!c.has("estadoImagen")) {
+                String url = c.path("imagen").asText("");
+                Imagenes.anotar(c, Imagenes.idiomaDe(url), Imagenes.comprobar(url), "TCGdex (campo image)");
+            }
+        }
+        int imgEs = contar(objetivo, "estadoImagen", Imagenes.ESPANOL);
+        int imgOtro = contar(objetivo, "estadoImagen", Imagenes.OTRO_IDIOMA);
+        int imgNinguna = contar(objetivo, "estadoImagen", Imagenes.SIN_IMAGEN);
+
         // 3) Comprobaciones
         List<String> comprobaciones = new ArrayList<>();
         Set<String> ids = new HashSet<>();
@@ -86,6 +98,9 @@ public class SeleccionColeccion {
         totales.put("ir", contar(objetivo, "categoriaColeccion", Selector.IR));
         totales.put("sir", contar(objetivo, "categoriaColeccion", Selector.SIR));
         totales.put("partidarios", contar(objetivo, "categoriaColeccion", Selector.PARTIDARIO));
+        totales.put("imagenEspanolVerificada", imgEs);
+        totales.put("imagenOtroIdioma", imgOtro);
+        totales.put("sinImagen", imgNinguna);
         ArrayNode lista = raizJson.putArray("cartas");
         objetivo.forEach(lista::add);
         Archivos.guardarSinRiesgo(salidaJson, MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(raizJson));
@@ -101,9 +116,13 @@ public class SeleccionColeccion {
         System.out.println("Fulgor Negro: " + totales.path("sv10.5b").asInt()
                 + " | Llama Blanca: " + totales.path("sv10.5w").asInt());
         comprobaciones.forEach(c -> System.out.println("  " + c));
-        System.out.println("Sin imagen en español (necesitan tu aprobación): "
-                + (seleccion.sinImagenEspanol.size() + promos.pendientesImagenEspanol.size())
-                + " (de ellas promociones: " + promos.pendientesImagenEspanol.size() + ")");
+        System.out.println("Imágenes: español verificado " + imgEs + " | otro idioma " + imgOtro
+                + " | sin imagen " + imgNinguna);
+        objetivo.stream().filter(c -> !c.path("estadoImagen").asText().equals(Imagenes.ESPANOL))
+                .forEach(c -> System.out.println("  " + c.path("id").asText() + " " + c.path("nombre").asText()
+                        + ": " + c.path("estadoImagen").asText() + " — " + c.path("detalleImagen").asText()));
+        System.out.println("Cartas IR/SIR/Partidario excluidas por imagen no española: "
+                + seleccion.sinImagenEspanol.size());
         promos.avisos.forEach(a -> System.out.println("  aviso: " + a));
         promos.problemas.forEach(a -> System.out.println("  PROBLEMA: " + a));
         System.out.println("A revisar a mano: " + seleccion.revisarAMano.size());
@@ -133,6 +152,26 @@ public class SeleccionColeccion {
 
         sb.append("## Comprobaciones\n\n");
         comprobaciones.forEach(c -> sb.append("- ").append(c).append("\n"));
+
+        sb.append("\n## Estado de las imágenes (comprobado cargando cada URL)\n\n");
+        sb.append("| Estado | Cartas |\n|---|---|\n");
+        sb.append("| Imagen española verificada | ").append(t.path("imagenEspanolVerificada").asInt()).append(" |\n");
+        sb.append("| Imagen en otro idioma | ").append(t.path("imagenOtroIdioma").asInt()).append(" |\n");
+        sb.append("| Sin imagen disponible | ").append(t.path("sinImagen").asInt()).append(" |\n\n");
+        sb.append("Cartas cuya imagen NO es española verificada:\n\n");
+        boolean alguna = false;
+        for (ObjectNode c : objetivo) {
+            if (!c.path("estadoImagen").asText().equals(Imagenes.ESPANOL)) {
+                alguna = true;
+                sb.append("- ").append(c.path("id").asText()).append(" ").append(c.path("nombre").asText())
+                        .append(": **").append(c.path("estadoImagen").asText()).append("** (")
+                        .append(c.path("detalleImagen").asText()).append("; origen: ")
+                        .append(c.path("origenImagen").asText()).append(")\n");
+            }
+        }
+        if (!alguna) {
+            sb.append("Ninguna: todas tienen imagen española verificada.\n");
+        }
 
         tabla(sb, "1. Pokémon IR", objetivo, Selector.IR);
         tabla(sb, "2. Pokémon SIR", objetivo, Selector.SIR);
@@ -173,14 +212,9 @@ public class SeleccionColeccion {
             promos.problemas.forEach(p -> sb.append("- ").append(p).append("\n"));
         }
 
-        sb.append("\n## Cartas que cumplen los criterios pero SIN imagen en español (necesitan tu aprobación)\n\n");
-        if (sel.sinImagenEspanol.isEmpty() && promos.pendientesImagenEspanol.isEmpty()) {
+        sb.append("\n## Cartas IR/SIR/Partidario que cumplen los criterios pero NO entran por no tener imagen española en TCGdex (necesitan tu aprobación)\n\n");
+        if (sel.sinImagenEspanol.isEmpty()) {
             sb.append("Ninguna.\n");
-        }
-        for (ObjectNode c : promos.pendientesImagenEspanol) {
-            sb.append("- (promoción) ").append(c.path("id").asText()).append(" ").append(c.path("nombre").asText())
-                    .append(" — imagen en ").append(c.path("idiomaImagen").asText())
-                    .append(": ").append(c.path("imagen").asText()).append("\n");
         }
         for (ObjectNode c : sel.sinImagenEspanol) {
             sb.append("- ").append(c.path("id").asText()).append(" ").append(c.path("nombre").asText()).append("\n");
@@ -209,8 +243,8 @@ public class SeleccionColeccion {
         sb.append("\n## ").append(titulo).append("\n\n");
         boolean promo = categoria.equals(Selector.PROMO);
         sb.append(promo
-                ? "| Nombre | Número | Serie | Rareza | Id TCGdex | Producto | Ilustración | Imagen |\n|---|---|---|---|---|---|---|---|\n"
-                : "| Nombre | Número | Código | Expansión | Rareza | Id TCGdex | Imagen |\n|---|---|---|---|---|---|---|\n");
+                ? "| Nombre | Número | Serie | Rareza | Id TCGdex | Producto | Ilustración | Estado imagen | Imagen |\n|---|---|---|---|---|---|---|---|---|\n"
+                : "| Nombre | Número | Código | Expansión | Rareza | Id TCGdex | Estado imagen | Imagen |\n|---|---|---|---|---|---|---|---|\n");
         int n = 0;
         for (ObjectNode c : cartas) {
             if (!c.path("categoriaColeccion").asText().equals(categoria)) {
@@ -226,7 +260,8 @@ public class SeleccionColeccion {
             if (promo) {
                 sb.append(" | ").append(c.path("producto").asText()).append(" | ").append(c.path("tipoIlustracion").asText());
             }
-            sb.append(" | ").append(c.path("imagen").asText()).append(" |\n");
+            sb.append(" | ").append(c.path("estadoImagen").asText()).append(" | ")
+                    .append(c.path("imagen").asText().isEmpty() ? "—" : c.path("imagen").asText()).append(" |\n");
         }
         if (n == 0) {
             sb.append("| (ninguna) |\n");

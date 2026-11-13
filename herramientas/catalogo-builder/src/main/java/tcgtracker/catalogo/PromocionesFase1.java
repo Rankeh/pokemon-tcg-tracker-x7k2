@@ -27,8 +27,6 @@ public final class PromocionesFase1 {
     public final List<Informe> informes = new ArrayList<>();
     public final List<ObjectNode> confirmadas = new ArrayList<>();
     public final List<String> problemas = new ArrayList<>();
-    /** Confirmadas pero sin imagen en español en TCGdex: no cuentan hasta que las apruebes. */
-    public final List<ObjectNode> pendientesImagenEspanol = new ArrayList<>();
     public final List<String> avisos = new ArrayList<>();
 
     public static PromocionesFase1 procesar(Path archivoDecisiones, Path carpetaCrudo) throws IOException {
@@ -112,8 +110,6 @@ public final class PromocionesFase1 {
         o.put("nombreExpansion", "Promociones Escarlata y Púrpura (svp)");
         o.put("rareza", elegida.rareza());
         o.put("ilustrador", elegida.ilustrador());
-        o.put("imagen", elegida.imagen());
-        o.put("idiomaImagen", elegida.idioma());
         o.put("producto", c.path("producto").asText());
         o.put("tipoIlustracion", c.path("tipoIlustracion").asText());
         o.put("verificacion", "confirmada (número, producto e ilustración contrastados en varias fuentes; ver promociones.json)");
@@ -123,10 +119,63 @@ public final class PromocionesFase1 {
             avisos.add(elegida.id() + ": TCGdex da el ilustrador '" + elegida.ilustrador()
                     + "' y las fuentes decían '" + esperado + "'. Compruébalo mirando la imagen.");
         }
-        if (elegida.idioma().equals("es") || c.path("aprobarImagenIngles").asBoolean(false)) {
-            confirmadas.add(o);
+        elegirImagen(o, c, elegida);
+        // Se conserva siempre (la selección está aprobada); el estado de la imagen va en la propia ficha.
+        confirmadas.add(o);
+    }
+
+    /**
+     * Busca una imagen que de verdad cargue, preferiendo español. Orden de prueba:
+     * 1) la que da TCGdex; 2) el patrón documentado de TCGdex (assets.tcgdex.net/{idioma}/sv/svp/{número}/high.webp)
+     * en español e inglés; 3) 'imagenAlternativa' de promociones.json (solo si la pones tú).
+     * Solo se acepta lo que responde HTTP 200 con tipo image/*. No se inventa nada: si nada carga, queda sin imagen.
+     */
+    private void elegirImagen(ObjectNode o, JsonNode c, Coincidencia elegida) {
+        record Candidata(String url, String idioma, String origen) {
+        }
+        List<Candidata> candidatas = new ArrayList<>();
+        if (!elegida.imagen().isEmpty()) {
+            candidatas.add(new Candidata(elegida.imagen(), Imagenes.idiomaDe(elegida.imagen()), "TCGdex (campo image)"));
+        }
+        String patron = "https://assets.tcgdex.net/%s/sv/svp/" + elegida.numero() + "/high.webp";
+        candidatas.add(new Candidata(patron.formatted("es"), "es", "patrón documentado de TCGdex, comprobado"));
+        candidatas.add(new Candidata(patron.formatted("en"), "en", "patrón documentado de TCGdex, comprobado"));
+        JsonNode alt = c.path("imagenAlternativa");
+        if (alt.hasNonNull("url")) {
+            candidatas.add(new Candidata(alt.path("url").asText(), alt.path("idioma").asText(""),
+                    "alternativa aportada: " + alt.path("fuente").asText("sin fuente indicada")));
+        }
+
+        Candidata mejor = null;
+        Imagenes.Comprobacion mejorComprobacion = null;
+        Imagenes.Comprobacion ultimo = new Imagenes.Comprobacion(false, "sin candidatas");
+        java.util.Set<String> vistas = new java.util.HashSet<>();
+        for (Candidata cand : candidatas) {
+            if (!vistas.add(cand.url())) {
+                continue;
+            }
+            Imagenes.Comprobacion r = Imagenes.comprobar(cand.url());
+            ultimo = r;
+            if (!r.carga()) {
+                continue;
+            }
+            if (cand.idioma().equals("es")) {
+                mejor = cand;
+                mejorComprobacion = r;
+                break;
+            }
+            if (mejor == null) {
+                mejor = cand;
+                mejorComprobacion = r;
+            }
+        }
+        if (mejor == null) {
+            o.put("imagen", "");
+            Imagenes.anotar(o, "", new Imagenes.Comprobacion(false,
+                    "ninguna URL candidata carga (último intento: " + ultimo.motivo() + ")"), "ninguno");
         } else {
-            pendientesImagenEspanol.add(o);
+            o.put("imagen", mejor.url());
+            Imagenes.anotar(o, mejor.idioma(), mejorComprobacion, mejor.origen());
         }
     }
 
