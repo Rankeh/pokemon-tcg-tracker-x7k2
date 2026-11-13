@@ -190,7 +190,7 @@ test('15 alta usa MeshPhysicalMaterial con sheen SOLO en tapas y lomo (2 materia
   assert.equal(mat(alta.a, 'Hoja_0_Losa').constructor.name, 'MeshStandardMaterial'); assert.equal(alta.a.nodo.get('Hoja_0_F_Funda').material.constructor.name, 'MeshStandardMaterial');
   assert.equal(mat(media.a, 'Tapa_Malla').constructor.name, 'MeshStandardMaterial'); assert.ok(mat(media.a, 'Tapa_Malla').roughnessMap, 'media: rugosidad con pequeñas variaciones');
   const unicos = (a) => { const s = new Set(); a.escena.traverse((o) => o.isMesh && s.add(o.material)); return s.size; };
-  assert.ok(unicos(alta.a) <= 12 && unicos(media.a) <= 12, 'materiales del álbum: cubierta, lomo, hoja, soldadura, funda, carta + costura y 4 pestañas (3.7.7) (nunca uno por bolsillo)');
+  assert.ok(unicos(alta.a) <= 8 && unicos(media.a) <= 8, 'materiales del álbum: cubierta, lomo, hoja, soldadura, funda, carta + costura (3.7.7) (nunca uno por bolsillo)');
 });
 
 test('16 funda: UV de página completa para el reflejo, la misma película en las 162 fundas y sin tocar el raycasting (no es un candidato de picking)', async () => {

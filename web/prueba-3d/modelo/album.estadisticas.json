@@ -1,10 +1,10 @@
 {
  "modelo": {
-  "nodos": 254,
-  "mallas_distintas": 16,
-  "nodos_con_malla": 62,
-  "triangulos_instanciados": 35256,
-  "triangulos_unicos": 13384
+  "nodos": 245,
+  "mallas_distintas": 12,
+  "nodos_con_malla": 53,
+  "triangulos_instanciados": 32664,
+  "triangulos_unicos": 12232
  },
  "parametros": {
   "n_hojas": 9,
@@ -21,5 +21,5 @@
   "ocupados": 0,
   "bolsillos": 162
  },
- "bytes_glb": 449996
+ "bytes_glb": 420088
 }
