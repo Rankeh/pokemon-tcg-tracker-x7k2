@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="css/album-escena.css">
   <link rel="stylesheet" href="css/entorno.css">
   <link rel="stylesheet" href="css/archivador.css">
+  <link rel="stylesheet" href="css/interfaz.css">
   <link rel="stylesheet" href="css/album-bolsillos.css">
   <link rel="stylesheet" href="css/album-ficha.css">
 </head>
@@ -17,8 +18,12 @@
 <div class="app">
   <header class="cabecera">
     <h1>Álbum Teselia</h1>
-    <p class="progreso" id="progreso" aria-live="polite">Cargando…</p>
-    <div class="barra-progreso" aria-hidden="true"><i id="barra"></i></div>
+    <p class="subtitulo">Ilustraciones especiales de la región de Teselia</p>
+    <div class="ficha-progreso">
+      <span class="ficha-progreso-etiqueta" aria-hidden="true">Mi colección</span>
+      <p class="progreso" id="progreso" aria-live="polite">Cargando…</p>
+      <div class="barra-progreso" aria-hidden="true"><i id="barra"></i></div>
+    </div>
   </header>
   <p class="aviso" id="aviso" role="alert" hidden></p>
   <main class="escena" id="escena" aria-label="Página del álbum con nueve bolsillos"></main>
@@ -42,6 +47,10 @@
       <button type="button" class="boton chip" id="movimiento" aria-pressed="false">Reducir movimiento</button>
       <a class="enlace-copias" href="prueba-almacenamiento.html">Copias de seguridad</a>
     </div>
+    <p class="ayuda" aria-hidden="true">
+      <span><kbd>←</kbd><kbd>→</kbd> Pasar página</span>
+      <span><kbd>Esc</kbd> Cerrar ficha</span>
+    </p>
   </footer>
 </div>
 <div class="ficha" id="ficha" hidden></div>

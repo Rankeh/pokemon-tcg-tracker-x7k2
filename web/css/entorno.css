@@ -5,17 +5,36 @@
 
 body { background: var(--nogal-oscuro); color: var(--texto-album); font-family: var(--fuente-texto); }
 
-/* Superficie: base de nogal + veta horizontal oscura + veta clara + lámpara + viñeteado (de abajo arriba). */
+/* Escenario con profundidad de campo: una habitación cálida desenfocada al fondo (estantes, ventana, luces bokeh)
+   y el escritorio de nogal en el tercio inferior. Toda la capa está desenfocada, como en un plano de cámara
+   con el objeto (el álbum) enfocado en primer plano. Es una capa fija y estática: no se repinta durante los giros. */
 body::before {
-  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background:
-    radial-gradient(125% 105% at 46% 46%, transparent 52%, var(--luz-vineta) 100%),
-    radial-gradient(62% 72% at 10% 6%, var(--luz-lampara), transparent 72%),
-    var(--textura-madera-clara),
-    var(--textura-madera-oscura),
-    linear-gradient(165deg, var(--nogal-claro) 0%, var(--nogal) 42%, var(--nogal-oscuro) 100%);
-  background-size: auto, auto, 1000px 640px, 1000px 640px, auto;
+  content: ""; position: fixed; inset: -48px; z-index: 0; pointer-events: none; filter: blur(9px);
+  background-image:
+    radial-gradient(125% 105% at 50% 46%, transparent 50%, var(--luz-vineta) 100%), /* viñeteado */
+    radial-gradient(circle at 70% 18%, rgba(255,206,140,.55) 0 2.2%, transparent 3.4%), /* luces bokeh */
+    radial-gradient(circle at 78% 30%, rgba(255,190,120,.40) 0 1.6%, transparent 2.8%),
+    radial-gradient(circle at 63% 31%, rgba(255,220,170,.34) 0 1.4%, transparent 2.4%),
+    radial-gradient(circle at 90% 14%, rgba(255,200,130,.45) 0 2.6%, transparent 4%),
+    radial-gradient(circle at 52% 12%, rgba(255,190,120,.30) 0 1.8%, transparent 3%),
+    radial-gradient(42% 52% at 82% 8%, rgba(255,214,160,.42), transparent 72%), /* ventana */
+    radial-gradient(60% 70% at 8% 4%, var(--luz-lampara), transparent 72%), /* lámpara */
+    linear-gradient(90deg, transparent 0 56%, rgba(20,11,6,.55) 56% 60%, transparent 60% 70%, rgba(20,11,6,.5) 70% 73%, transparent 73%), /* estantes y marcos */
+    var(--textura-madera-clara), /* veta clara del escritorio */
+    var(--textura-madera-oscura), /* veta oscura del escritorio */
+    linear-gradient(180deg, rgba(255,214,160,.16), transparent 30%, rgba(0,0,0,.25)), /* luz rasante sobre la mesa */
+    linear-gradient(165deg, var(--nogal-claro) 0%, var(--nogal) 45%, var(--nogal-oscuro) 100%), /* base de nogal */
+    linear-gradient(180deg, #4b392c 0%, #2c1f16 100%) /* pared y sombras de la sala */;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 62%, 1000px 46%, 1000px 46%, 100% 46%, 100% 46%, 100% 100%;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat-x, repeat-x, no-repeat, no-repeat, no-repeat;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 100%, 0 100%, 0 100%, 0 100%, 0 0;
 }
+/* Degradado lateral: oscurece la parte izquierda para que el texto de la columna se lea sobre la sala. */
+body::after {
+  content: ""; position: fixed; inset: 0 auto 0 0; width: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(14, 8, 5, .82), rgba(14, 8, 5, .6) 62%, transparent);
+}
+@media (min-width: 900px) and (min-aspect-ratio: 5/4) { body::after { width: calc(clamp(19rem, 27vw, 27rem) + 7rem); } }
 .app { position: relative; z-index: 1; }
 
 /* La mesa 3D es transparente: la madera se ve continua bajo cabecera, álbum y panel. */
@@ -25,29 +44,6 @@ body::before {
 /* --- Objetos decorativos (secundarios; solo en pantallas anchas con espacio libre a los lados) --- */
 .objetos { position: absolute; inset: 0; pointer-events: none; display: none; }
 @media (min-width: 1180px) and (min-aspect-ratio: 5/4) { .objetos { display: block; } }
-
-/* Etiqueta de colección: cartulina con un cordel, a la izquierda del lomo. */
-.etiqueta-coleccion {
-  position: absolute; right: calc(50% + var(--w) * .575); top: 23%;
-  width: calc(var(--w) * .205); padding: calc(var(--w) * .03) calc(var(--w) * .018) calc(var(--w) * .022);
-  transform: rotate(-5deg); border-radius: 3px; text-align: center; color: var(--tinta);
-  font-size: calc(var(--w) * .02); line-height: 1.25;
-  background: var(--textura-papel), linear-gradient(160deg, var(--papel-claro), var(--papel) 60%, var(--papel-oscuro));
-  box-shadow: var(--sombra-objeto), inset 0 0 0 1px rgba(255, 255, 255, .25), inset 0 -8px 14px rgba(120, 90, 50, .22);
-}
-.etiqueta-coleccion::before { /* ojal del cordel */
-  content: ""; position: absolute; left: 50%; top: calc(var(--w) * .008); width: calc(var(--w) * .014); aspect-ratio: 1; margin-left: calc(var(--w) * -.007); border-radius: 50%;
-  background: var(--nogal-oscuro); box-shadow: 0 0 0 calc(var(--w) * .004) var(--laton), inset 0 1px 2px #000;
-}
-.etiqueta-coleccion::after { /* cordel */
-  content: ""; position: absolute; left: 50%; bottom: 100%; width: 2px; height: calc(var(--w) * .1); margin-left: -1px;
-  background: linear-gradient(180deg, transparent, var(--papel-oscuro) 30%); transform: rotate(7deg); transform-origin: bottom;
-  opacity: .8;
-}
-.etiqueta-coleccion small { display: block; letter-spacing: .22em; text-transform: uppercase; font-size: .62em; color: var(--laton-oscuro); font-weight: 600; }
-.etiqueta-coleccion strong { display: block; font-family: var(--fuente-titulo); font-size: 1.55em; font-weight: 700; letter-spacing: .04em; margin: .12em 0; }
-.etiqueta-coleccion i { display: block; border-top: 1px solid rgba(43, 33, 24, .35); margin: .35em 0 .3em; }
-.etiqueta-coleccion span { font-size: .78em; color: rgba(43, 33, 24, .8); }
 
 /* Lápiz de grafito: pequeño, abajo a la derecha, parcialmente fuera de la mesa como en una foto real. */
 .lapiz { position: absolute; left: calc(50% + var(--w) * .66); bottom: 9%; width: calc(var(--w) * .34); height: calc(var(--w) * .024);

@@ -33,9 +33,7 @@ function crearHoja(doc) {
 function crearObjetos(doc) {
   const objetos = el(doc, "objetos");
   objetos.setAttribute("aria-hidden", "true");
-  const etiqueta = el(doc, "etiqueta-coleccion");
-  etiqueta.innerHTML = "<small>Colección</small><strong>Teselia</strong><i></i><span>Ilustraciones especiales</span>";
-  objetos.append(etiqueta, el(doc, "lapiz"));
+  objetos.append(el(doc, "lapiz"));
   return objetos;
 }
 

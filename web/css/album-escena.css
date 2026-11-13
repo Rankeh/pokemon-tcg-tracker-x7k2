@@ -1,5 +1,5 @@
 /* ============================================================================
-   ESCENA 3D — GEOMETRÍA y estructura (posiciones, perspectiva, capas) + controles provisionales.
+   ESCENA 3D — GEOMETRÍA y estructura (posiciones, perspectiva, capas) (los controles y paneles están en interfaz.css).
    Aspecto de materiales: archivador.css. Escritorio: entorno.css. Colores y fuentes: tokens.css.
    Todo el volumen sale de CSS 3D transforms (sin librerías).
    ============================================================================ */
@@ -13,20 +13,10 @@ body { margin: 0; font: 16px/1.4 var(--fuente-texto); overflow: hidden; }
 
 .app { height: 100dvh; display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 
-/* --- Cabecera (provisional hasta 3.3.2: ya usa tokens) --- */
-.cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .9rem; padding: .5rem 1rem .35rem; background: linear-gradient(180deg, rgba(20, 12, 8, .72), rgba(20, 12, 8, 0)); }
-.cabecera h1 { margin: 0; font-family: var(--fuente-titulo); font-size: 1.3rem; letter-spacing: .05em; font-weight: 700; color: var(--papel-claro); text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
-.cabecera .progreso { margin-left: auto; font-size: .92rem; color: var(--texto-album-suave); font-variant-numeric: tabular-nums; }
-.cabecera .progreso strong { color: var(--salvia-claro); }
-.barra-progreso { flex-basis: 100%; height: 4px; background: rgba(0, 0, 0, .4); border-radius: 4px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .6), 0 1px 0 rgba(255, 244, 224, .08); }
-.barra-progreso > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--salvia), var(--salvia-claro)); transform-origin: left; transition: width .5s cubic-bezier(.2, .8, .2, 1); }
-
-.aviso { margin: 0 1rem; padding: .5rem .8rem; border-radius: var(--radio-m); background: #4a1d1d; border: 1px solid #a54; font-size: .9rem; }
-
 .escena { position: relative; flex: 1; min-height: 0; container-type: size; overflow: hidden; touch-action: pan-y; }
 @supports (width: 1cqw) {
   /* El ancho de la hoja se calcula con el espacio REAL de la escena: nunca se solapa con los controles. */
-  .mesa { --w: min(80cqw, calc((100cqh - 1rem) * .79), 1100px); }
+  .mesa { --w: min(70cqw, calc((100cqh - 1rem) * .66), 1000px); }
 }
 
 /* Mesa: aquí está la perspectiva (la "cámara"). */
@@ -34,7 +24,7 @@ body { margin: 0; font: 16px/1.4 var(--fuente-texto); overflow: hidden; }
 
 /* Álbum: ligeramente elevado e inclinado, como apoyado sobre la mesa frente a ti. */
 .album { position: relative; width: var(--w); aspect-ratio: .787; margin-left: calc(var(--w) * .07);
-  transform-style: preserve-3d; transform: translateY(calc(var(--w) * -.165)) rotateX(31deg); transform-origin: 50% 70%; }
+  transform-style: preserve-3d; transform: translateY(calc(var(--w) * -.15)) rotateX(27deg) rotateY(-11deg) rotateZ(.8deg); transform-origin: 50% 70%; }
 .album > * { position: absolute; }
 /* Las capas decorativas nunca deben capturar toques: solo los bolsillos son interactivos. */
 .album-sombra, .album-cubierta, .album-lomo, .album-grosor, .perforaciones, .hoja-reflejo, .objetos { pointer-events: none; }
@@ -79,54 +69,3 @@ body { margin: 0; font: 16px/1.4 var(--fuente-texto); overflow: hidden; }
 .hoja-bolsillos { position: absolute; inset: calc(var(--w) * .04) calc(var(--w) * .04) calc(var(--w) * .04) calc(var(--w) * .085);
   display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: calc(var(--w) * .022); transform-style: preserve-3d; }
 .hoja-reflejo { position: absolute; inset: 0; pointer-events: none; transform: translateZ(14px); border-radius: .8%; }
-
-/* ============ Controles (provisionales hasta la etapa 3.3.2; ya con la paleta nueva) ============ */
-.pie { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3rem 1rem; padding: .3rem .8rem .45rem; background: linear-gradient(180deg, transparent, rgba(20, 12, 8, .55)); }
-.paginador { display: flex; align-items: center; gap: .5rem; }
-.pagina-info { display: flex; flex-direction: column; align-items: center; min-width: 11.5rem; line-height: 1.2; text-align: center; }
-.pagina-info strong { font-family: var(--fuente-titulo); font-size: 1.05rem; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--papel-claro); }
-.pagina-info small { color: var(--texto-album-suave); font-size: .78rem; }
-.boton-flecha { min-width: 48px; min-height: 44px; padding: 0; font-size: 1.6rem; line-height: 1; border-radius: 14px; }
-.filtros, .extras { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3rem; }
-.chip { min-height: 44px; padding: .3rem .8rem; font-size: .86rem; border-radius: 999px; }
-.enlace-copias { color: var(--papel); font-size: .8rem; padding: .5rem .3rem; }
-@media (max-width: 640px) {
-  .pie { gap: .1rem .5rem; padding: .2rem .6rem .35rem; }
-  .pagina-info { min-width: 0; flex: 1; }
-  .paginador { width: 100%; justify-content: space-between; }
-  .boton-flecha { min-height: 42px; }
-  .filtros { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; width: 100%; padding-bottom: .1rem; scrollbar-width: none; }
-  .filtros::-webkit-scrollbar { display: none; }
-  .filtros .chip { flex: none; }
-  .chip { min-height: 38px; padding: .1rem .65rem; font-size: .78rem; }
-  .extras { width: 100%; justify-content: space-between; }
-  .extras .chip { min-height: 34px; }
-  /* Móvil: un poco más estrecho y más a la derecha para que el lomo no se recorte por el borde izquierdo. */
-  .album { margin-left: calc(var(--w) * .095); }
-}
-@media (max-width: 640px) {
-  @supports (width: 1cqw) { .mesa { --w: min(78cqw, calc((100cqh - 1rem) * .79)); } }
-}
-/* Escritorio apaisado: los controles pasan a un panel lateral y el álbum gana todo el alto */
-@media (min-width: 900px) and (min-aspect-ratio: 5/4) {
-  .app { display: grid; grid-template-columns: minmax(0, 1fr) 17.5rem; grid-template-rows: auto auto minmax(0, 1fr); }
-  .cabecera, .aviso { grid-column: 1 / -1; }
-  .escena { grid-column: 1; grid-row: 3; }
-  .pie { grid-column: 2; grid-row: 3; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: stretch; gap: 1.1rem; padding: 1rem 1rem 1rem .4rem; background: linear-gradient(90deg, rgba(20, 12, 8, .3), rgba(20, 12, 8, .6)); border-left: 1px solid rgba(215, 197, 165, .1); }
-  .paginador { justify-content: space-between; }
-  .pagina-info { min-width: 0; flex: 1; }
-  .filtros { flex-direction: column; align-items: stretch; }
-  .filtros::before, .extras::before { display: block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--texto-album-suave); margin-bottom: .1rem; }
-  .filtros::before { content: "Resaltar (no cambia el orden)"; }
-  .extras { flex-direction: column; align-items: stretch; text-align: center; }
-  .extras::before { content: "Opciones"; }
-}
-.boton { min-height: 44px; padding: .4rem .75rem; font-size: .9rem; }
-.cabecera .info { flex-basis: 100%; margin: 0; font-size: .78rem; color: var(--texto-album-suave); }
-.pie small { color: var(--texto-album-suave); }
-.pie a { color: var(--papel); }
-.boton { font: inherit; padding: .5rem .9rem; border-radius: var(--radio-m); border: 1px solid rgba(215, 197, 165, .26); background: rgba(215, 197, 165, .07); color: var(--papel-claro); cursor: pointer; box-shadow: var(--sombra-contacto); }
-.boton[aria-pressed="true"] { border-color: var(--laton); color: #fff; background: rgba(173, 137, 86, .24); }
-.boton:disabled { opacity: .45; cursor: default; }
-.boton:focus-visible, .ficha-cerrar:focus-visible { outline: 2px solid var(--laton-claro); outline-offset: 2px; }
-.boton-principal { background: linear-gradient(180deg, var(--laton-claro), var(--laton)); color: var(--tinta); border-color: var(--laton-claro); font-weight: 650; }

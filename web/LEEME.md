@@ -52,8 +52,9 @@ Solo cambia el aspecto; no se ha tocado la lógica, IndexedDB, los datos ni las 
 | Archivo | Qué contiene |
 |---|---|
 | `css/tokens.css` | Única fuente de paleta, tipografías, radios, sombras, luz y texturas (variables CSS). |
-| `css/album-escena.css` | Geometría 3D, perspectiva, capas y controles provisionales (hasta 3.3.2). |
-| `css/entorno.css` | Escritorio de nogal, lámpara, viñeteado y objetos decorativos (etiqueta, lápiz). |
+| `css/album-escena.css` | Solo geometría 3D, perspectiva, pose del libro y capas. |
+| `css/interfaz.css` | Columna de información tipo videojuego (título, polaroid de progreso, índice de pestañas, barra de teclas), marcadores de página a los lados del libro y versión móvil. |
+| `css/entorno.css` | Escenario desenfocado (sala cálida con luces bokeh y escritorio de nogal), degradado lateral para el texto y el lápiz decorativo. |
 | `css/archivador.css` | Materiales: cubierta de grafito, lomo, anillas, canto de hojas, vinilo. |
 | `css/album-bolsillos.css` | Fundas transparentes y cartas (ya con la paleta nueva). |
 | `js/album/escena.js` | Añade solo el contenedor decorativo `.objetos` (aria-hidden). |

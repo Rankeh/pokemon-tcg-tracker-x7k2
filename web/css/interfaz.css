@@ -1,0 +1,133 @@
+/* ============================================================================
+   INTERFAZ — componentes de la capa de juego: título, polaroid de progreso, índice de pestañas,
+   marcadores de página en los bordes del libro y barra de teclas.
+   Móvil primero (columna de abajo); en escritorio apaisado la información pasa a una columna izquierda
+   y las flechas se colocan a los lados del álbum (composición de "diario interactivo").
+   Todos los elementos conservan sus id/clases: la lógica no cambia, solo su colocación y aspecto.
+   ============================================================================ */
+
+/* ------------------------------------------------------------------ base (móvil) */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body { margin: 0; font: 16px/1.4 var(--fuente-texto); overflow: hidden; }
+.app { height: 100dvh; display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+
+.cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .9rem; padding: .5rem 1rem .35rem; background: linear-gradient(180deg, rgba(20, 12, 8, .72), rgba(20, 12, 8, 0)); }
+.cabecera h1 { margin: 0; font-family: var(--fuente-titulo); font-size: 1.3rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 800; color: var(--papel-claro); text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+.subtitulo, .ficha-progreso-etiqueta, .ayuda { display: none; }
+.ficha-progreso { display: contents; }
+.cabecera .progreso { margin: 0 0 0 auto; font-size: .92rem; color: var(--texto-album-suave); font-variant-numeric: tabular-nums; }
+.cabecera .progreso strong { color: var(--salvia-claro); }
+.barra-progreso { flex-basis: 100%; height: 4px; background: rgba(0, 0, 0, .4); border-radius: 4px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .6), 0 1px 0 rgba(255, 244, 224, .08); }
+.barra-progreso > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--salvia), var(--salvia-claro)); transform-origin: left; transition: width .5s cubic-bezier(.2, .8, .2, 1); }
+.aviso { margin: 0 1rem; padding: .5rem .8rem; border-radius: var(--radio-m); background: #4a1d1d; border: 1px solid #a54; font-size: .9rem; }
+
+.pie { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3rem 1rem; padding: .3rem .8rem .45rem; background: linear-gradient(180deg, transparent, rgba(20, 12, 8, .6)); }
+.paginador { display: flex; align-items: center; gap: .5rem; }
+.pagina-info { display: flex; flex-direction: column; align-items: center; min-width: 11.5rem; line-height: 1.2; text-align: center; }
+.pagina-info strong { font-family: var(--fuente-titulo); font-size: 1.05rem; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--papel-claro); }
+.pagina-info small { color: var(--texto-album-suave); font-size: .78rem; }
+.boton-flecha { min-width: 48px; min-height: 44px; padding: 0; font-size: 1.6rem; line-height: 1; border-radius: 14px; }
+.filtros, .extras { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3rem; }
+.chip { min-height: 44px; padding: .3rem .8rem; font-size: .86rem; border-radius: 999px; }
+.enlace-copias { color: var(--papel); font-size: .8rem; padding: .5rem .3rem; }
+@media (max-width: 640px) {
+  .pie { gap: .1rem .5rem; padding: .2rem .6rem .35rem; }
+  .pagina-info { min-width: 0; flex: 1; }
+  .paginador { width: 100%; justify-content: space-between; }
+  .boton-flecha { min-height: 42px; }
+  .filtros { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; width: 100%; padding-bottom: .1rem; scrollbar-width: none; }
+  .filtros::-webkit-scrollbar { display: none; }
+  .filtros .chip { flex: none; }
+  .chip { min-height: 38px; padding: .1rem .65rem; font-size: .78rem; }
+  .extras { width: 100%; justify-content: space-between; }
+  .extras .chip { min-height: 34px; }
+  .album { margin-left: calc(var(--w) * .095); }   /* que el lomo no se recorte por el borde izquierdo */
+  @supports (width: 1cqw) { .mesa { --w: min(72cqw, calc((100cqh - 1rem) * .66)); } }
+}
+
+/* Botones base (también los usa la ficha) */
+.boton { min-height: 44px; font: inherit; font-size: .9rem; padding: .4rem .75rem; border-radius: var(--radio-m); border: 1px solid rgba(215, 197, 165, .26); background: rgba(215, 197, 165, .07); color: var(--papel-claro); cursor: pointer; box-shadow: var(--sombra-contacto); transition: transform .12s ease, background-color .15s ease, border-color .15s ease; }
+.boton:active { transform: translateY(1px) scale(.98); }
+.boton[aria-pressed="true"] { border-color: var(--laton); color: #fff; background: rgba(173, 137, 86, .24); }
+.boton:disabled { opacity: .45; cursor: default; }
+.boton:focus-visible, .ficha-cerrar:focus-visible { outline: 2px solid var(--laton-claro); outline-offset: 2px; }
+.boton-principal { background: linear-gradient(180deg, var(--laton-claro), var(--laton)); color: var(--tinta); border-color: var(--laton-claro); font-weight: 650; }
+.pie small { color: var(--texto-album-suave); }
+.pie a { color: var(--papel); }
+
+/* ------------------------------------------------------------------ escritorio apaisado: composición de videojuego */
+@media (min-width: 900px) and (min-aspect-ratio: 5/4) {
+  .app { display: grid; --izq: clamp(19rem, 27vw, 27rem); --margen: clamp(1.4rem, 2.6vw, 2.8rem);
+    grid-template-columns: var(--izq) minmax(0, 1fr); grid-template-rows: auto auto auto auto auto auto 1fr auto; column-gap: 0; }
+  .cabecera, .pie, .paginador { display: contents; }
+  .aviso { position: absolute; z-index: 6; top: .6rem; left: 50%; transform: translateX(-50%); margin: 0; }
+
+  /* La escena ocupa todo el alto, a la derecha de la columna. */
+  .escena { grid-column: 2; grid-row: 1 / -1; }
+
+  /* Columna izquierda */
+  .cabecera h1, .subtitulo, .ficha-progreso, .pagina-info, .filtros, .extras, .ayuda { grid-column: 1; margin-left: var(--margen); margin-right: 1.4rem; }
+  .cabecera h1 { grid-row: 1; margin-top: clamp(1.2rem, 4.5vh, 3rem); font-size: clamp(1.9rem, 3.1vw, 3.1rem); line-height: 1; letter-spacing: .03em; text-shadow: 0 2px 10px rgba(0, 0, 0, .7); }
+  .subtitulo { display: block; grid-row: 2; margin-top: .55rem; margin-bottom: 0; font-size: .82rem; line-height: 1.35; color: var(--texto-album-suave); max-width: 20rem; }
+
+  /* Polaroid de progreso: foto de la colección con marco de papel y cinta */
+  .ficha-progreso { display: block; grid-row: 3; position: relative; justify-self: start; width: min(13.5rem, 100%); margin-top: 1.5rem; padding: .6rem .6rem 1.7rem;
+    transform: rotate(-3deg); border-radius: 3px; background: var(--textura-papel), linear-gradient(160deg, var(--papel-claro), var(--papel)); box-shadow: var(--sombra-objeto); }
+  .ficha-progreso::before { content: ""; position: absolute; top: -.7rem; left: 50%; width: 5rem; height: 1.4rem; margin-left: -2.5rem; transform: rotate(2deg); background: rgba(215, 197, 165, .55); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); }
+  .ficha-progreso::after { content: "Colección Teselia"; position: absolute; left: 0; right: 0; bottom: .45rem; text-align: center; font-family: var(--fuente-titulo); font-style: italic; font-size: .78rem; color: var(--tinta); }
+  .ficha-progreso-etiqueta { display: block; font-size: .62rem; letter-spacing: .22em; text-transform: uppercase; color: var(--salvia-claro); position: absolute; top: 1.15rem; left: 1.2rem; z-index: 1; }
+  .ficha-progreso .progreso { margin: 0; padding: 2.1rem .8rem .5rem; background: radial-gradient(120% 90% at 30% 10%, #3b3d40, var(--grafito)); border-radius: 2px 2px 0 0; font-size: .85rem; color: var(--papel); white-space: nowrap; }
+  .ficha-progreso .progreso strong { font-family: var(--fuente-titulo); font-size: 2.3rem; line-height: 1; margin-right: .15rem; }
+  .ficha-progreso .barra-progreso { height: 7px; border-radius: 0 0 2px 2px; background: #151617; box-shadow: none; }
+
+  /* Texto de la página actual */
+  .pagina-info { grid-row: 4; align-items: flex-start; text-align: left; min-width: 0; margin-top: 1.6rem; padding-top: .9rem; border-top: 1px solid rgba(173, 137, 86, .5); }
+  .pagina-info strong { font-size: 1.5rem; line-height: 1.1; }
+  .pagina-info small { font-size: .85rem; margin-top: .2rem; }
+
+  /* Índice de pestañas */
+  .filtros { grid-row: 5; flex-direction: column; align-items: stretch; flex-wrap: nowrap; justify-content: flex-start; gap: .22rem; margin-top: 1.3rem; }
+  .filtros::before, .extras::before { display: block; font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--laton-claro); margin-bottom: .25rem; }
+  .filtros::before { content: "Resaltar · no cambia el orden"; }
+  .filtros .chip { min-height: 38px; padding: .2rem .9rem; border-radius: 4px 14px 14px 4px; text-align: left; border: 0; border-left: 3px solid rgba(173, 137, 86, .45);
+    background: rgba(20, 12, 8, .55); color: var(--papel); box-shadow: none; transition: transform .18s ease, background-color .18s ease, border-color .18s ease; }
+  .filtros .chip:hover { background: rgba(215, 197, 165, .16); }
+  .filtros .chip[aria-pressed="true"] { transform: translateX(.7rem); background: var(--textura-papel), linear-gradient(160deg, var(--papel-claro), var(--papel)); color: var(--tinta); font-weight: 650;
+    border-left-color: var(--laton); box-shadow: var(--sombra-contacto); }
+  .extras { grid-row: 6; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: .3rem .8rem; margin-top: 1.1rem; }
+  .extras::before { content: "Opciones"; flex-basis: 100%; }
+  .extras .chip { min-height: 36px; font-size: .8rem; border-radius: 999px; }
+  .enlace-copias { padding: .3rem 0; }
+
+  /* Barra de teclas, como las indicaciones de mando de un videojuego */
+  .ayuda { display: flex; grid-row: 8; align-self: end; flex-wrap: wrap; gap: .5rem 1.4rem; margin-bottom: clamp(1rem, 3vh, 2rem); font-size: .78rem; color: var(--texto-album-suave); }
+  .ayuda span { display: inline-flex; align-items: center; gap: .3rem; }
+  .ayuda kbd { display: inline-grid; place-items: center; min-width: 1.9rem; height: 1.9rem; padding: 0 .4rem; border-radius: 50%; font: 700 .78rem var(--fuente-texto); color: var(--papel-claro);
+    background: radial-gradient(circle at 35% 25%, #4a4d50, var(--grafito)); box-shadow: 0 0 0 1px var(--laton), var(--sombra-contacto); }
+  .ayuda kbd:last-of-type { margin-right: .2rem; }
+  .ayuda kbd:only-of-type { border-radius: 999px; }
+
+  /* Marcadores de página a los lados del libro (sobre la escena) */
+  #anterior, #siguiente { grid-column: 2; grid-row: 1 / -1; align-self: center; position: relative; z-index: 3; width: 3.1rem; height: 3.1rem; min-width: 0; min-height: 0; padding: 0 0 .12rem; font-size: 1.9rem; border-radius: 50%;
+    background: radial-gradient(circle at 35% 25%, #4a4d50, var(--grafito) 70%); border: 2px solid var(--laton); color: var(--papel-claro); box-shadow: var(--sombra-objeto); }
+  #anterior { justify-self: start; margin-left: 1.2rem; }
+  #siguiente { justify-self: end; margin-right: 1.2rem; }
+  #anterior::after, #siguiente::after { position: absolute; top: calc(100% + .35rem); left: 50%; transform: translateX(-50%); font: 700 .66rem var(--fuente-texto); letter-spacing: .06em; padding: .08rem .45rem; border-radius: 999px; background: rgba(20, 12, 8, .75); color: var(--papel); }
+  #anterior::after { content: "ANTERIOR"; }
+  #siguiente::after { content: "SIGUIENTE"; }
+  #anterior:hover, #siguiente:hover { border-color: var(--laton-claro); background: radial-gradient(circle at 35% 25%, #5a5e62, var(--grafito) 70%); }
+}
+/* Pantallas bajas: columna compacta y sin barra de teclas (no cabe sin cortar nada) */
+@media (min-width: 900px) and (min-aspect-ratio: 5/4) and (max-height: 840px) {
+  .cabecera h1 { margin-top: 1rem; font-size: clamp(1.7rem, 2.6vw, 2.4rem); }
+  .subtitulo { margin-top: .35rem; font-size: .78rem; }
+  .ficha-progreso { margin-top: 1.1rem; width: 12rem; }
+  .pagina-info { margin-top: 1.1rem; padding-top: .6rem; }
+  .pagina-info strong { font-size: 1.3rem; }
+  .filtros { margin-top: .8rem; gap: .15rem; }
+  .filtros .chip { min-height: 34px; }
+  .extras { margin-top: .7rem; }
+  .ayuda { display: none; }
+}
+@media (hover: none) { .ayuda { display: none !important; } }
