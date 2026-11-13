@@ -250,3 +250,12 @@ Petición del usuario: el álbum se veía demasiado poligonal. `blender/teselia/
 - Para regenerar: `python blender/exportar_glb.py`. Vista previa sin Blender: `python blender/previsualizar_glb.py 0 3`.
 
 **Pendiente de validar en iPhone**: el aspecto real con luces/materiales y los FPS (26 k triángulos es modesto, pero no lo he medido en GPU). Si baja la fluidez, basta con bajar los pasos de bisel en `modelo_web.py`.
+
+## 3.7.7 · Estilo «carpeta de cuero» (referencia del usuario)
+
+Inspirado en el icono 3D de carpeta de cuero con costuras y pestañas de colores. `blender/teselia/modelo_web.py`:
+- **Tapa** (cara exterior): `Tapa_Banda` (banda del lomo con dos hileras de puntadas) y `Tapa_Panel` (panel acolchado con costura perimetral `Tapa_Costura`, ~340 puntadas como prismas de 0,5 mm). Comparten el material `Cubierta`, así que reciben el relieve, el color por cantos y los acabados `?tapa=`. Se ven con el álbum cerrado; abierto quedan por debajo de la tapa girada.
+- **Pestañas de índice**: una por hoja (`Hoja_n_Pestana_Losa`, 4 colores en ciclo azul/amarillo/verde/rojo, escalonadas a lo alto del canto libre; sobresalen 12 mm, dentro de los 26 mm de margen de la tapa). Se llaman «…_Losa» a propósito: `album3d.js` trata como cuerpo (siempre visible) lo que acaba así, y no hubo que tocarlo.
+- Materiales nuevos: `Costura` y `Pestana_*` (aspecto.js los deja tal cual los trae el GLB; solo reciben las luces).
+- Coste: ~35 k triángulos totales (GLB 439 KB). Presupuesto de tests: 40 k totales / 6 k por malla. Si el iPhone va justo, la costura (5,4 k) es lo primero que se puede quitar.
+- Vista previa sin Blender: `python blender/previsualizar_glb.py 0 3` (la plantilla de carta blanca que se ve junto al lomo en la vista «cerrado» es un artefacto de la previa: la app la retira).

@@ -105,5 +105,21 @@ test('M9 modelo refinado (3.7.6): misma estructura y dimensiones que antes, más
   const n = a.nodo.get('Tapa_Malla').geometry.attributes.normal; let inclinadas = 0;
   for (let i = 0; i < n.count; i++) { const y = Math.abs(n.getY(i)); if (y > 0.05 && y < 0.95) inclinadas++; }
   assert.ok(inclinadas > 100, 'hay normales intermedias (bisel suave, no aristas vivas)');
-  assert.ok(a.contarEscena({ soloVisibles: false }).triangulos < 30000, 'presupuesto para iPhone');
+  assert.ok(a.contarEscena({ soloVisibles: false }).triangulos < 40000, 'presupuesto para iPhone');
+});
+
+test('M10 estilo carpeta de cuero (3.7.7): banda y panel cosidos en la tapa, y una pestaña de color por hoja que cuenta como cuerpo (siempre visible)', async () => {
+  const m = await crearMundo(), a = m.album;
+  for (const n of ['Tapa_Banda', 'Tapa_Panel', 'Tapa_Costura']) assert.ok(a.nodo.get(n), n);
+  assert.equal(a.nodo.get('Tapa_Banda').material.name, 'Cubierta', 'comparten material (y por tanto el relieve y el acabado ?tapa=) con la tapa');
+  assert.equal(a.nodo.get('Tapa_Costura').material.name, 'Costura');
+  const cols = new Set();
+  for (let i = 0; i < 9; i++) { const t = a.nodo.get('Hoja_' + i + '_Pestana_Losa'); assert.ok(t, 'pestaña ' + i); cols.add(t.material.name); if (i) assert.notEqual(t.material.name, a.nodo.get('Hoja_' + (i - 1) + '_Pestana_Losa').material.name, 'vecinas de distinto color'); }
+  assert.equal(cols.size, 4);
+  const z = [...Array(9).keys()].map((i) => a.nodo.get('Hoja_' + i + '_Pestana_Losa').position.z);
+  assert.equal(new Set(z.map((v) => v.toFixed(4))).size, 9, 'cada pestaña a su altura (escalonadas)'); assert.ok(Math.min(...z) > -0.15 && Math.max(...z) < 0.15, 'dentro del alto de la hoja');
+  a.estado.irA(6); a.aplicar();
+  const dibujado = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
+  assert.ok(dibujado(a.nodo.get('Hoja_0_Pestana_Losa')) && dibujado(a.nodo.get('Hoja_8_Pestana_Losa')), 'las pestañas no desaparecen al enterrarse la hoja');
+  const c = a.cajaMalla('Hoja_0_Pestana_Losa'); assert.ok(c.max[0] > 0.232 && c.max[0] < 0.258, 'sobresale del canto libre pero queda dentro de la tapa (258 mm)');
 });

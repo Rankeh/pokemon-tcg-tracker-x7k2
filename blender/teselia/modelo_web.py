@@ -204,6 +204,58 @@ def tiras_u_biseladas(cx, cz, ancho, alto, grosor, y, hacia_arriba, material, al
     return m
 
 
+def _puntadas(trazado, largo, hueco, cerrado):
+    """Posiciones (x, z, ángulo) de las puntadas repartidas por un trazado (lista de puntos): cada `largo` de hilo, un `hueco` de tela.
+    El reparto se ajusta para que la última puntada acabe justo donde empieza el recorrido (sin una puntada cortada)."""
+    pts = list(trazado) + ([trazado[0]] if cerrado else [])
+    seg = [(pts[i], pts[i + 1], math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1])) for i in range(len(pts) - 1)]
+    total = sum(s[2] for s in seg)
+    n = max(1, round(total / (largo + hueco)))
+    paso = total / n
+    out, acum, k = [], 0.0, 0
+    for i in range(n):
+        centro = i * paso + paso / 2
+        while k < len(seg) - 1 and acum + seg[k][2] < centro:
+            acum += seg[k][2]; k += 1
+        (ax, az), (bx, bz), L = seg[k]
+        t = (centro - acum) / L if L else 0.0
+        out.append((ax + (bx - ax) * t, az + (bz - az) * t, math.atan2(bz - az, bx - ax)))
+    return out
+
+
+def costura(trazado, cerrado, y, material="Costura", largo=0.0026, ancho=0.0008, alto=0.0005, hueco=0.0016):
+    """3.7.7 · Hilo de costura: puntadas (prismas pequeños) sobre una cara. y = altura de la superficie; sobresalen `alto`."""
+    m = Malla(material)
+    for x, z, ang in _puntadas(trazado, largo, hueco, cerrado):
+        c, s_ = math.cos(ang), math.sin(ang)
+        pts = [(-largo / 2, -ancho / 2), (largo / 2, -ancho / 2), (largo / 2, ancho / 2), (-largo / 2, ancho / 2)]
+        m.fusionar(losa_xz([(x + px * c - pz * s_, z + px * s_ + pz * c) for px, pz in pts], y - 0.0001, y + alto, material))   # prisma simple: a 0,5 mm no se nota el bisel y cuesta la mitad
+    return m
+
+
+def piezas_cuero_tapa(cub, gt):
+    """Decoración de la cara EXTERIOR de la tapa (como la carpeta de cuero de referencia): banda del lomo con borde cosido y panel
+    acolchado cosido. Devuelve {nombre: Malla}; todo se apoya en y = gt/2 (cara exterior de la tapa)."""
+    y0 = gt / 2
+    alto = cub["alto"] - 0.04
+    banda_x0, banda_x1 = 0.012, 0.046
+    panel_x0, panel_x1 = 0.055, cub["ancho"] - 0.014
+    out = {}
+    banda = _poli(G.rect_redondeado(banda_x1 - banda_x0, alto, 0.005, 6, (banda_x0 + banda_x1) / 2, 0))
+    panel = _poli(G.rect_redondeado(panel_x1 - panel_x0, alto, 0.014, 10, (panel_x0 + panel_x1) / 2, 0))
+    out["Banda"] = losa_biselada_xz(banda, y0 - 0.0002, y0 + 0.0012, 0.0006, 3, "Cubierta")
+    out["Panel"] = losa_biselada_xz(panel, y0 - 0.0002, y0 + 0.0008, 0.0004, 3, "Cubierta")
+    h = alto / 2 - 0.006
+    puntos = Malla("Costura")
+    for x in (banda_x0 + 0.0035, banda_x1 - 0.0035):                   # dos hileras en los bordes de la banda
+        puntos.fusionar(costura([(x, -h), (x, h)], False, y0 + 0.0012))
+    ins = 0.0055
+    trazo = G.rect_redondeado(panel_x1 - panel_x0 - 2 * ins, alto - 2 * ins, 0.0085, 8, (panel_x0 + panel_x1) / 2, 0)
+    puntos.fusionar(costura(trazo, True, y0 + 0.0008))
+    out["Costura"] = puntos
+    return out
+
+
 # ------------------------------------------------------------------ nodos
 def nodo(nombre, malla=None, pos=(0.0, 0.0, 0.0), rotz=0.0, extras=None, hijos=None):
     return {"nombre": nombre, "malla": malla, "pos": tuple(pos), "rotz": rotz, "extras": extras or {}, "hijos": hijos or []}
@@ -216,6 +268,11 @@ MATERIALES = [
     {"nombre": "Soldadura", "color": "#0E0F11", "rug": 0.9, "metal": 0.0, "alfa": 1.0},
     {"nombre": "Funda", "color": "#FFFFFF", "rug": 0.10, "metal": 0.0, "alfa": 0.07},
     {"nombre": "Carta", "color": "#FFFFFF", "rug": 0.55, "metal": 0.0, "alfa": 1.0},
+    {"nombre": "Costura", "color": "#C4C0B6", "rug": 0.7, "metal": 0.0, "alfa": 1.0},
+    {"nombre": "Pestana_Azul", "color": "#4B7FBE", "rug": 0.42, "metal": 0.0, "alfa": 1.0},
+    {"nombre": "Pestana_Amarilla", "color": "#E2B64B", "rug": 0.42, "metal": 0.0, "alfa": 1.0},
+    {"nombre": "Pestana_Verde", "color": "#5F9B63", "rug": 0.42, "metal": 0.0, "alfa": 1.0},
+    {"nombre": "Pestana_Roja", "color": "#C9533F", "rug": 0.42, "metal": 0.0, "alfa": 1.0},
 ]
 
 
@@ -241,6 +298,14 @@ def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.0):
     mallas["lomo"] = losa_biselada_xz(_poli(G.rect_redondeado(ancho_lomo, cub["alto"], 0.0095, 10)), 0.0, GROSOR_TAPA * 2 + n_hojas * PASO, 0.0085, 8, "Cubierta")
     poli_carta = _poli(G.rect_redondeado(car["ancho"], car["alto"], car["radio_esquina"], 7))
     cw, ch = car["ancho"], car["alto"]
+    PEST = ("Pestana_Azul", "Pestana_Amarilla", "Pestana_Verde", "Pestana_Roja")
+    LARGO_PEST, SALE_PEST = 0.027, 0.012                                     # pestañas de índice en el canto libre de cada hoja (como la carpeta de referencia)
+    for k, mat in enumerate(PEST):
+        mallas["pestana_%d" % k] = losa_biselada_xz(_poli(G.rect_redondeado(SALE_PEST + 0.004, LARGO_PEST, 0.004, 5, W + (SALE_PEST - 0.004) / 2, 0)),
+                                                    -0.0005, 0.0005, 0.0003, 2, mat)
+    piezas = piezas_cuero_tapa(cub, GROSOR_TAPA)
+    for nombre, m_ in piezas.items():
+        mallas["tapa_" + nombre.lower()] = m_
     mallas["carta_f"] = lamina_xz(poli_carta, 0.0, True, "Carta", lambda x, z: (x / cw + 0.5, z / ch + 0.5))
     mallas["carta_d"] = lamina_xz(poli_carta, 0.0, False, "Carta", lambda x, z: (0.5 - x / cw, z / ch + 0.5))
     poli_funda = _poli(G.rect_redondeado(W - 0.004, H - 0.004, hoja["radio_esquina"] - 0.002, 10, W / 2, 0))
@@ -263,13 +328,15 @@ def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.0):
         nodo("Contratapa", "tapa", (0.0, Y_BASE + GROSOR_TAPA / 2, 0.0), extras={"tipo": "estatico"}),
         nodo("Lomo", "lomo", (-0.0, Y_BASE, 0.0), extras={"tipo": "estatico"}),
         nodo("Tapa", None, (0.0, y_tapa_der, 0.0), extras={"tipo": "tapa", "indice": 0},
-             hijos=[nodo("Tapa_Malla", "tapa")]),
+             hijos=[nodo("Tapa_Malla", "tapa")] + [nodo("Tapa_" + n, "tapa_" + n.lower(), (cub["x0"] if False else 0.0, 0.0, 0.0)) for n in piezas]),
     ]
     resumen = {"ocupados": 0, "bolsillos": 0}
     imagen = 0
     for i in range(n_hojas):
         h = nodo("Hoja_%d" % i, None, (0.0, y_pila_derecha(i), 0.0), extras={"tipo": "hoja", "indice": i + 1})
         h["hijos"].append(nodo("Hoja_%d_Losa" % i, "losa_hoja"))
+        # Pestaña: se llama «..._Pestana_Losa» a propósito: album3d.js trata como CUERPO (siempre visible) lo que acaba en «_Losa»
+        h["hijos"].append(nodo("Hoja_%d_Pestana_Losa" % i, "pestana_%d" % (i % 4), (0.0, 0.0, H / 2 - LARGO_PEST / 2 - 0.004 - i * (LARGO_PEST + 0.0035))))
         for cara, arriba in (("F", True), ("D", False)):
             sgn = 1 if arriba else -1
             g = nodo("Hoja_%d_%s" % (i, cara), None, (0.0, 0.0, 0.0), extras={"tipo": "cara", "cara": cara})
