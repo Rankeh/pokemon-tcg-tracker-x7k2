@@ -129,3 +129,11 @@ Se refina el motor de la 3.7.1 (`encuadre.js`, `main.js`); no se crea otro siste
 
 ### Requiere validación visual (no comprobable desde aquí)
 Aspecto real de la franja y del lomo; cómo se lee la composición con luz y materiales actuales; fluidez de las transiciones; el aro de resalte; el aspecto de las columnas laterales (el selector de página en la columna es estrecho); iPhones con Dynamic Island/`safe-area` en horizontal.
+
+## Fase 3.7.1c — La tapa izquierda ya no desaparece
+
+**Causa (verificada).** No era la cámara ni el GLB. `EstadoAlbum.visibles()` (ahorro de dibujo) ocultaba *elementos enteros* fuera de la ventana `[v−2, v+1]`, y la `Tapa` es el elemento 0: con `v ≥ 3` (páginas 4–5 en adelante) se dejaba de dibujar la tapa izquierda y las hojas enterradas, y las pilas quedaban «huecas». Con `v = 2` (páginas 2–3) la tapa sí se dibuja, pero la pila vecina ya empezaba a vaciarse al pasar de hoja (el siguiente paso la hacía desaparecer de golpe). Normales, culling (FrontSide, tapa girada π) y profundidad se revisaron y son correctos: la tapa se ve bien en v=2 y desaparece solo cuando se oculta el nodo.
+
+**Corrección (estructural, sin tocar el GLB).** `Album3D` separa el *cuerpo* de cada elemento (`Tapa_Malla`, `Hoja_n_Losa`; 10 mallas sencillas) del *detalle* (fundas, soldaduras, 9 bolsillos por cara). El cuerpo y las piezas estáticas (`Contratapa`, `Lomo`) se dibujan SIEMPRE; solo el detalle sigue la ventana de `visibles()`. Coste: ~9 mallas más de geometría trivial. No cambian poses, animaciones, catálogo, IndexedDB, texturas ni el orden de cartas.
+
+**Verificación.** `pruebas/tapa37c.test.mjs` (5 pruebas, Three.js simulado + GLB real): cuerpos y tapas dibujados en los estados 0..10, detalle aún recortado, tapa izquierda en su sitio (girada π, bajo las hojas, pegada al lomo), avance/retroceso paso a paso (1→2, 2–3, 4–5, 8–9, final, vuelta a 1, cerrar y reabrir), y encaje con el lomo. Vista previa numpy antes/después (`blender/previsualizar_glb.py`): en v=3 la tapa y la pila izquierda aparecen tras el arreglo. **Pendiente: comprobación visual real en Chrome/Safari** (aquí no hay WebGL con Three.js real).

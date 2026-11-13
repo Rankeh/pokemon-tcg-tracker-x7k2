@@ -32,6 +32,9 @@ class Album3D {
     this.elemento = [this.nodo.get('Tapa')];
     for (let i = 0; i < this.geo.n; i++) this.elemento.push(this.nodo.get('Hoja_' + i));
     this.onCambio = () => {};
+    // 3.7.1c: el CUERPO de cada elemento (Tapa_Malla, Hoja_n_Losa) se dibuja SIEMPRE: son 10 mallas sencillas y dan continuidad a las pilas y a la tapa
+    // izquierda. Solo el DETALLE (fundas, soldaduras, 9 bolsillos por cara) se oculta fuera de la ventana de `EstadoAlbum.visibles()`.
+    this.detalle = this.elemento.map((el) => el.children.filter((h) => h.name !== 'Tapa_Malla' && !/_Losa$/.test(h.name)));
     // Geometría de carta compartida (una por cara) tomada de las plantillas del GLB; las plantillas se retiran de la escena.
     this.geomCarta = { F: this.nodo.get('Plantilla_Carta_F').geometry, D: this.nodo.get('Plantilla_Carta_D').geometry };
     const plantillas = this.nodo.get('Plantillas');
@@ -39,7 +42,7 @@ class Album3D {
     this.aplicar();
   }
 
-  /** Aplica el estado lógico: pose de cada elemento, centrado y visibilidad (las hojas enterradas no se dibujan). */
+  /** Aplica el estado lógico: pose de cada elemento, centrado y visibilidad del detalle (el cuerpo y las tapas nunca se ocultan). */
   aplicar() {
     const { geo, estado } = this;
     for (let i = 0; i < geo.elementos; i++) {
@@ -49,7 +52,11 @@ class Album3D {
     }
     this.raiz.position.x = centradoX(geo, estado.progreso);
     const vis = estado.visibles();
-    for (let i = 0; i < geo.elementos; i++) this.elemento[i].visible = vis.has(i);
+    for (let i = 0; i < geo.elementos; i++) {
+      this.elemento[i].visible = true;
+      const ver = vis.has(i);
+      for (const h of this.detalle[i]) h.visible = ver;
+    }
   }
 
   actualizar(dt) {

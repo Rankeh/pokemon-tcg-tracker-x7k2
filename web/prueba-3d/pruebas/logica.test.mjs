@@ -70,7 +70,7 @@ test('centrado: cerrado a la izquierda media tapa, abierto 0, al final media tap
   const x = centradoX(g, e.progreso); assert.ok(x > -g.ancho / 2 && x < 0);
 });
 
-test('visibilidad: se ocultan las hojas enterradas (ahorro de dibujo) y se muestran las que se mueven', () => {
+test('visibilidad del DETALLE: se ocultan los bolsillos de las hojas enterradas (ahorro de dibujo) y se muestran las que se mueven', () => {
   const g = geo(), e = new EstadoAlbum(g);
   e.irA(0);
   assert.ok(e.visibles().size < g.elementos, 'cerrado: no se dibuja todo');

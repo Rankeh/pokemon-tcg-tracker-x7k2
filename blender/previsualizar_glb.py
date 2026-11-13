@@ -59,7 +59,7 @@ def aplicar_estado(js, vueltas):
         nombre_a_el["Hoja_%d" % i] = i + 1
     res = []
 
-    def visita(i, M, vis):
+    def visita(i, M, vis, det=True):
         d = nodos[i]
         t = np.array(d.get("translation", [0, 0, 0]), float)
         Mi = np.eye(4); Mi[:3, 3] = t
@@ -68,14 +68,16 @@ def aplicar_estado(js, vueltas):
             y, rz = pose(p, el, prog[el])
             c, s = math.cos(rz), math.sin(rz)
             Mi = np.array([[c, -s, 0, 0], [s, c, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]], float); Mi[1, 3] = y
-            vis = vis and (prog[el] > 0 and prog[el] < 1 or (vueltas - 2 <= el <= vueltas + 1))
+            # 3.7.1c: el cuerpo (Losa/Tapa_Malla) se dibuja siempre; solo el detalle (F/D) depende de la ventana
+            det = (prog[el] > 0 and prog[el] < 1) or (vueltas - 2 <= el <= vueltas + 1)
         elif d["name"] == "Album":
             Mi[0, 3] = cx
         Mt = M @ Mi
-        if "mesh" in d and vis:
+        es_cuerpo = d["name"].endswith("_Losa") or d["name"] in ("Tapa_Malla", "Contratapa", "Lomo")
+        if "mesh" in d and (es_cuerpo or det):
             res.append((d["mesh"], Mt, d))
         for h in d.get("children", []):
-            visita(h, Mt, vis)
+            visita(h, Mt, vis, det)
     visita(0, np.eye(4), True)
     return res
 

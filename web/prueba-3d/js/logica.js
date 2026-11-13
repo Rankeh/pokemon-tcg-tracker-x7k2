@@ -96,7 +96,7 @@ export class EstadoAlbum {
     return movido;
   }
 
-  /** Elementos que hay que dibujar: ventana alrededor de las dos pilas + los que se mueven. Resto, ocultos (ahorra dibujo en iPhone). */
+  /** Elementos cuyo DETALLE (fundas, bolsillos) hay que dibujar: ventana alrededor de las dos pilas + los que se mueven. El cuerpo y las tapas se dibujan siempre (3.7.1c). */
   visibles() {
     const v = this.vueltas, set = new Set();
     for (let i = 0; i < this.geo.elementos; i++) {
