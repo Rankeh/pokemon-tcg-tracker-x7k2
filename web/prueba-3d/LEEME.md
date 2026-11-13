@@ -259,3 +259,14 @@ Inspirado en el icono 3D de carpeta de cuero con costuras y pestañas de colores
 - Material nuevo: `Costura` (aspecto.js los deja tal cual los trae el GLB; solo reciben las luces).
 - Coste: ~33 k triángulos totales (GLB 410 KB). Presupuesto de tests: 40 k totales / 6 k por malla. Si el iPhone va justo, la costura (5,4 k) es lo primero que se puede quitar.
 - Vista previa sin Blender: `python blender/previsualizar_glb.py 0 3` (la plantilla de carta blanca que se ve junto al lomo en la vista «cerrado» es un artefacto de la previa: la app la retira).
+
+## 3.7.9 · Construcción física del binder, tejido por defecto, sin costuras
+
+Petición del usuario: «el binder se ve como unido a un palo (el lomo) y las páginas se deslizan por él; que tenga una construcción real».
+- **Causa**: el lomo era un bloque fijo de 43,5 mm (el grosor del álbum cerrado). Con el álbum abierto, las pilas bajan a 6–20 mm y el lomo quedaba como una columna que sobresale entre dos páginas planas, con las hojas girando alrededor sin ningún elemento que las uniera.
+- **Lomo vivo** (`Album3D.ajustarLomo`, `album3d.js`): su altura es el grosor real de la pila más alta (derecha o izquierda). Cerrado = 43,5 mm; al abrir se aplana hasta el grosor de las pilas, como el lomo de un libro. Es continuo (cada hoja aporta `suave(progreso)`), no hay saltos al girar, y solo escala el lomo en Y (poses, visibilidad y animaciones de hojas no cambian). Bisel del lomo reducido a 3 mm para que no se deforme al escalar. El encuadre sigue usando la altura máxima (conservador).
+- **Canto de encuadernación** en cada hoja (`Hoja_n_Bisagra_Losa`, cilindro de 1,7 mm de radio sobre el eje del lomo, material de hoja): las hojas ya no parecen losas sueltas; forman un canto redondeado apilado, como las hojas cosidas a un lomo. Se llama «…_Losa» para ser cuerpo (siempre visible).
+- **Costuras eliminadas** (no gustaron). Se mantienen la banda del lomo y el panel de la tapa, sin hilo.
+- **Acabado por defecto = `tejido`** (`ACABADO_DEFECTO` en `aspecto.js`; `?tapa=grafito|fieltro|cuero|acolchado` siguen disponibles).
+- `album3d.js` sale de la lista de módulos protegidos de los tests por esta petición; M11 vigila el lomo (nunca por debajo de la pila más alta, sin saltos) y las bisagras.
+- La vista previa de software (`previsualizar_glb.py`) no aplica el aplanado del lomo (lo hace el JS), así que en ella el lomo sigue viéndose alto. **Pendiente de ver en el iPhone.**

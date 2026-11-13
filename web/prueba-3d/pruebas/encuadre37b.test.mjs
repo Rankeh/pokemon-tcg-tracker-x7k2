@@ -34,8 +34,9 @@ const apaisadas = { 'iPhone horizontal 844×390': [844, 390], 'iPhone horizontal
 test('cajas reales ≈ cajas por dimensiones en todos los estados (el encuadre durante un giro no salta al asentarse)', () => {
   for (let v = 0; v <= N + 1; v++) {
     const real = enEstado(v), dims = cajasDimensiones(v, dim, album.geo);
+    // 3.7.9: el lomo sigue el grosor de las pilas, así que su altura real es ≤ a la supuesta (el encuadre es conservador)
     for (const k of Object.keys(real)) for (const e of ['x', 'y', 'z']) for (const i of [0, 1])
-      assert.ok(Math.abs(real[k][e][i] - dims[k][e][i]) < 0.002, `v${v} ${k}.${e}[${i}]: real ${real[k][e][i].toFixed(4)} vs dimensiones ${dims[k][e][i].toFixed(4)}`);
+      assert.ok(k === 'lomo' && e === 'y' && i === 1 ? real[k][e][i] <= dims[k][e][i] + 0.002 : Math.abs(real[k][e][i] - dims[k][e][i]) < 0.002, `v${v} ${k}.${e}[${i}]: real ${real[k][e][i].toFixed(4)} vs dimensiones ${dims[k][e][i].toFixed(4)}`);
   }
   assert.deepEqual(Object.values(nombresCajas(3, N)), ['Hoja_2_Losa', 'Hoja_1_Losa', 'Contratapa', 'Tapa_Malla', 'Lomo']);
 });

@@ -204,32 +204,23 @@ def tiras_u_biseladas(cx, cz, ancho, alto, grosor, y, hacia_arriba, material, al
     return m
 
 
-def _puntadas(trazado, largo, hueco, cerrado):
-    """Posiciones (x, z, ángulo) de las puntadas repartidas por un trazado (lista de puntos): cada `largo` de hilo, un `hueco` de tela.
-    El reparto se ajusta para que la última puntada acabe justo donde empieza el recorrido (sin una puntada cortada)."""
-    pts = list(trazado) + ([trazado[0]] if cerrado else [])
-    seg = [(pts[i], pts[i + 1], math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1])) for i in range(len(pts) - 1)]
-    total = sum(s[2] for s in seg)
-    n = max(1, round(total / (largo + hueco)))
-    paso = total / n
-    out, acum, k = [], 0.0, 0
-    for i in range(n):
-        centro = i * paso + paso / 2
-        while k < len(seg) - 1 and acum + seg[k][2] < centro:
-            acum += seg[k][2]; k += 1
-        (ax, az), (bx, bz), L = seg[k]
-        t = (centro - acum) / L if L else 0.0
-        out.append((ax + (bx - ax) * t, az + (bz - az) * t, math.atan2(bz - az, bx - ax)))
-    return out
-
-
-def costura(trazado, cerrado, y, material="Costura", largo=0.0026, ancho=0.0008, alto=0.0005, hueco=0.0016):
-    """3.7.7 · Hilo de costura: puntadas (prismas pequeños) sobre una cara. y = altura de la superficie; sobresalen `alto`."""
+def cilindro_z(radio, largo, seg, material, cx=0.0, cy=0.0):
+    """3.7.9 · Cilindro con eje en Z (canto de encuadernación de una hoja): normales suaves y tapas planas."""
     m = Malla(material)
-    for x, z, ang in _puntadas(trazado, largo, hueco, cerrado):
-        c, s_ = math.cos(ang), math.sin(ang)
-        pts = [(-largo / 2, -ancho / 2), (largo / 2, -ancho / 2), (largo / 2, ancho / 2), (-largo / 2, ancho / 2)]
-        m.fusionar(losa_xz([(x + px * c - pz * s_, z + px * s_ + pz * c) for px, pz in pts], y - 0.0001, y + alto, material))   # prisma simple: a 0,5 mm no se nota el bisel y cuesta la mitad
+    a, b = -largo / 2, largo / 2
+    anillo = [(cx + radio * math.cos(2 * math.pi * i / seg), cy + radio * math.sin(2 * math.pi * i / seg)) for i in range(seg)]
+    unit = lambda x, y: ((x - cx) / radio, (y - cy) / radio, 0.0)
+    lado = [(m.vertice((x, y, a), unit(x, y)), m.vertice((x, y, b), unit(x, y))) for x, y in anillo]
+    for i in range(seg):
+        j = (i + 1) % seg
+        n = (anillo[i][0] + anillo[j][0] - 2 * cx, anillo[i][1] + anillo[j][1] - 2 * cy, 0.0)   # solo orienta el triángulo
+        m.triangulo(lado[i][0], lado[j][0], lado[i][1], n)
+        m.triangulo(lado[j][0], lado[j][1], lado[i][1], n)
+    for z, nz in ((a, -1.0), (b, 1.0)):
+        c = m.vertice((cx, cy, z), (0.0, 0.0, nz))
+        ids = [m.vertice((x, y, z), (0.0, 0.0, nz)) for x, y in anillo]
+        for i in range(seg):
+            m.triangulo(c, ids[i], ids[(i + 1) % seg], (0.0, 0.0, nz))
     return m
 
 
@@ -245,14 +236,6 @@ def piezas_cuero_tapa(cub, gt):
     panel = _poli(G.rect_redondeado(panel_x1 - panel_x0, alto, 0.014, 10, (panel_x0 + panel_x1) / 2, 0))
     out["Banda"] = losa_biselada_xz(banda, y0 - 0.0002, y0 + 0.0012, 0.0006, 3, "Cubierta")
     out["Panel"] = losa_biselada_xz(panel, y0 - 0.0002, y0 + 0.0008, 0.0004, 3, "Cubierta")
-    h = alto / 2 - 0.006
-    puntos = Malla("Costura")
-    for x in (banda_x0 + 0.0035, banda_x1 - 0.0035):                   # dos hileras en los bordes de la banda
-        puntos.fusionar(costura([(x, -h), (x, h)], False, y0 + 0.0012))
-    ins = 0.0055
-    trazo = G.rect_redondeado(panel_x1 - panel_x0 - 2 * ins, alto - 2 * ins, 0.0085, 8, (panel_x0 + panel_x1) / 2, 0)
-    puntos.fusionar(costura(trazo, True, y0 + 0.0008))
-    out["Costura"] = puntos
     return out
 
 
@@ -268,7 +251,6 @@ MATERIALES = [
     {"nombre": "Soldadura", "color": "#0E0F11", "rug": 0.9, "metal": 0.0, "alfa": 1.0},
     {"nombre": "Funda", "color": "#FFFFFF", "rug": 0.10, "metal": 0.0, "alfa": 0.07},
     {"nombre": "Carta", "color": "#FFFFFF", "rug": 0.55, "metal": 0.0, "alfa": 1.0},
-    {"nombre": "Costura", "color": "#C4C0B6", "rug": 0.7, "metal": 0.0, "alfa": 1.0},
 ]
 
 
@@ -291,9 +273,10 @@ def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.0):
     mallas["tapa"] = losa_biselada_xz(_poli(G.rect_redondeado(cub["ancho"], cub["alto"], cub["radio_esquina"], 14, cub["ancho"] / 2, 0)),
                                       -GROSOR_TAPA / 2, GROSOR_TAPA / 2, 0.0019, 6, "Cubierta")
     ancho_lomo = lomo_ancho = 0.020
-    mallas["lomo"] = losa_biselada_xz(_poli(G.rect_redondeado(ancho_lomo, cub["alto"], 0.0095, 10)), 0.0, GROSOR_TAPA * 2 + n_hojas * PASO, 0.0085, 8, "Cubierta")
+    mallas["lomo"] = losa_biselada_xz(_poli(G.rect_redondeado(ancho_lomo, cub["alto"], 0.0095, 10)), 0.0, GROSOR_TAPA * 2 + n_hojas * PASO, 0.0030, 5, "Cubierta")
     poli_carta = _poli(G.rect_redondeado(car["ancho"], car["alto"], car["radio_esquina"], 7))
     cw, ch = car["ancho"], car["alto"]
+    mallas["bisagra"] = cilindro_z(0.0017, H - 0.004, 14, "Hoja")
     piezas = piezas_cuero_tapa(cub, GROSOR_TAPA)
     for nombre, m_ in piezas.items():
         mallas["tapa_" + nombre.lower()] = m_
@@ -326,6 +309,8 @@ def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.0):
     for i in range(n_hojas):
         h = nodo("Hoja_%d" % i, None, (0.0, y_pila_derecha(i), 0.0), extras={"tipo": "hoja", "indice": i + 1})
         h["hijos"].append(nodo("Hoja_%d_Losa" % i, "losa_hoja"))
+        # Canto de encuadernación (barril de la bisagra): se llama «..._Losa» para que album3d.js lo trate como cuerpo (siempre visible)
+        h["hijos"].append(nodo("Hoja_%d_Bisagra_Losa" % i, "bisagra"))
         for cara, arriba in (("F", True), ("D", False)):
             sgn = 1 if arriba else -1
             g = nodo("Hoja_%d_%s" % (i, cara), None, (0.0, 0.0, 0.0), extras={"tipo": "cara", "cara": cara})

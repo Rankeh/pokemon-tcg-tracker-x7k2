@@ -31,7 +31,8 @@ export const ACABADOS = {
   tejido: { tipo: 'tejido', color: 0x40597a, lomo: 0x36495f, rugosidad: 0.86, relieve: 0.8, fuerza: 2.2, uv: 0.03, sheen: 0xa9c0de },
   acolchado: { tipo: 'acolchado', color: 0x30353d, lomo: 0x292d34, rugosidad: 0.5, relieve: 1.1, fuerza: 3.2, uv: 0.09, sheen: 0xaab2c0 },
 };
-export const elegirAcabado = (p) => (Object.prototype.hasOwnProperty.call(ACABADOS, (p || '').toLowerCase()) ? (p || '').toLowerCase() : 'grafito');
+export const ACABADO_DEFECTO = 'tejido';          // el preferido del usuario (3.7.9); ?tapa=grafito sigue disponible
+export const elegirAcabado = (p) => (Object.prototype.hasOwnProperty.call(ACABADOS, (p || '').toLowerCase()) ? (p || '').toLowerCase() : ACABADO_DEFECTO);
 
 // Cantos: se pintan en los VÉRTICES (sin UV ni texturas ni mallas nuevas) según la normal: cara plana = 1, canto/bisel = multiplicador.
 export const CANTOS = {

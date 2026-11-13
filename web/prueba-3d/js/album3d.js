@@ -3,7 +3,7 @@
 // a partir de la colección real. Nada del modelo se reconstruye al cambiar una cantidad.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { crearGeometria, EstadoAlbum, pose, centradoX } from './logica.js';
+import { crearGeometria, EstadoAlbum, pose, centradoX, suave, limitar } from './logica.js';
 
 export async function cargarAlbum(url, { renderer, onTiempo = () => {} }) {
   const t0 = performance.now();
@@ -39,6 +39,9 @@ class Album3D {
     this.geomCarta = { F: this.nodo.get('Plantilla_Carta_F').geometry, D: this.nodo.get('Plantilla_Carta_D').geometry };
     const plantillas = this.nodo.get('Plantillas');
     plantillas.parent.remove(plantillas);
+    this.lomo = this.nodo.get('Lomo');
+    if (!this.lomo.geometry.boundingBox) this.lomo.geometry.computeBoundingBox();
+    this.alturaLomoBase = this.lomo.geometry.boundingBox.max.y - this.lomo.geometry.boundingBox.min.y;
     this.aplicar();
   }
 
@@ -51,12 +54,25 @@ class Album3D {
       n.rotation.z = p.rotZ;
     }
     this.raiz.position.x = centradoX(geo, estado.progreso);
+    this.ajustarLomo();
     const vis = estado.visibles();
     for (let i = 0; i < geo.elementos; i++) {
       this.elemento[i].visible = true;
       const ver = vis.has(i);
       for (const h of this.detalle[i]) h.visible = ver;
     }
+  }
+
+  /** 3.7.9 · Grosor del lomo = grosor real de las pilas (como la encuadernación de un libro): cerrado abarca todo el álbum; al abrir se aplana
+   *  hasta la pila más alta. Continuo (cada hoja aporta su `suave(progreso)`), así no hay saltos al girar. Solo escala el lomo en y. */
+  ajustarLomo() {
+    const { geo, estado, params } = this;
+    const gt = params.grosor_tapa, paso = params.paso;
+    let izq = 0, der = 0;
+    for (let i = 1; i < geo.elementos; i++) { const e = suave(limitar(estado.progreso[i], 0, 1)); izq += e; der += 1 - e; }
+    const e0 = suave(limitar(estado.progreso[0], 0, 1));
+    const alto = Math.max(gt + der * paso + (1 - e0) * gt, gt + izq * paso, 2 * gt * 0.6);
+    this.lomo.scale.y = Math.min(1, Math.max(0.12, alto / this.alturaLomoBase));
   }
 
   actualizar(dt) {

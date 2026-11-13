@@ -13,10 +13,10 @@ const nuevo = async (tapa, nivel = 'media') => {
   return { m, asp, a: m.album };
 };
 
-test('M1 elegirAcabado: valores válidos, mayúsculas y por defecto grafito', () => {
+test('M1 elegirAcabado: valores válidos, mayúsculas y por defecto tejido (el preferido del usuario)', () => {
   for (const n of Object.keys(A.ACABADOS)) assert.equal(A.elegirAcabado(n), n);
-  assert.equal(A.elegirAcabado('CUERO'), 'cuero'); assert.equal(A.elegirAcabado('x'), 'grafito'); assert.equal(A.elegirAcabado(null), 'grafito');
-  assert.equal(A.elegirAcabado('toString'), 'grafito', 'no se cuelan propiedades heredadas');
+  assert.equal(A.elegirAcabado('CUERO'), 'cuero'); assert.equal(A.elegirAcabado('x'), 'tejido'); assert.equal(A.elegirAcabado(null), 'tejido'); assert.equal(A.ACABADO_DEFECTO, 'tejido'); assert.equal(A.elegirAcabado('grafito'), 'grafito');
+  assert.equal(A.elegirAcabado('toString'), 'tejido', 'no se cuelan propiedades heredadas');
 });
 
 test('M2 relieves: periódicos, en [0,1], distintos entre sí y sin cambiar el grano de siempre', () => {
@@ -108,10 +108,28 @@ test('M9 modelo refinado (3.7.6): misma estructura y dimensiones que antes, más
   assert.ok(a.contarEscena({ soloVisibles: false }).triangulos < 40000, 'presupuesto para iPhone');
 });
 
-test('M10 estilo carpeta de cuero (3.7.7): banda y panel cosidos en la tapa; sin pestañas de colores (3.7.8, no gustaban: parecían post-its)', async () => {
+test('M10 estilo carpeta de cuero: banda y panel en la tapa, SIN costuras (3.7.9) ni pestañas (3.7.8)', async () => {
   const m = await crearMundo(), a = m.album;
-  for (const n of ['Tapa_Banda', 'Tapa_Panel', 'Tapa_Costura']) assert.ok(a.nodo.get(n), n);
+  for (const n of ['Tapa_Banda', 'Tapa_Panel']) assert.ok(a.nodo.get(n), n);
   assert.equal(a.nodo.get('Tapa_Banda').material.name, 'Cubierta', 'comparten material (y por tanto el relieve y el acabado ?tapa=) con la tapa');
-  assert.equal(a.nodo.get('Tapa_Costura').material.name, 'Costura');
+  assert.ok(!a.nodo.get('Tapa_Costura'), 'sin costuras');
   for (let i = 0; i < 9; i++) assert.ok(!a.nodo.get('Hoja_' + i + '_Pestana_Losa'), 'sin pestaña en la hoja ' + i);
+});
+
+test('M11 construcción física (3.7.9): el lomo sigue el grosor de las pilas y cada hoja lleva su canto de encuadernación', async () => {
+  const m = await crearMundo(), a = m.album, g = a.geo, p = a.params;
+  const alto = (v) => { a.estado.irA(v); a.aplicar(); const b = a.lomo.geometry.boundingBox; return (b.max.y - b.min.y) * a.lomo.scale.y; };
+  assert.ok(Math.abs(alto(0) - 0.0435) < 1e-6, 'cerrado: abarca todo el álbum');
+  const hs = [...Array(g.elementos + 1).keys()].map(alto);
+  assert.ok(hs[4] < hs[0] && hs[5] < hs[0], 'abierto por la mitad: lomo más bajo que cerrado');
+  for (let v = 0; v <= g.elementos; v++) {
+    a.estado.irA(v); a.aplicar();
+    const izq = Math.max(...a.elemento.map((e, i) => (a.estado.progreso[i] >= 1 ? a.elemento[i].position.y : 0))), der = Math.max(...a.elemento.map((e, i) => (a.estado.progreso[i] <= 0 ? a.elemento[i].position.y : 0)));
+    assert.ok(hs[v] + 1e-4 >= Math.max(izq, der), 'v=' + v + ': el lomo nunca queda por debajo de la pila más alta');
+  }
+  a.estado.irA(4); a.estado.avanzar(); let prev = alto(4), salto = 0;           // continuo mientras gira una hoja
+  for (let k = 0; k < 30; k++) { a.estado.actualizar(0.03); a.aplicar(); const h = a.lomo.geometry.boundingBox.max.y * a.lomo.scale.y; salto = Math.max(salto, Math.abs(h - prev)); prev = h; }
+  assert.ok(salto < 0.0012, 'sin saltos bruscos al girar (máx ' + salto.toFixed(5) + ')');
+  for (let i = 0; i < 9; i++) { const b = a.nodo.get('Hoja_' + i + '_Bisagra_Losa'); assert.ok(b && b.material.name === 'Hoja', 'bisagra ' + i); }
+  const cb = a.cajaMalla('Hoja_0_Bisagra_Losa'); assert.ok(Math.abs(cb.max[0] + cb.min[0]) < 1e-6 && cb.max[0] > 0.0012, 'barril centrado en el eje del lomo y más grueso que la hoja');
 });
