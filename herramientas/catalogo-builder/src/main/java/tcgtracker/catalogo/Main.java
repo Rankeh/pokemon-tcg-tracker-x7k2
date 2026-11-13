@@ -66,7 +66,10 @@ public class Main {
         Auditoria.informeGlobal(todasLasCartas, carpetaCrudo);
 
         try {
-            GeneradorCatalogo.generar(expansiones, todasLasCartas, archivoCatalogo);
+            Decisiones decisiones = Decisiones.cargar(
+                    raizRepositorio.resolve("datos").resolve("decisiones").resolve("variantes.json"));
+            GeneradorCatalogo.generar(expansiones, todasLasCartas, archivoCatalogo, decisiones,
+                    carpetaCrudo.resolve("informe-anomalias.txt"));
         } catch (IOException e) {
             System.out.println();
             System.out.println("NO se ha guardado el catálogo: " + e.getMessage());

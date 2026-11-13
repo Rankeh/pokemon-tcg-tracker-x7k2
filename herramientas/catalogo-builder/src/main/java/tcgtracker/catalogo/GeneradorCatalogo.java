@@ -29,8 +29,10 @@ public class GeneradorCatalogo {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    public static void generar(List<JsonNode> expansiones, List<JsonNode> cartas, Path archivoSalida)
-            throws IOException {
+    public static void generar(List<JsonNode> expansiones, List<JsonNode> cartas, Path archivoSalida,
+                               Decisiones decisiones, Path informeAnomalias) throws IOException {
+        Anomalias anomalias = new Anomalias();
+        int entradasOriginales = 0;
         ObjectNode raiz = MAPPER.createObjectNode();
         raiz.put("idioma", "es");
         raiz.put("fuente", "TCGdex (api.tcgdex.net), datos con licencia MIT");
@@ -82,27 +84,30 @@ public class GeneradorCatalogo {
                 }
             }
 
-            // Cada variante se copia tal cual (variantId, type, foil, size y cualquier otro campo)
-            // y se le añade su clave única. No se descarta ninguna.
+            // Atributos físicos + identificadores externos; los precios no entran en el catálogo.
+            // Las colisiones de clave se resuelven solo con decisiones explícitas.
+            entradasOriginales += carta.path("variants_detailed").size();
             ArrayNode variantes = salida.putArray("variantes");
-            for (JsonNode variante : carta.path("variants_detailed")) {
-                if (!variante.isObject()) {
-                    throw new IOException("Variante con formato inesperado en " + idCarta + ": " + variante);
+            for (ObjectNode v : ResolutorVariantes.resolver(idCarta, carta, decisiones, anomalias)) {
+                if (!clavesUsadas.add(v.path("clave").asText())) {
+                    clavesRepetidas.add(v.path("clave").asText());
                 }
-                String clave = ClavesDeVariante.clave(idCarta, variante);
-                if (!clavesUsadas.add(clave)) {
-                    clavesRepetidas.add(clave);
-                }
-
-                ObjectNode salidaVariante = variantes.addObject();
-                salidaVariante.put("clave", clave);
-                ObjectNode copia = variante.deepCopy();
-                salidaVariante.setAll(copia);
+                variantes.add(v);
                 totalVariantes++;
             }
             if (variantes.size() == 0) {
                 cartasSinVariantes++;
             }
+        }
+
+        anomalias.guardar(informeAnomalias, entradasOriginales, totalVariantes);
+        System.out.println();
+        System.out.println("Entradas en TCGdex: " + entradasOriginales
+                + " | variantes coleccionables tras resolver anomalías: " + totalVariantes);
+        anomalias.imprimir();
+        if (anomalias.hayErrores()) {
+            throw new IOException("Hay " + anomalias.errores().size() + " anomalías sin resolver. "
+                    + "No se guarda el catálogo; revisa " + informeAnomalias.getFileName() + ".");
         }
 
         // Si la clave no fuera única se mezclarían cantidades: mejor no guardar nada.

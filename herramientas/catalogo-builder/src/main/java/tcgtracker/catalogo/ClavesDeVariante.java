@@ -14,6 +14,9 @@ public final class ClavesDeVariante {
     /** Campos que se muestran primero en la descripción de una variante. */
     private static final List<String> CAMPOS_PRINCIPALES = List.of("type", "foil", "size");
 
+    /** Datos comerciales: cambian con el mercado y NUNCA forman parte de la identidad de una variante. */
+    public static final java.util.Set<String> CAMPOS_COMERCIALES = java.util.Set.of("pricing", "thirdParty");
+
     private ClavesDeVariante() {
     }
 
@@ -33,8 +36,8 @@ public final class ClavesDeVariante {
     }
 
     /**
-     * Descripción de la variante con todos sus campos salvo el variantId,
-     * por ejemplo: "type=reverse, foil=pokeball, size=standard".
+     * Descripción FÍSICA de la variante: todos sus campos salvo el variantId y los datos
+     * comerciales (pricing, thirdParty), por ejemplo: "type=reverse, foil=pokeball, size=standard".
      */
     public static String firma(JsonNode variante) {
         Comparator<String> orden = Comparator
@@ -48,7 +51,7 @@ public final class ClavesDeVariante {
         Iterator<String> nombres = variante.fieldNames();
         while (nombres.hasNext()) {
             String campo = nombres.next();
-            if (campo.equals("variantId")) {
+            if (campo.equals("variantId") || CAMPOS_COMERCIALES.contains(campo)) {
                 continue;
             }
             JsonNode valor = variante.get(campo);

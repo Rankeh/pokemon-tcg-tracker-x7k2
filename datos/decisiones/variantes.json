@@ -1,0 +1,16 @@
+{
+  "comentario": "Decisiones humanas sobre claves repetidas idCarta|variantId. El generador nunca decide solo. 'separar' = son dos cartas físicas distintas (cada una con su contador, clave acabada en #sufijo, identificada por un id de Cardmarket/TCGplayer). 'fusionar' = es la misma carta repetida en TCGdex (una sola variante, cuenta 1).",
+  "colisiones": [
+    {
+      "carta": "sv10.5b-034",
+      "variantId": "mtltux8quqoc7vwp24c9zzhgmzduu8xcik8",
+      "decision": "separar",
+      "dudosa": true,
+      "motivo": "Zekrom ex con sello player-rewards-program: TCGdex da dos productos (Cardmarket 864406 y 894193). No se ha podido confirmar si son dos impresiones físicas o un duplicado. Si se confirma duplicado, cambiar a 'fusionar'.",
+      "versiones": [
+        { "sufijo": "a", "ancla": "864406" },
+        { "sufijo": "b", "ancla": "894193" }
+      ]
+    }
+  ]
+}
