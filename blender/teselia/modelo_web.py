@@ -64,6 +64,10 @@ class Malla:
         return len(self.verts) - 1
 
     def triangulo(self, a, b, c, n):
+        va, vb, vc = self.verts[a], self.verts[b], self.verts[c]
+        ux, uy, uz, wx, wy, wz = vb[0] - va[0], vb[1] - va[1], vb[2] - va[2], vc[0] - va[0], vc[1] - va[1], vc[2] - va[2]
+        if (uy * wz - uz * wy) ** 2 + (uz * wx - ux * wz) ** 2 + (ux * wy - uy * wx) ** 2 < 1e-18:
+            return                                     # triángulo degenerado (bisel colapsado a 0 en un canto vivo): no se emite
         self.tris.append(_tri_orientado(self.verts, (a, b, c), n))
 
     def fusionar(self, otra):
@@ -153,10 +157,12 @@ def _normales_poligono(poligono):
     return out
 
 
-def losa_biselada_xz(poligono, y0, y1, bisel, seg, material):
+def losa_biselada_xz(poligono, y0, y1, bisel, seg, material, factor=None):
     """3.7.6 · Prisma de base convexa con los DOS cantos redondeados (perfil de cuarto de círculo, `seg` pasos) y normales suaves.
     Mismas dimensiones exteriores que losa_xz (el bisel se talla hacia dentro): las cajas, el encuadre y las alturas no cambian.
-    Los círculos de las esquinas del polígono deben tener radio ≥ bisel."""
+    Los círculos de las esquinas del polígono deben tener radio ≥ bisel.
+    `factor(x, z)` (0..1, opcional) escala el bisel vértice a vértice: 0 = canto vivo. Sirve para que dos piezas contiguas (tapa y lomo) se
+    unan a ras, sin la «V» que dejaría un bisel en cada lado, como una sola pieza de tela plegada."""
     bisel = min(bisel, (y1 - y0) / 2 - 1e-6)
     m = Malla(material)
     cx, cz = _centro(poligono)
@@ -167,11 +173,13 @@ def losa_biselada_xz(poligono, y0, y1, bisel, seg, material):
     for sup in (True, False):
         for a in (angulos if sup else angulos[::-1]):
             t = math.radians(a)
-            d = bisel * (1.0 - math.cos(t))
-            y = (y1 - bisel + bisel * math.sin(t)) if sup else (y0 + bisel - bisel * math.sin(t))
             sy = 1.0 if sup else -1.0
-            ids = [m.vertice((x - nv[i][0] * d, y, z - nv[i][1] * d), (nv[i][0] * math.cos(t), sy * math.sin(t), nv[i][1] * math.cos(t)))
-                   for i, (x, z) in enumerate(poligono)]
+            ids = []
+            for i, (x, z) in enumerate(poligono):
+                bi = bisel * (1.0 if factor is None else factor(x, z))
+                d = bi * (1.0 - math.cos(t))
+                y = (y1 - bi + bi * math.sin(t)) if sup else (y0 + bi - bi * math.sin(t))
+                ids.append(m.vertice((x - nv[i][0] * d, y, z - nv[i][1] * d), (nv[i][0] * math.cos(t), sy * math.sin(t), nv[i][1] * math.cos(t))))
             anillos.append(ids)
     for y, n in ((y1, (0, 1, 0)), (y0, (0, -1, 0))):         # tapas planas: abanico desde el centro hasta el anillo de 90°
         c = m.vertice((cx, y, cz), n)
@@ -224,6 +232,19 @@ def cilindro_z(radio, largo, seg, material, cx=0.0, cy=0.0):
     return m
 
 
+def rect_esquinas(ancho, alto, r_xmin, r_xmax, seg=6, cx=0.0, cy=0.0):
+    """Rectángulo con radios de esquina DISTINTOS según el lado en x (r_xmin: lado -x, r_xmax: lado +x). Antihorario."""
+    r_xmin, r_xmax = min(r_xmin, ancho / 2, alto / 2), min(r_xmax, ancho / 2, alto / 2)
+    cs = [(ancho / 2 - r_xmax, alto / 2 - r_xmax, 0, r_xmax), (-ancho / 2 + r_xmin, alto / 2 - r_xmin, 90, r_xmin),
+          (-ancho / 2 + r_xmin, -alto / 2 + r_xmin, 180, r_xmin), (ancho / 2 - r_xmax, -alto / 2 + r_xmax, 270, r_xmax)]
+    pts = []
+    for ox, oy, a0, r in cs:
+        for i in range(seg + 1):
+            a = math.radians(a0 + 90.0 * i / seg)
+            pts.append((cx + ox + r * math.cos(a), cy + oy + r * math.sin(a)))
+    return pts
+
+
 def piezas_cuero_tapa(cub, gt):
     """Decoración de la cara EXTERIOR de la tapa (como la carpeta de cuero de referencia): banda del lomo con borde cosido y panel
     acolchado cosido. Devuelve {nombre: Malla}; todo se apoya en y = gt/2 (cara exterior de la tapa)."""
@@ -270,10 +291,13 @@ def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.0):
     mallas = {}
     # --- mallas compartidas
     mallas["losa_hoja"] = losa_biselada_xz(_poli(G.rect_redondeado(W, H, hoja["radio_esquina"], 10, W / 2, 0)), -grosor_h / 2, grosor_h / 2, 0.0004, 2, "Hoja")
-    mallas["tapa"] = losa_biselada_xz(_poli(G.rect_redondeado(cub["ancho"], cub["alto"], cub["radio_esquina"], 14, cub["ancho"] / 2, 0)),
-                                      -GROSOR_TAPA / 2, GROSOR_TAPA / 2, 0.0019, 6, "Cubierta")
-    ancho_lomo = lomo_ancho = 0.020
-    mallas["lomo"] = losa_biselada_xz(_poli(G.rect_redondeado(0.014, cub["alto"], 0.006, 8, -0.003, 0)), 0.0, GROSOR_TAPA * 2 + n_hojas * PASO, 0.0030, 5, "Cubierta")   # x ∈ [-10, +4] mm: queda FUERA de las hojas (que empiezan en x=0) salvo 4 mm bajo las tapas
+    # 3.7.11: tapa/contratapa y lomo forman UNA envolvente: el canto del lado del lomo es vivo y recto (esquinas casi cuadradas) y el bisel crece
+    # hacia fuera; así encajan a ras en vez de verse como tres piezas con bisagra. El lomo redondea solo su lado exterior.
+    f_tapa = lambda x, z: min(1.0, max(0.0, x / 0.014))
+    mallas["tapa"] = losa_biselada_xz(_poli(rect_esquinas(cub["ancho"], cub["alto"], 0.0016, cub["radio_esquina"], 14, cub["ancho"] / 2, 0)),
+                                      -GROSOR_TAPA / 2, GROSOR_TAPA / 2, 0.0016, 6, "Cubierta", f_tapa)
+    f_lomo = lambda x, z: min(1.0, max(0.0, (0.001 - x) / 0.007))
+    mallas["lomo"] = losa_biselada_xz(_poli(rect_esquinas(0.016, cub["alto"], 0.0045, 0.0016, 8, -0.002, 0)), 0.0, GROSOR_TAPA * 2 + n_hojas * PASO, 0.0040, 6, "Cubierta", f_lomo)   # x ∈ [-10, +6] mm
     poli_carta = _poli(G.rect_redondeado(car["ancho"], car["alto"], car["radio_esquina"], 7))
     cw, ch = car["ancho"], car["alto"]
     mallas["bisagra"] = cilindro_z(0.0017, H - 0.004, 14, "Hoja")

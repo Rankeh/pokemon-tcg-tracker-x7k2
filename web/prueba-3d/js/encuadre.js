@@ -49,7 +49,7 @@ export const COMPOSICION = {
   sesgoOptico: 0.02,     // el centro VISUAL queda un 2 % del alto libre por encima del centro matemático (un objeto se percibe más «bajo» de lo que está)
   toleranciaContexto: 1.15, // con la ficha abierta se renuncia a vecina/lomo/página completa si obligan a alejar la cámara más de un 15 % respecto a la navegación
   filasContexto: 1,      // cuando ni la página cabe junto a la ficha: filas de cartas que se conservan sobre y bajo la carta seleccionada
-  barridoGiro: 0.25,     // 3.7.10: fracción del barrido vertical de la hoja que cuenta al encuadrar un giro en doble página (1 = todo: alejaba la cámara +50 % en horizontal y molestaba)
+  barridoGiro: 0.5,      // 3.7.11 (0,25 en 3.7.10 recortaba la hoja; 1 alejaba +50 %); 3.7.10: fracción del barrido vertical de la hoja que cuenta al encuadrar un giro en doble página (1 = todo: alejaba la cámara +50 % en horizontal y molestaba)
   pasoFila: 0.0965,      // separación entre filas de bolsillos en el modelo (m); una prueba lo comprueba contra el GLB real
 };
 

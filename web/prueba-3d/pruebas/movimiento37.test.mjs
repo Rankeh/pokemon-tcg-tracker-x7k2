@@ -101,7 +101,7 @@ test('M9 modelo refinado (3.7.6): misma estructura y dimensiones que antes, más
   assert.ok(Math.abs((c.max[0] - c.min[0]) - 0.258) < 1e-4 && Math.abs((c.max[2] - c.min[2]) - 0.322) < 1e-4 && Math.abs((c.max[1] - c.min[1]) - 0.006) < 1e-5);
   const l = a.cajaMalla('Lomo'); assert.ok(Math.abs(l.max[1] - 0.0435) < 1e-5 && Math.abs(l.min[1]) < 1e-6, 'el lomo conserva su altura (la cara superior coincide con la de la tapa)');
   const tris = (n) => { const g = a.nodo.get(n).geometry; return g.index.count / 3; };
-  assert.ok(tris('Tapa_Malla') > 800 && tris('Lomo') > 800 && tris('Hoja_0_Losa') > 300, 'bordes biselados (ya no son losas de ~100 triángulos)');
+  assert.ok(tris('Tapa_Malla') > 600 && tris('Lomo') > 400 && tris('Hoja_0_Losa') > 300, 'bordes biselados (ya no son losas de ~100 triángulos)');
   const n = a.nodo.get('Tapa_Malla').geometry.attributes.normal; let inclinadas = 0;
   for (let i = 0; i < n.count; i++) { const y = Math.abs(n.getY(i)); if (y > 0.05 && y < 0.95) inclinadas++; }
   assert.ok(inclinadas > 100, 'hay normales intermedias (bisel suave, no aristas vivas)');
@@ -119,7 +119,7 @@ test('M10 estilo carpeta de cuero: banda y panel en la tapa, SIN costuras (3.7.9
 test('M11 construcción física (3.7.10): el lomo alto solo existe con el álbum cerrado y queda a ras de las tapas al abrir (las hojas no lo atraviesan); cada hoja lleva su canto de encuadernación', async () => {
   const m = await crearMundo(), a = m.album, g = a.geo, p = a.params;
   const alto = (v) => { a.estado.irA(v); a.aplicar(); const b = a.lomo.geometry.boundingBox; return (b.max.y - b.min.y) * a.lomo.scale.y; };
-  const caja = a.cajaMalla('Lomo'); assert.ok(Math.abs(caja.min[0] + 0.010) < 1e-6 && Math.abs(caja.max[0] - 0.004) < 1e-6, 'lomo en x ∈ [-10, +4] mm: fuera de las hojas, que empiezan en x = 0');
+  const caja = a.cajaMalla('Lomo'); assert.ok(Math.abs(caja.min[0] + 0.010) < 1e-6 && Math.abs(caja.max[0] - 0.006) < 1e-6, 'lomo en x ∈ [-10, +6] mm: fuera de las hojas, que empiezan en x = 0 (los 6 mm de la derecha quedan bajo las tapas)');
   assert.ok(Math.abs(alto(0) - 0.0435) < 1e-6, 'cerrado: abarca todo el álbum');
   const base = 2 * p.grosor_tapa / 2;                                    // grosor de una tapa = 6 mm
   const parteInferiorHoja = 0.0012 / 2;                                  // la hoja más baja de cada pila tiene su cara inferior por encima de y = 6 mm + (paso - 1,2 mm)/2
@@ -135,21 +135,33 @@ test('M11 construcción física (3.7.10): el lomo alto solo existe con el álbum
   const cb = a.cajaMalla('Hoja_0_Bisagra_Losa'); assert.ok(Math.abs(cb.max[0] + cb.min[0]) < 1e-6 && cb.max[0] > 0.0012, 'barril centrado en el eje del lomo y más grueso que la hoja');
 });
 
-test('M12 zoom del giro (3.7.10): con el barrido reducido la cámara se aleja ≤ 15 % en doble página (antes ≈ +50 % en horizontal) y no cambia en vertical', async () => {
+test('M12 zoom del giro (3.7.10): con el barrido reducido a la mitad la cámara se aleja ≤ 25 % en doble página (antes ≈ +50 % en horizontal) y no cambia en vertical', async () => {
   const { dimensiones, puntosVista, puntosGiro, calcularEncuadre, reservadoDesdeDom, COMPOSICION } = await import('../js/encuadre.js');
   const bytes = readFileSync(new URL('../modelo/album.glb', import.meta.url));
   const json = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + bytes.readUInt32LE(12))));
   const dim = dimensiones(json.nodes.find((n) => n.name === 'Album').extras);
-  assert.ok(COMPOSICION.barridoGiro > 0 && COMPOSICION.barridoGiro <= 0.3);
+  assert.ok(COMPOSICION.barridoGiro >= 0.4 && COMPOSICION.barridoGiro <= 0.6, 'ni 1 (alejaba +50 %) ni 0,25 (recortaba la hoja)');
   for (const [w, h] of [[390, 663], [844, 390], [750, 340], [1920, 1080], [820, 1180]]) {
     const aspect = w / h, reservado = reservadoDesdeDom({ ancho: w, alto: h, cabeceraAbajo: 60, barraArriba: h - 62 });
     for (const v of [1, 3, 8]) {
       const base = [...puntosVista({ vueltas: v, dim, modo: 'doble' }), ...puntosVista({ vueltas: v + 1, dim, modo: 'doble' })];
       const r = (pts) => calcularEncuadre({ puntos: pts, fovGrados: 32, aspect, reservado, margen: COMPOSICION.margenDoble }).radio;
       const r0 = r(base), nuevo = r([...base, ...puntosGiro(dim, 0.03, COMPOSICION.barridoGiro)]), viejo = r([...base, ...puntosGiro(dim)]);
-      assert.ok(nuevo / r0 <= 1.15, `${w}×${h} v${v}: ${(nuevo / r0).toFixed(3)}`);
+      assert.ok(nuevo / r0 <= 1.25, `${w}×${h} v${v}: ${(nuevo / r0).toFixed(3)}`);
       assert.ok(nuevo <= Math.max(viejo, r0 * 1.02), 'nunca más lejos que antes (en vertical el barrido casi no cuenta)');
     }
   }
   assert.equal(puntosGiro(dim).length, puntosGiro(dim, 0.03, 1).length);
+});
+
+test('M13 envolvente tapa-lomo (3.7.11): el canto de la tapa del lado del lomo es vivo (sin bisel) y el bisel crece hacia fuera; el lomo solo redondea su lado exterior', async () => {
+  const m = await crearMundo(), a = m.album;
+  const vertices = (nombre) => { const g = a.nodo.get(nombre).geometry, p = g.attributes.position; return [...Array(p.count).keys()].map((i) => [p.getX(i), p.getY(i), p.getZ(i)]); };
+  const tapa = vertices('Tapa_Malla'), mitad = 0.003;                            // tapa: y ∈ [-3, +3] mm
+  assert.ok(tapa.filter(([x]) => x <= 0.0003).every(([, y]) => Math.abs(Math.abs(y) - mitad) < 5e-5), 'junto al lomo el bisel es < 0,05 mm: canto vivo');
+  const bisel = (x0, x1) => tapa.filter(([x, y]) => x >= x0 && x <= x1 && Math.abs(y) < mitad - 1e-5).length;
+  assert.ok(bisel(0.05, 0.25) > 0, 'lejos del lomo sí hay bisel');
+  const lomo = vertices('Lomo'), top = 0.0435;
+  assert.ok(lomo.some(([x, y]) => x <= -0.009 && y < top - 1e-4 && y > top - 0.0045), 'el lomo redondea su lado exterior (-x)');
+  assert.ok(lomo.filter(([x]) => x >= 0.005).every(([, y]) => y < 1e-6 || y > top - 1e-6), 'el lado interior del lomo (bajo la tapa) es de canto vivo');
 });

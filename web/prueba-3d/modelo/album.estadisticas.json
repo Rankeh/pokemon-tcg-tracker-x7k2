@@ -3,8 +3,8 @@
   "nodos": 253,
   "mallas_distintas": 12,
   "nodos_con_malla": 61,
-  "triangulos_instanciados": 27040,
-  "triangulos_unicos": 6160
+  "triangulos_instanciados": 26272,
+  "triangulos_unicos": 5632
  },
  "parametros": {
   "n_hojas": 9,
@@ -21,5 +21,5 @@
   "ocupados": 0,
   "bolsillos": 162
  },
- "bytes_glb": 179436
+ "bytes_glb": 178584
 }
