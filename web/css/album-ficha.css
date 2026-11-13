@@ -1,20 +1,20 @@
 /* Ficha de carta: panel inferior en móvil, ventana centrada en pantallas anchas. */
 .ficha { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; }
 .ficha[hidden] { display: none; }
-.ficha-velo { position: absolute; inset: 0; background: rgba(4,4,7,.74); }
+.ficha-velo { position: absolute; inset: 0; background: rgba(20,12,8,.76); }
 .ficha-panel { position: relative; width: 100%; max-height: 94dvh; overflow-y: auto; overscroll-behavior: contain;
   padding: 1rem 1.1rem calc(1rem + env(safe-area-inset-bottom)); border-radius: 22px 22px 0 0;
-  background: linear-gradient(180deg, #23232a, #14141a); border: 1px solid rgba(255,255,255,.12); border-bottom: 0;
+  background: linear-gradient(180deg, var(--grafito-claro), var(--grafito-oscuro)); border: 1px solid rgba(215,197,165,.18); border-bottom: 0;
   box-shadow: 0 -12px 40px rgba(0,0,0,.6); outline: none; }
 .ficha-cerrar { position: absolute; top: .5rem; right: .6rem; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.2);
   background: rgba(0,0,0,.35); color: #fff; font-size: 1.6rem; line-height: 1; cursor: pointer; z-index: 2; }
 .ficha-imagen { width: min(50vw, calc(31dvh * .714)); margin: .2rem auto .7rem; filter: drop-shadow(0 10px 18px rgba(0,0,0,.6)); }
 .ficha-imagen .carta-imagen { border-radius: 4.6% / 3.3%; border: 1px solid rgba(255,255,255,.15); }
 .ficha-imagen .carta-sustituto { font-size: 1rem; }
-.ficha-imagen .carta-sustituto::before { content: ""; position: absolute; inset: 4%; border: 1px solid rgba(216,179,106,.5); border-radius: 4.2% / 3%; }
+.ficha-imagen .carta-sustituto::before { content: ""; position: absolute; inset: 4%; border: 1px solid rgba(211,180,127,.5); border-radius: 4.2% / 3%; }
 .ficha-estado { margin: 0 0 .2rem; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; color: #aab; }
-.ficha-estado[data-estado="conseguida"] { color: #8fe0a2; }
-.ficha-estado[data-estado="pendiente"] { color: #e0b46a; }
+.ficha-estado[data-estado="conseguida"] { color: var(--salvia-claro); }
+.ficha-estado[data-estado="pendiente"] { color: var(--laton-claro); }
 .ficha-datos h2 { margin: 0 0 .4rem; font-size: 1.35rem; }
 .ficha-lista { display: grid; grid-template-columns: auto 1fr; gap: .15rem .8rem; margin: 0 0 .5rem; font-size: .88rem; }
 .ficha-lista dt { color: #9a9aab; }

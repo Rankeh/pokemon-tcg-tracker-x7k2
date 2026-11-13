@@ -1,0 +1,61 @@
+/* ============================================================================
+   ENTORNO — el escritorio de nogal, su iluminación y los objetos decorativos.
+   Solo pinta lo que hay ALREDEDOR del archivador. Nada aquí es interactivo.
+   ============================================================================ */
+
+body { background: var(--nogal-oscuro); color: var(--texto-album); font-family: var(--fuente-texto); }
+
+/* Superficie: base de nogal + veta horizontal oscura + veta clara + lámpara + viñeteado (de abajo arriba). */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(125% 105% at 46% 46%, transparent 52%, var(--luz-vineta) 100%),
+    radial-gradient(62% 72% at 10% 6%, var(--luz-lampara), transparent 72%),
+    var(--textura-madera-clara),
+    var(--textura-madera-oscura),
+    linear-gradient(165deg, var(--nogal-claro) 0%, var(--nogal) 42%, var(--nogal-oscuro) 100%);
+  background-size: auto, auto, 1000px 640px, 1000px 640px, auto;
+}
+.app { position: relative; z-index: 1; }
+
+/* La mesa 3D es transparente: la madera se ve continua bajo cabecera, álbum y panel. */
+.mesa { background: none; }
+.mesa::before { content: none; }
+
+/* --- Objetos decorativos (secundarios; solo en pantallas anchas con espacio libre a los lados) --- */
+.objetos { position: absolute; inset: 0; pointer-events: none; display: none; }
+@media (min-width: 1180px) and (min-aspect-ratio: 5/4) { .objetos { display: block; } }
+
+/* Etiqueta de colección: cartulina con un cordel, a la izquierda del lomo. */
+.etiqueta-coleccion {
+  position: absolute; right: calc(50% + var(--w) * .575); top: 23%;
+  width: calc(var(--w) * .205); padding: calc(var(--w) * .03) calc(var(--w) * .018) calc(var(--w) * .022);
+  transform: rotate(-5deg); border-radius: 3px; text-align: center; color: var(--tinta);
+  font-size: calc(var(--w) * .02); line-height: 1.25;
+  background: var(--textura-papel), linear-gradient(160deg, var(--papel-claro), var(--papel) 60%, var(--papel-oscuro));
+  box-shadow: var(--sombra-objeto), inset 0 0 0 1px rgba(255, 255, 255, .25), inset 0 -8px 14px rgba(120, 90, 50, .22);
+}
+.etiqueta-coleccion::before { /* ojal del cordel */
+  content: ""; position: absolute; left: 50%; top: calc(var(--w) * .008); width: calc(var(--w) * .014); aspect-ratio: 1; margin-left: calc(var(--w) * -.007); border-radius: 50%;
+  background: var(--nogal-oscuro); box-shadow: 0 0 0 calc(var(--w) * .004) var(--laton), inset 0 1px 2px #000;
+}
+.etiqueta-coleccion::after { /* cordel */
+  content: ""; position: absolute; left: 50%; bottom: 100%; width: 2px; height: calc(var(--w) * .1); margin-left: -1px;
+  background: linear-gradient(180deg, transparent, var(--papel-oscuro) 30%); transform: rotate(7deg); transform-origin: bottom;
+  opacity: .8;
+}
+.etiqueta-coleccion small { display: block; letter-spacing: .22em; text-transform: uppercase; font-size: .62em; color: var(--laton-oscuro); font-weight: 600; }
+.etiqueta-coleccion strong { display: block; font-family: var(--fuente-titulo); font-size: 1.55em; font-weight: 700; letter-spacing: .04em; margin: .12em 0; }
+.etiqueta-coleccion i { display: block; border-top: 1px solid rgba(43, 33, 24, .35); margin: .35em 0 .3em; }
+.etiqueta-coleccion span { font-size: .78em; color: rgba(43, 33, 24, .8); }
+
+/* Lápiz de grafito: pequeño, abajo a la derecha, parcialmente fuera de la mesa como en una foto real. */
+.lapiz { position: absolute; left: calc(50% + var(--w) * .66); bottom: 9%; width: calc(var(--w) * .34); height: calc(var(--w) * .024);
+  transform: rotate(-68deg); transform-origin: 0 50%; filter: drop-shadow(3px 5px 4px rgba(14, 7, 2, .55)); }
+.lapiz::before {
+  content: ""; position: absolute; inset: 0;
+  clip-path: polygon(0 0, 84% 0, 100% 38%, 100% 62%, 84% 100%, 0 100%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .3), transparent 42%, rgba(0, 0, 0, .5)),
+    linear-gradient(90deg, #8d6558 0 5%, var(--laton-oscuro) 5% 7%, var(--laton-claro) 7% 11%, var(--laton) 11% 15%, var(--grafito-claro) 15% 84%, var(--papel) 84% 94%, #2a2a2c 94%);
+}

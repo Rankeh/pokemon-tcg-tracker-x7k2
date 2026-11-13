@@ -1,0 +1,85 @@
+/* ============================================================================
+   ARCHIVADOR — materiales: cubierta de grafito, lomo, anillas, grosor y hojas de vinilo.
+   La GEOMETRÍA (posiciones, perspectiva, capas 3D) está en album-escena.css; aquí solo el aspecto.
+   ============================================================================ */
+
+/* Sombra proyectada sobre la mesa: la lámpara está arriba a la izquierda, la sombra cae abajo a la derecha. */
+.album-sombra { inset: -3% -12% -13% -9%; transform: translateZ(calc(var(--w) * -.2)) translate(3%, 5%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(14, 7, 2, .82), rgba(14, 7, 2, .4) 56%, transparent); filter: blur(calc(var(--w) * .006)); }
+
+/* Cubierta: grafito mate con grano de cuero sintético, bisel, costura y esquineras de latón. */
+.album-cubierta {
+  background:
+    radial-gradient(120% 70% at 18% 3%, var(--luz-brillo), transparent 58%),
+    radial-gradient(90% 60% at 88% 100%, rgba(0, 0, 0, .5), transparent 70%),
+    var(--textura-cuero),
+    linear-gradient(150deg, var(--cubierta-a) 0%, var(--cubierta-b) 55%, #26282a 100%);
+  background-blend-mode: normal, normal, soft-light, normal;
+  background-size: auto, auto, 220px 220px, auto;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, .75),                     /* contorno nítido */
+    inset 0 0 0 1px rgba(255, 255, 255, .09),         /* filo de luz */
+    inset 0 2px 2px rgba(255, 255, 255, .16),         /* bisel superior (recibe la luz) */
+    inset 0 -3px 3px rgba(0, 0, 0, .55),              /* bisel inferior */
+    inset 0 0 46px rgba(0, 0, 0, .45),
+    calc(var(--w) * .012) calc(var(--w) * .02) calc(var(--w) * .03) rgba(14, 7, 2, .55); /* grosor sobre la mesa */
+}
+.album-cubierta::after { border: 2px dashed rgba(215, 197, 165, .3); }   /* costura discreta en hilo crema */
+.album-cubierta::before { /* esquineras de latón en las tres esquinas visibles */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background:
+    linear-gradient(225deg, var(--laton-claro) 0 18%, var(--laton) 18% 40%, var(--laton-oscuro) 40% 50%, transparent 50%) right top / 3.4% 2.6% no-repeat,
+    linear-gradient(315deg, var(--laton-claro) 0 18%, var(--laton) 18% 40%, var(--laton-oscuro) 40% 50%, transparent 50%) right bottom / 3.4% 2.6% no-repeat,
+    linear-gradient(45deg,  var(--laton-claro) 0 18%, var(--laton) 18% 40%, var(--laton-oscuro) 40% 50%, transparent 50%) left bottom / 3.4% 2.6% no-repeat;
+  opacity: .85;
+}
+
+/* Lomo: cilindro de grafito con grano, placa de latón y bases metálicas para las anillas. */
+.album-lomo {
+  transform-style: preserve-3d;   /* así las anillas sobresalen de verdad por encima de las hojas */
+  background:
+    radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent) 50% 14% / 78% 7% no-repeat,
+    radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent) 50% 49% / 78% 7% no-repeat,
+    radial-gradient(closest-side, rgba(0, 0, 0, .55), transparent) 50% 84% / 78% 7% no-repeat,
+    var(--textura-cuero),
+    linear-gradient(90deg, #0c0d0e 0%, #2a2c2e 22%, #4a4d50 46%, #2c2e30 70%, #141516 100%);
+  background-blend-mode: normal, normal, normal, soft-light, normal;
+  background-size: auto, auto, auto, 220px 220px, auto;
+  box-shadow: inset -2px 0 4px rgba(0, 0, 0, .65), inset 1px 0 0 rgba(255, 255, 255, .1), inset 0 1px 0 rgba(255, 255, 255, .12);
+}
+.album-lomo::after { /* placa de latón en el lomo, entre la primera y la segunda anilla */
+  content: ""; position: absolute; left: 31%; width: 38%; top: 25%; height: 14%; border-radius: 2px;
+  background: linear-gradient(100deg, var(--laton-oscuro), var(--laton-claro) 35%, var(--laton) 60%, var(--laton-oscuro));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .7), inset 0 0 0 1px rgba(255, 244, 224, .22); opacity: .92;
+}
+
+/* Anillas: metal cepillado fino con reflejos y sombra de contacto sobre la hoja. */
+.anilla {
+  left: calc(var(--w) * .0675); width: calc(var(--w) * .125);
+  background: conic-gradient(from 200deg, #6c6f74, #f3f1ea 12%, #8a8c91 28%, #ffffff 46%, #686b70 64%, #d6d4cc 82%, #6c6f74);
+  -webkit-mask: radial-gradient(closest-side, transparent 73%, #000 77%); mask: radial-gradient(closest-side, transparent 73%, #000 77%);
+  filter: drop-shadow(2px 4px 2px rgba(14, 7, 2, .7));
+}
+
+/* Grosor del taco de hojas: cantos de vinilo grafito (no blancos). */
+.hoja-trasera { background: linear-gradient(135deg, #4b4e51, #2a2c2e); border: 1px solid rgba(0, 0, 0, .55); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); }
+
+/* Hojas: vinilo grafito mate con filo de luz. */
+.cara-frontal, .cara-trasera {
+  background:
+    var(--textura-cuero),
+    radial-gradient(120% 90% at 25% 0%, #3b3d40 0%, var(--hoja-a) 52%, var(--hoja-b) 100%);
+  background-blend-mode: soft-light, normal;
+  background-size: 220px 220px, auto;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .13), inset 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 30px rgba(0, 0, 0, .35);
+}
+.cara-trasera {
+  background:
+    var(--textura-cuero),
+    radial-gradient(120% 90% at 75% 0%, #36383b 0%, #262829 55%, #1c1d1f 100%);
+  background-blend-mode: soft-light, normal;
+  background-size: 220px 220px, auto;
+}
+.perforacion { background: radial-gradient(closest-side, #050505 66%, rgba(255, 244, 224, .22)); box-shadow: 0 1px 1px rgba(255, 244, 224, .08); }
+.hoja-reflejo { background: linear-gradient(115deg, rgba(255, 244, 224, .09) 0%, rgba(255, 244, 224, .02) 24%, transparent 42%, rgba(255, 244, 224, .04) 70%, transparent 88%); }
+.reverso-brillo { background: linear-gradient(245deg, rgba(255, 244, 224, .1) 0%, rgba(255, 244, 224, .02) 26%, transparent 46%, rgba(255, 244, 224, .045) 72%, transparent 90%); }

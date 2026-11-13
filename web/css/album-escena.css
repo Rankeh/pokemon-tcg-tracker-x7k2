@@ -1,23 +1,27 @@
-/* Escena 3D del archivador. Todo el volumen sale de CSS 3D transforms (sin librerías). */
+/* ============================================================================
+   ESCENA 3D — GEOMETRÍA y estructura (posiciones, perspectiva, capas) + controles provisionales.
+   Aspecto de materiales: archivador.css. Escritorio: entorno.css. Colores y fuentes: tokens.css.
+   Todo el volumen sale de CSS 3D transforms (sin librerías).
+   ============================================================================ */
 :root {
   /* Ancho de la hoja: manda el ancho de la pantalla, pero sin pasarse de alto (así nunca hace falta zoom). */
   --w: min(80vw, calc((100dvh - 9rem) * .80), 1000px);
-  --negro: #0e0e11;
-  --oro: #d8b36a;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
-body { margin: 0; background: #0b0a09; color: #ececf1; font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; overflow: hidden; }
+body { margin: 0; font: 16px/1.4 var(--fuente-texto); overflow: hidden; }
 
 .app { height: 100dvh; display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
-.cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .9rem; padding: .45rem 1rem .3rem; }
-.cabecera h1 { margin: 0; font-size: 1.05rem; letter-spacing: .04em; font-weight: 650; }
-.cabecera .progreso { margin-left: auto; font-size: .9rem; color: #c9cad6; font-variant-numeric: tabular-nums; }
-.cabecera .progreso strong { color: #fff; }
-.barra-progreso { flex-basis: 100%; height: 3px; background: rgba(255,255,255,.1); border-radius: 4px; overflow: hidden; }
-.barra-progreso > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #c89b3c, #f1d18a); transform-origin: left; transition: width .5s cubic-bezier(.2,.8,.2,1); }
 
-.aviso { margin: 0 1rem; padding: .5rem .8rem; border-radius: 10px; background: #4a1d1d; border: 1px solid #a54; font-size: .9rem; }
+/* --- Cabecera (provisional hasta 3.3.2: ya usa tokens) --- */
+.cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .9rem; padding: .5rem 1rem .35rem; background: linear-gradient(180deg, rgba(20, 12, 8, .72), rgba(20, 12, 8, 0)); }
+.cabecera h1 { margin: 0; font-family: var(--fuente-titulo); font-size: 1.3rem; letter-spacing: .05em; font-weight: 700; color: var(--papel-claro); text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+.cabecera .progreso { margin-left: auto; font-size: .92rem; color: var(--texto-album-suave); font-variant-numeric: tabular-nums; }
+.cabecera .progreso strong { color: var(--salvia-claro); }
+.barra-progreso { flex-basis: 100%; height: 4px; background: rgba(0, 0, 0, .4); border-radius: 4px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .6), 0 1px 0 rgba(255, 244, 224, .08); }
+.barra-progreso > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--salvia), var(--salvia-claro)); transform-origin: left; transition: width .5s cubic-bezier(.2, .8, .2, 1); }
+
+.aviso { margin: 0 1rem; padding: .5rem .8rem; border-radius: var(--radio-m); background: #4a1d1d; border: 1px solid #a54; font-size: .9rem; }
 
 .escena { position: relative; flex: 1; min-height: 0; container-type: size; overflow: hidden; touch-action: pan-y; }
 @supports (width: 1cqw) {
@@ -26,45 +30,26 @@ body { margin: 0; background: #0b0a09; color: #ececf1; font: 16px/1.4 system-ui,
 }
 
 /* Mesa: aquí está la perspectiva (la "cámara"). */
-.mesa { position: absolute; inset: 0; display: grid; place-items: center; perspective: calc(var(--w) * 1.7); perspective-origin: 50% 20%;
-  background: radial-gradient(110% 80% at 50% 12%, #4a3f33 0%, #261f19 48%, #0d0b09 100%); }
-.mesa::before { content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none;
-  background: repeating-linear-gradient(93deg, rgba(255,255,255,.018) 0 2px, transparent 2px 7px); }
+.mesa { position: absolute; inset: 0; display: grid; place-items: center; perspective: calc(var(--w) * 1.7); perspective-origin: 50% 20%; }
 
 /* Álbum: ligeramente elevado e inclinado, como apoyado sobre la mesa frente a ti. */
 .album { position: relative; width: var(--w); aspect-ratio: .787; margin-left: calc(var(--w) * .07);
   transform-style: preserve-3d; transform: translateY(calc(var(--w) * -.165)) rotateX(31deg); transform-origin: 50% 70%; }
 .album > * { position: absolute; }
 /* Las capas decorativas nunca deben capturar toques: solo los bolsillos son interactivos. */
-.album-sombra, .album-cubierta, .album-lomo, .album-grosor, .perforaciones, .hoja-reflejo, .mesa::before { pointer-events: none; }
+.album-sombra, .album-cubierta, .album-lomo, .album-grosor, .perforaciones, .hoja-reflejo, .objetos { pointer-events: none; }
 
-.album-sombra { inset: -4% -7% -9% -13%; transform: translateZ(calc(var(--w) * -.2)) translateY(4%); border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(0,0,0,.78), rgba(0,0,0,.36) 58%, transparent); }
-
-/* Cubierta de cuero: capas de degradados + ruido fino. */
-.album-cubierta { inset: -2.4% -2.6% -2.6% -10%; transform: translateZ(calc(var(--w) * -.11)); border-radius: 1.8% / 1.3%;
-  background:
-    radial-gradient(120% 70% at 20% 4%, rgba(255,255,255,.22), transparent 58%),
-    radial-gradient(90% 60% at 85% 100%, rgba(0,0,0,.45), transparent 70%),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.28'/></svg>"),
-    linear-gradient(150deg, #3a3a43 0%, #1a1a1f 52%, #2a2a31 100%);
-  box-shadow: 0 0 0 1px rgba(255,255,255,.1), inset 0 0 0 1px rgba(0,0,0,.6), inset 0 2px 3px rgba(255,255,255,.14), inset 0 0 46px rgba(0,0,0,.5); }
-/* Costura de la cubierta */
-.album-cubierta::after { content: ""; position: absolute; inset: calc(var(--w) * .016); border: 2px dashed rgba(226,196,128,.42); border-radius: 1.1% / .9%; }
-
-/* Lomo con volumen: franja con degradado cilíndrico. */
-.album-lomo { top: -2.4%; bottom: -2.6%; left: -10%; width: 9.2%; transform: translateZ(calc(var(--w) * -.02)); border-radius: 1.8% 0 0 1.8% / 1.3% 0 0 1.3%;
-  background: linear-gradient(90deg, #060608 0%, #2a2a31 22%, #4a4a54 46%, #2b2b32 70%, #131317 100%);
-  box-shadow: inset -2px 0 4px rgba(0,0,0,.6), inset 1px 0 0 rgba(255,255,255,.07); }
-.anilla { position: absolute; left: calc(var(--w) * .03); width: calc(var(--w) * .125); aspect-ratio: 2.3; transform: translateZ(calc(var(--w) * .06)); border-radius: 50%;
-  background: conic-gradient(from 200deg, #6f727c, #f1f3f8 14%, #8a8d98 30%, #ffffff 48%, #6a6d77 66%, #d4d6de 84%, #6f727c);
-  -webkit-mask: radial-gradient(closest-side, transparent 66%, #000 69%); mask: radial-gradient(closest-side, transparent 66%, #000 69%);
-  filter: drop-shadow(0 3px 2px rgba(0,0,0,.6)); }
+.album-sombra { inset: -4% -7% -9% -13%; transform: translateZ(calc(var(--w) * -.2)) translateY(4%); border-radius: 50%; }
+.album-cubierta { inset: -2.4% -2.6% -2.6% -10%; transform: translateZ(calc(var(--w) * -.11)); border-radius: 1.8% / 1.3%; }
+/* Costura de la cubierta (su aspecto está en archivador.css) */
+.album-cubierta::after { content: ""; position: absolute; inset: calc(var(--w) * .016); border-radius: 1.1% / .9%; }
+.album-lomo { top: -2.4%; bottom: -2.6%; left: -10%; width: 9.2%; transform: translateZ(calc(var(--w) * -.02)); border-radius: 1.8% 0 0 1.8% / 1.3% 0 0 1.3%; }
+.anilla { position: absolute; aspect-ratio: 2.3; transform: translateZ(calc(var(--w) * .06)); border-radius: 50%; }
 .anilla:nth-child(1) { top: 12%; } .anilla:nth-child(2) { top: 47%; } .anilla:nth-child(3) { top: 82%; }
 
 /* Grosor del taco de hojas (se ve por el borde derecho e inferior). */
 .album-grosor { inset: 0; transform-style: preserve-3d; }
-.hoja-trasera { inset: 0; border-radius: .6%; background: linear-gradient(135deg, #f0f1f6, #b3b5c1); border: 1px solid rgba(0,0,0,.4); }
+.hoja-trasera { inset: 0; border-radius: .6%; }
 .hoja-trasera:nth-child(1) { transform: translateZ(calc(var(--w) * -0.011)) translate(0.30%, 0.0%); }
 .hoja-trasera:nth-child(2) { transform: translateZ(calc(var(--w) * -0.022)) translate(0.60%, 0.0%); }
 .hoja-trasera:nth-child(3) { transform: translateZ(calc(var(--w) * -0.033)) translate(0.90%, 0.0%); }
@@ -78,51 +63,33 @@ body { margin: 0; background: #0b0a09; color: #ececf1; font: 16px/1.4 system-ui,
 .hoja { inset: 0; transform-style: preserve-3d; transform-origin: 4.1% 50%; }
 /* La hoja en reposo está montada pero invisible (visibility, no display: así sus imágenes sí se cargan antes del giro). */
 .hoja.reposo { visibility: hidden; pointer-events: none; }
-.cara-frontal, .cara-trasera { position: absolute; inset: 0; border-radius: .8%;
-  background: radial-gradient(120% 90% at 25% 0%, #3a3d49 0%, #272a33 55%, #1d1f26 100%);
-  box-shadow: 0 0 0 1px rgba(255,255,255,.14), inset 0 0 0 1px rgba(0,0,0,.45), inset 0 0 30px rgba(0,0,0,.35); }
+.cara-frontal, .cara-trasera { position: absolute; inset: 0; border-radius: .8%; }
 .cara-frontal { transform-style: preserve-3d; }
-/* Reverso neutro: mismo plástico, sin cartas; sus perforaciones quedan junto al eje (la cara está volteada 180°). */
-.cara-trasera { transform: rotateY(180deg); -webkit-backface-visibility: hidden; backface-visibility: hidden;
-  background: radial-gradient(120% 90% at 75% 0%, #343743 0%, #23262e 55%, #1a1c22 100%); }
+/* Reverso neutro: mismo material, sin cartas; sus perforaciones quedan junto al eje (la cara está volteada 180°). */
+.cara-trasera { transform: rotateY(180deg); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 .cara-trasera .perforaciones { left: auto; right: 2.4%; }
-.reverso-brillo { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(245deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.02) 26%, transparent 46%, rgba(255,255,255,.05) 72%, transparent 90%); }
+.reverso-brillo { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
 /* Velo de sombra: lo animan las transiciones (sube y baja su opacidad según la luz que recibe la hoja). */
 .velo { position: absolute; inset: 0; border-radius: inherit; opacity: 0; pointer-events: none; transform: translateZ(16px);
-  background: linear-gradient(90deg, rgba(0,0,0,.7), rgba(0,0,0,.3) 45%, rgba(0,0,0,.55)); }
-.cara-trasera .velo { transform: none; background: linear-gradient(270deg, rgba(0,0,0,.7), rgba(0,0,0,.3) 45%, rgba(0,0,0,.55)); }
-.perforaciones { left: auto; right: 2.4%; }
-.reverso-brillo { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(245deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.02) 26%, transparent 46%, rgba(255,255,255,.05) 72%, transparent 90%); }
-/* Velo de sombra: lo animan las transiciones (sube y baja su opacidad según la luz que recibe la hoja). */
-.velo { position: absolute; inset: 0; border-radius: inherit; opacity: 0; pointer-events: none; transform: translateZ(16px);
-  background: linear-gradient(90deg, rgba(0,0,0,.7), rgba(0,0,0,.3) 45%, rgba(0,0,0,.55)); }
-.cara-trasera .velo { transform: none; background: linear-gradient(270deg, rgba(0,0,0,.7), rgba(0,0,0,.3) 45%, rgba(0,0,0,.55)); }
-/* Durante un giro las caras se APLANAN: no hay capas Z que atraviesen el plano ni se vean al revés, y
-   backface-visibility oculta limpiamente la cara que mira hacia atrás (también en Safari). */
-.hoja.plana .cara-frontal, .hoja.plana .hoja-bolsillos, .hoja.plana .bolsillo { transform-style: flat; }
-.hoja.plana .cara-frontal { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
-.hoja.plana .hoja-reflejo, .hoja.plana .velo { transform: none; }
-.hoja.plana .bolsillo * { will-change: auto; }
+  background: linear-gradient(90deg, rgba(14, 7, 2, .7), rgba(14, 7, 2, .3) 45%, rgba(14, 7, 2, .55)); }
+.cara-trasera .velo { transform: none; background: linear-gradient(270deg, rgba(14, 7, 2, .7), rgba(14, 7, 2, .3) 45%, rgba(14, 7, 2, .55)); }
 .perforaciones { position: absolute; left: 2.4%; top: 0; bottom: 0; width: 3.4%; }
-.perforacion { position: absolute; left: 0; width: 100%; aspect-ratio: 2.4; border-radius: 50%; background: radial-gradient(closest-side, #040405 68%, rgba(255,255,255,.2)); }
+.perforacion { position: absolute; left: 0; width: 100%; aspect-ratio: 2.4; border-radius: 50%; }
 .perforacion:nth-child(1) { top: 11.4%; } .perforacion:nth-child(2) { top: 46.4%; } .perforacion:nth-child(3) { top: 81.4%; }
 .hoja-bolsillos { position: absolute; inset: calc(var(--w) * .04) calc(var(--w) * .04) calc(var(--w) * .04) calc(var(--w) * .085);
   display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; gap: calc(var(--w) * .022); transform-style: preserve-3d; }
-.hoja-reflejo { position: absolute; inset: 0; pointer-events: none; transform: translateZ(14px); border-radius: .8%;
-  background: linear-gradient(115deg, rgba(255,255,255,.1) 0%, rgba(255,255,255,.02) 24%, transparent 42%, rgba(255,255,255,.045) 70%, transparent 88%); }
+.hoja-reflejo { position: absolute; inset: 0; pointer-events: none; transform: translateZ(14px); border-radius: .8%; }
 
-/* Controles: integrados en la parte baja, táctiles (44 px) y sin robarle protagonismo al álbum. */
-.pie { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3rem 1rem; padding: .3rem .8rem calc(.45rem + 0px); background: linear-gradient(180deg, transparent, rgba(0,0,0,.4)); }
+/* ============ Controles (provisionales hasta la etapa 3.3.2; ya con la paleta nueva) ============ */
+.pie { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3rem 1rem; padding: .3rem .8rem .45rem; background: linear-gradient(180deg, transparent, rgba(20, 12, 8, .55)); }
 .paginador { display: flex; align-items: center; gap: .5rem; }
 .pagina-info { display: flex; flex-direction: column; align-items: center; min-width: 11.5rem; line-height: 1.2; text-align: center; }
-.pagina-info strong { font-size: .98rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.pagina-info small { color: #b2b3c2; font-size: .76rem; }
+.pagina-info strong { font-family: var(--fuente-titulo); font-size: 1.05rem; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--papel-claro); }
+.pagina-info small { color: var(--texto-album-suave); font-size: .78rem; }
 .boton-flecha { min-width: 48px; min-height: 44px; padding: 0; font-size: 1.6rem; line-height: 1; border-radius: 14px; }
 .filtros, .extras { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3rem; }
 .chip { min-height: 44px; padding: .3rem .8rem; font-size: .86rem; border-radius: 999px; }
-.enlace-copias { color: #c9cad6; font-size: .8rem; padding: .5rem .3rem; }
+.enlace-copias { color: var(--papel); font-size: .8rem; padding: .5rem .3rem; }
 @media (max-width: 640px) {
   .pie { gap: .1rem .5rem; padding: .2rem .6rem .35rem; }
   .pagina-info { min-width: 0; flex: 1; }
@@ -134,27 +101,32 @@ body { margin: 0; background: #0b0a09; color: #ececf1; font: 16px/1.4 system-ui,
   .chip { min-height: 38px; padding: .1rem .65rem; font-size: .78rem; }
   .extras { width: 100%; justify-content: space-between; }
   .extras .chip { min-height: 34px; }
+  /* Móvil: un poco más estrecho y más a la derecha para que el lomo no se recorte por el borde izquierdo. */
+  .album { margin-left: calc(var(--w) * .095); }
+}
+@media (max-width: 640px) {
+  @supports (width: 1cqw) { .mesa { --w: min(78cqw, calc((100cqh - 1rem) * .79)); } }
 }
 /* Escritorio apaisado: los controles pasan a un panel lateral y el álbum gana todo el alto */
 @media (min-width: 900px) and (min-aspect-ratio: 5/4) {
   .app { display: grid; grid-template-columns: minmax(0, 1fr) 17.5rem; grid-template-rows: auto auto minmax(0, 1fr); }
   .cabecera, .aviso { grid-column: 1 / -1; }
   .escena { grid-column: 1; grid-row: 3; }
-  .pie { grid-column: 2; grid-row: 3; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: stretch; gap: 1.1rem; padding: 1rem 1rem 1rem .4rem; background: linear-gradient(90deg, rgba(0,0,0,.25), rgba(0,0,0,.5)); border-left: 1px solid rgba(255,255,255,.06); }
+  .pie { grid-column: 2; grid-row: 3; flex-direction: column; flex-wrap: nowrap; justify-content: center; align-items: stretch; gap: 1.1rem; padding: 1rem 1rem 1rem .4rem; background: linear-gradient(90deg, rgba(20, 12, 8, .3), rgba(20, 12, 8, .6)); border-left: 1px solid rgba(215, 197, 165, .1); }
   .paginador { justify-content: space-between; }
   .pagina-info { min-width: 0; flex: 1; }
   .filtros { flex-direction: column; align-items: stretch; }
-  .filtros::before, .extras::before { display: block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: #8d8ea0; margin-bottom: .1rem; }
+  .filtros::before, .extras::before { display: block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--texto-album-suave); margin-bottom: .1rem; }
   .filtros::before { content: "Resaltar (no cambia el orden)"; }
   .extras { flex-direction: column; align-items: stretch; text-align: center; }
   .extras::before { content: "Opciones"; }
 }
 .boton { min-height: 44px; padding: .4rem .75rem; font-size: .9rem; }
-.cabecera .info { flex-basis: 100%; margin: 0; font-size: .78rem; color: #9a9aa8; }
-.pie small { color: #9a9aa8; }
-.pie a { color: #c9cad6; }
-.boton { font: inherit; padding: .5rem .9rem; border-radius: 12px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.07); color: #f2f2f6; cursor: pointer; }
-.boton[aria-pressed="true"] { border-color: var(--oro); color: #fff; background: rgba(216,179,106,.16); }
+.cabecera .info { flex-basis: 100%; margin: 0; font-size: .78rem; color: var(--texto-album-suave); }
+.pie small { color: var(--texto-album-suave); }
+.pie a { color: var(--papel); }
+.boton { font: inherit; padding: .5rem .9rem; border-radius: var(--radio-m); border: 1px solid rgba(215, 197, 165, .26); background: rgba(215, 197, 165, .07); color: var(--papel-claro); cursor: pointer; box-shadow: var(--sombra-contacto); }
+.boton[aria-pressed="true"] { border-color: var(--laton); color: #fff; background: rgba(173, 137, 86, .24); }
 .boton:disabled { opacity: .45; cursor: default; }
-.boton:focus-visible, .ficha-cerrar:focus-visible { outline: 2px solid var(--oro); outline-offset: 2px; }
-.boton-principal { background: linear-gradient(180deg, #d8b36a, #b88f45); color: #1a1408; border-color: #e8c987; font-weight: 650; }
+.boton:focus-visible, .ficha-cerrar:focus-visible { outline: 2px solid var(--laton-claro); outline-offset: 2px; }
+.boton-principal { background: linear-gradient(180deg, var(--laton-claro), var(--laton)); color: var(--tinta); border-color: var(--laton-claro); font-weight: 650; }

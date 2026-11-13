@@ -44,3 +44,18 @@ y http://localhost:8000/web/pruebas/index.html (pruebas automáticas).
 - **Movimiento reducido** (botón o ajuste del sistema): cambio inmediato, sin giro.
 - **Pruebas:** `web/pruebas/index-giro.html` (navegador, necesita Live Server: abre el álbum en un iframe con una base temporal `prueba-…`, no toca tu colección) y las lógicas en `index-album.html` / `node web/pruebas/node-album.mjs`.
 - **Dos páginas enfrentadas (futuro):** bastaría que cada hoja guarde dos páginas de datos (2k-1 delante, 2k detrás) y que la cara trasera monte bolsillos en lugar del reverso neutro; el giro, la navegación y la URL no cambian.
+
+## Fase 3.3.1 — Sistema de diseño y escritorio
+
+Solo cambia el aspecto; no se ha tocado la lógica, IndexedDB, los datos ni las posiciones de las cartas.
+
+| Archivo | Qué contiene |
+|---|---|
+| `css/tokens.css` | Única fuente de paleta, tipografías, radios, sombras, luz y texturas (variables CSS). |
+| `css/album-escena.css` | Geometría 3D, perspectiva, capas y controles provisionales (hasta 3.3.2). |
+| `css/entorno.css` | Escritorio de nogal, lámpara, viñeteado y objetos decorativos (etiqueta, lápiz). |
+| `css/archivador.css` | Materiales: cubierta de grafito, lomo, anillas, canto de hojas, vinilo. |
+| `css/album-bolsillos.css` | Fundas transparentes y cartas (ya con la paleta nueva). |
+| `js/album/escena.js` | Añade solo el contenedor decorativo `.objetos` (aria-hidden). |
+
+**Procedencia de recursos:** todo es propio. Las texturas (cuero, madera, papel) se generan con filtros SVG (`feTurbulence`) incrustados en `tokens.css`; la etiqueta y el lápiz se dibujan con CSS. No hay imágenes ni fuentes descargadas, ni URLs externas. Tipografías: serif editorial del sistema (Iowan Old Style / Palatino / Georgia) para títulos y `system-ui` para el resto.

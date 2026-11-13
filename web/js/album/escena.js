@@ -29,6 +29,16 @@ function crearHoja(doc) {
   return { hoja, frontal, trasera, bolsillos, velo, veloTrasero: veloT };
 }
 
+/** Objetos decorativos del escritorio (solo adorno: aria-hidden, sin eventos). Aspecto en css/entorno.css. */
+function crearObjetos(doc) {
+  const objetos = el(doc, "objetos");
+  objetos.setAttribute("aria-hidden", "true");
+  const etiqueta = el(doc, "etiqueta-coleccion");
+  etiqueta.innerHTML = "<small>Colección</small><strong>Teselia</strong><i></i><span>Ilustraciones especiales</span>";
+  objetos.append(etiqueta, el(doc, "lapiz"));
+  return objetos;
+}
+
 export function crearEscena(contenedor, doc = document) {
   const mesa = el(doc, "mesa");
   const album = el(doc, "album");
@@ -47,7 +57,7 @@ export function crearEscena(contenedor, doc = document) {
   hojas[1].hoja.classList.add("reposo");
 
   album.append(sombra, cubierta, lomo, grosor, hojas[0].hoja, hojas[1].hoja);
-  mesa.append(album);
+  mesa.append(crearObjetos(doc), album);
   contenedor.replaceChildren(mesa);
 
   const escena = {
