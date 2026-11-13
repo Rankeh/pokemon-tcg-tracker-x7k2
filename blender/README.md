@@ -4,17 +4,20 @@ Escena independiente (no toca la app, la base de datos ni el catálogo). **Estos
 todavía** (mi entorno no lo tiene): lo que sí está comprobado sin Blender es la geometría, el encuadre y que el flujo de
 Python no tiene errores (`python blender/pruebas_sin_blender.py`). El aspecto real del render hay que verlo en tu PC.
 
-## v2 (corrección del primer render)
-Causa de los "cristales/metal" en las fundas: las fundas eran losas finas con **sombreado suave sin biselar** (las normales de los
-vértices del borde se promediaban a ~45° y se interpolaban por toda la cara plana, torciendo el reflejo) y un material
-Glossy blanco + Fresnel que reflejaba la luz clave. Cambios: fundas = **una sola cara plana** con Principled casi transparente
-(alfa 0,07, sin Glossy, sin refracción); canto redondeado de cubiertas/lomo construido en la malla (sin modificador Bisel) con
-tapas de normal exacta; soldadura = marco plano; luz neutra (clave #FFE3C4, relleno frío, borde blanco), pared gris pizarra,
-madera por tablones con veta larga; sin puntos ni taza; cámara 50 mm, f/9 (cartas nítidas).
-`python blender/previsualizar_sin_blender.py [escritorio|movil]` genera `salida/previa_geometrica_*.png` (geometría y encuadre,
-NO materiales ni luz: eso solo lo muestra Cycles).
+## v3 (Fase 3.4.3): álbum encuadernado sin anillas
+Modelo nuevo (se ha eliminado todo lo metálico): cubiertas acolchadas azul noche con canto redondeado y costura, **lomo
+continuo** redondeado y hojas **unidas al lomo**: cada hoja es una rejilla que desciende hacia el lomo (curvatura de la
+encuadernación) y su borde interior queda hundido en él. 8 hojas a la derecha y 6 a la izquierda (cantos visibles), una hoja
+visible por lado con 9 bolsillos. Cada bolsillo = hoja → marco de termosellado fino → carta (0,4 mm) → lámina de funda de
+una sola cara con alfa bajo y un único reflejo diagonal suave (sin Glossy ni refracción). Escena neutra: solo un suelo.
+Piezas independientes y con pivote en el eje del lomo (hojas), padres para bolsillos/costuras: preparado para animar.
+Luces: principal cálida grande, secundaria fría tenue, dos luces de borde alargadas (cálida/fría) y fondo neutro.
 
-## Qué construye
+Vistas: `escritorio` (álbum abierto, 16:9), `movil` (una página) y `detalle` (un bolsillo en primer plano):
+`blender\ejecutar_windows.bat previa detalle` · `blender\ejecutar_windows.bat final escritorio`.
+`python blender/previsualizar_sin_blender.py [escritorio|movil|detalle]` = vista geométrica (NO materiales ni luz).
+
+## Qué construía la v1/v2 (obsoleto)
 Archivador **abierto** sobre un atril de madera (inclinado 28°), en un escritorio de madera con pared al fondo:
 cubiertas con grosor y bisel + costura, lomo, 3 anillas metálicas con placa, pilas de hojas, una hoja visible por lado con
 9 bolsillos (soldadura + funda transparente), 14 cartas de prueba con diseños propios (9 a la derecha, 5 a la izquierda),

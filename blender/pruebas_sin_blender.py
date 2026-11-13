@@ -35,8 +35,6 @@ v, c = G.cuna(0.5, 0.27, 0.14)
 ok(cerca(G.volumen_con_signo(v, c), 0.5 * 0.27 * 0.14 / 2, 1e-9), "cuña: volumen = ancho·largo·alto/2")
 v, c = G.toro(0.0135, 0.0013)
 ok(cerca(G.volumen_con_signo(v, c), 2 * math.pi ** 2 * 0.0135 * 0.0013 ** 2, 0.03), "toro: volumen ≈ 2π²Rr²")
-v, c = G.arco_anilla(0.0135, 0.0013)
-ok(G.volumen_con_signo(v, c) > 0, "anilla abierta: normales hacia fuera")
 v, c = G.esfera(0.012, 10, 6)
 ok(G.volumen_con_signo(v, c) > 0, "esfera: normales hacia fuera")
 q = G.puntadas(G.inset(G.rect_redondeado(0.245, 0.305, 0.012, 6), 0.004), 0.0045, 0.003, 0.0009)
@@ -47,7 +45,7 @@ ok(a["bolsillo"]["ancho"] > a["carta"]["ancho"] and a["bolsillo"]["alto"] > a["c
 mx = a["bolsillo"]["margen_interior"] + 3 * a["bolsillo"]["ancho"] + 2 * a["bolsillo"]["separacion"]
 ok(mx < a["hoja"]["ancho"], "3 bolsillos caben en el ancho de la hoja")
 ok(3 * a["bolsillo"]["alto"] + 2 * a["bolsillo"]["separacion"] < a["hoja"]["alto"], "3 bolsillos caben en el alto de la hoja")
-ok(a["hoja"]["inicio_x"] > a["anillas"]["radio"] + a["anillas"]["grosor_alambre"], "hojas no cortan las anillas")
+ok(a["hoja"]["inicio_x"] < a["lomo"]["ancho"] / 2, "las hojas arrancan DENTRO del lomo (unidas a él)")
 pd, pi = G.posiciones_bolsillos(cfg, 1), G.posiciones_bolsillos(cfg, -1)
 ok(len(pd) == 9 and len(pi) == 9 and all(cerca(p[0], -q[0]) or True for p, q in zip(pd, pi)), "9 bolsillos por hoja")
 ok(pd[0][0] < pd[1][0] < pd[2][0] and pi[0][0] < pi[1][0] < pi[2][0], "orden de lectura izquierda→derecha en ambas hojas")
@@ -67,7 +65,7 @@ ok(G.volumen_con_signo(v, c) > 0, "losa biselada: normales hacia fuera")
 ok(all(abs(G.normal_cara(v, f)[2] - 1) < 1e-9 for f in c[:1]) and all(abs(G.normal_cara(v, f)[2] + 1) < 1e-9 for f in c[1:2]), "losa biselada: tapas con normal exactamente ±Z (arista dura)")
 fundas = [p for p in piezas if p["mat"] == "funda"]
 ok(len(fundas) == 18 and all(len(p["caras"]) == 1 for p in fundas), "18 fundas, cada una UNA sola cara plana")
-n_up = (0.0, -math.sin(math.radians(a["inclinacion_grados"])), math.cos(math.radians(a["inclinacion_grados"])))
+n_up = (0.0, 0.0, 1.0)
 ok(all(sum(x * y for x, y in zip(G.normal_cara(p["verts"], p["caras"][0]), n_up)) > 0.999 for p in fundas), "fundas: normal hacia el espectador y paralela a la hoja")
 cartas = [p for p in piezas if p["mat"] == "carta"]
 ok(len(cartas) == a["cartas_derecha"] + a["cartas_izquierda"], "%d cartas de prueba" % len(cartas))
@@ -79,14 +77,31 @@ ok(gap >= 0.0001, "capas hoja<soldadura<carta<funda con separación mínima %.2f
 hoja_ok = all(abs(i["z_carta0"] - i["z_hoja"] - 0.0004) < 1e-12 for i in info)
 ok(hoja_ok, "cartas apoyadas a 0,4 mm sobre la hoja")
 ok(max(p["mat"] == "funda" and 0 for p in piezas) == 0, "ninguna funda con grosor ni modificadores")
-ok(not any(p["nombre"].startswith(("Taza", "Bokeh", "CajaMazo")) for p in piezas), "sin cilindro ni puntos flotantes")
+ok(not any(p["nombre"].startswith(("Taza", "Bokeh", "CajaMazo", "Anilla", "Remache", "Mecanismo", "Atril", "Pared")) for p in piezas), "sin anillas, mecanismos, props ni pared")
+ok(set(p["mat"] for p in piezas) <= {"cubierta", "hilo", "hoja", "hoja_b", "funda", "soldadura", "suelo", "carta"}, "solo materiales de álbum (nada metálico)")
+cg = a["cubierta"]["grosor"]
+hojas = [p for p in piezas if p["nombre"].startswith(("Pila", "Hoja"))]
+ok(all(G.volumen_con_signo(p["verts"], p["caras"]) > 0 for p in hojas), "%d hojas curvas: normales hacia fuera" % len(hojas))
+lo = a["lomo"]["ancho"] / 2
+ok(all(min(q[2] for q in p["verts"]) >= cg - 1e-9 for p in hojas), "ninguna hoja atraviesa la cubierta (z mínimo ≥ cara de la cubierta)")
+zs_lomo = max(q[2] for q in next(p for p in piezas if p["nombre"] == "Lomo")["verts"])
+ok(all(abs(q[0]) <= a["hoja"]["inicio_x"] + 1e-9 and q[2] <= zs_lomo + 0.0003 for p in hojas for q in p["verts"] if abs(q[0]) <= a["hoja"]["inicio_x"] + 1e-9), "borde interior de las hojas hundido en el lomo (unión física)")
+top = [p for p in piezas if p["nombre"] in ("HojaDer", "HojaIzq")]
+def _rango(p):
+    zp = [q[2] for q in p["verts"] if abs(q[0]) > a["hoja"]["inicio_x"] + a["hoja"]["curva"] + 1e-6]
+    return max(zp) - min(zp)
+ok(all(_rango(p) < 0.0015 for p in top), "zona de bolsillos plana (curvatura solo junto al lomo)")
+ok(all(p["origen"] == (0.0, 0.0, cg) for p in hojas), "hojas con pivote en el eje del lomo (giro futuro sin atravesar cubiertas)")
+cub = [p for p in piezas if p["nombre"].startswith("Cubierta")]
+ok(all(G.volumen_con_signo(p["verts"], p["caras"]) > 0 for p in cub), "cubiertas acolchadas: normales hacia fuera")
+ok(all(p["padre"] for p in piezas if p["nombre"].startswith(("Carta", "Funda", "Soldadura"))), "bolsillos cuelgan de su hoja (animables con ella)")
 
 print("Cámara y composición")
 for vista, v_cfg in cfg["vistas"].items():
     pos, obj, d = G.ajustar_camara(cfg, vista)
     sh = (v_cfg["desplazamiento_x"], v_cfg["desplazamiento_y"])
     u0, v0, u1, v1 = G.caja_pantalla(G.esquinas_archivador(cfg, v_cfg["objetivo"]), pos, obj, v_cfg["lente_mm"], cfg["camara"]["sensor_mm"], v_cfg["resolucion"], sh)
-    ok(cerca(u1 - u0, v_cfg["ocupacion_ancho"], 1e-3), "%s: ocupa %.0f%% del ancho" % (vista, 100 * v_cfg["ocupacion_ancho"]))
+    ok(cerca((v1 - v0) if v_cfg.get("eje") == "v" else (u1 - u0), v_cfg["ocupacion_ancho"], 1e-3), "%s: ocupa %.0f%% del %s" % (vista, 100 * v_cfg["ocupacion_ancho"], "alto" if v_cfg.get("eje") == "v" else "ancho"))
     ok(0 <= u0 and u1 <= 1 and 0 <= v0 and v1 <= 1, "%s: el archivador cabe entero en el cuadro" % vista)
     pc = G.proyectar(obj, pos, obj, v_cfg["lente_mm"], cfg["camara"]["sensor_mm"], v_cfg["resolucion"], (0, 0))
     ok(abs(pc[0] - .5) < 1e-6 and abs(pc[1] - .5) < 1e-6, "%s: el objetivo cae en el centro sin desplazamiento" % vista)
@@ -111,7 +126,7 @@ try:
     import runpy
     runpy.run_path(os.path.join(AQUI, "crear_escena.py"), run_name="__main__")
     llamadas = bpy.data.objects.new.call_count
-    ok(llamadas >= 85, "crear_escena.py recorre todo el flujo (%d objetos creados)" % llamadas)
+    ok(llamadas >= 77, "crear_escena.py recorre todo el flujo (%d objetos creados)" % llamadas)
 except Exception as ex:  # noqa
     import traceback; traceback.print_exc()
     ok(False, "crear_escena.py con bpy simulado: %r" % ex)

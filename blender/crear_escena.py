@@ -27,7 +27,7 @@ def argumentos():
     resto = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     p = argparse.ArgumentParser()
     p.add_argument("--modo", choices=["previa", "final", "alta"], default="previa")
-    p.add_argument("--vista", choices=["escritorio", "movil"], default="escritorio")
+    p.add_argument("--vista", choices=["escritorio", "movil", "detalle"], default="escritorio")
     p.add_argument("--guardar-blend", action="store_true")
     p.add_argument("--sin-render", action="store_true")
     p.add_argument("--exposicion", type=float, default=None)
@@ -42,15 +42,13 @@ def construir(cfg, vista, exposicion):
     scn.collection.children.link(col)
     C = cfg["colores"]
     mats = {
-        "cubierta": M.cubierta(C["cubierta"]),
-        "hilo": M.liso("Hilo", C["hilo"], 0.8, 0.0, 0.2),
-        "metal": M.metal(C["metal"]),
-        "hoja": M.liso("Hoja", C["hoja"], 0.5, 0.0, 0.3),
+        "cubierta": M.cubierta(C["cubierta"], C["cubierta_b"]),
+        "hilo": M.liso("Hilo", C["hilo"], 0.75, 0.0, 0.25),
+        "hoja": M.liso("Hoja", C["hoja"], 0.48, 0.0, 0.30),
+        "hoja_b": M.liso("HojaB", C["hoja_b"], 0.48, 0.0, 0.30),
         "funda": M.funda(),
         "soldadura": M.soldadura(),
-        "madera": M.madera("Escritorio", tablon=cfg["entorno"]["tablon"]),
-        "atril": M.madera("Atril", (0.09, 0.055, 0.035, 1), (0.40, 0.25, 0.15, 1), tablon=0.12),
-        "pared": M.liso("Pared", C["pared"], 0.9, 0.0, 0.15),
+        "suelo": M.liso("Suelo", C["suelo"], 0.62, 0.0, 0.25),
     }
     piezas, _info = escena.construir(cfg)
     modelos.instanciar(piezas, col, mats)

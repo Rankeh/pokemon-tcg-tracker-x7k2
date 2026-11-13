@@ -183,13 +183,13 @@ def rot_x(p, ang):
 
 
 def a_mundo(p, cfg, pivote_y=0.0):
-    """Punto del archivador (coordenadas locales: centro del lomo en el origen, plano XY, mesa en z=0) ->
-    mundo. Gira 'inclinacion' alrededor del borde delantero (y = -alto/2), apoyado en un atril."""
+    """Punto del álbum (locales: centro del lomo en el origen, plano XY, apoyo en z=0) -> mundo. Con inclinación 0 es la
+    identidad; si no, gira alrededor del borde delantero (y = -alto/2)."""
     a = cfg["archivador"]
     t = math.radians(a["inclinacion_grados"])
     y_borde = -a["cubierta"]["alto"] / 2
     q = rot_x((p[0], p[1] - y_borde, p[2]), t)
-    return (q[0], q[1] + pivote_y, q[2])
+    return (q[0], q[1] + y_borde + pivote_y, q[2])
 
 
 # ------------------------------------------------------------------ cámara (modelo pinhole = Blender con sensor horizontal)
@@ -251,13 +251,25 @@ def proyectar(p, pos, objetivo, lente, sensor, res, shift=(0.0, 0.0)):
     return (px, 1.0 - py, z)
 
 
+def _sw(cfg):
+    l = cfg["archivador"]["lomo"]
+    return l["ancho"] / 2 + l.get("hendidura", 0.0)
+
+
 def esquinas_archivador(cfg, lado):
-    """Esquinas de las cubiertas visibles en mundo. lado: 'doble' | 'derecha'."""
+    """Puntos (mundo) que deben quedar dentro del encuadre. lado: 'doble' | 'derecha' | 'bolsillo'."""
     a = cfg["archivador"]
     cw, ch, gz = a["cubierta"]["ancho"], a["cubierta"]["alto"], a["cubierta"]["grosor"]
-    sw = a["lomo"]["ancho"] / 2 + a["lomo"].get("hendidura", 0.0)
-    xs = (-(sw + cw) if lado == "doble" else sw, sw + cw)
+    sw = _sw(cfg)
     pts = []
+    if lado == "bolsillo":
+        px, py = posiciones_bolsillos(cfg, 1)[4]
+        b = a["bolsillo"]
+        for dx in (-1, 1):
+            for dy in (-1, 1):
+                pts.append(a_mundo((px + dx * (b["ancho"] / 2 + 0.004), py + dy * (b["alto"] / 2 + 0.004), gz + 0.012), cfg))
+        return pts
+    xs = (-(sw + cw) if lado == "doble" else sw, sw + cw)
     for x in xs:
         for y in (-ch / 2, ch / 2):
             for z in (0.0, gz):
@@ -267,7 +279,10 @@ def esquinas_archivador(cfg, lado):
 
 def objetivo_vista(cfg, lado):
     a = cfg["archivador"]
-    sw, cw = a["lomo"]["ancho"] / 2 + a["lomo"].get("hendidura", 0.0), a["cubierta"]["ancho"]
+    sw, cw = _sw(cfg), a["cubierta"]["ancho"]
+    if lado == "bolsillo":
+        px, py = posiciones_bolsillos(cfg, 1)[4]
+        return a_mundo((px, py, a["cubierta"]["grosor"] + 0.012), cfg)
     x = 0.0 if lado == "doble" else sw + cw / 2
     return a_mundo((x, 0.0, a["cubierta"]["grosor"] + 0.01), cfg)
 
@@ -290,8 +305,8 @@ def ajustar_camara(cfg, vista):
     for _ in range(60):
         d = (lo + hi) / 2
         pos = posicion_camara(obj, d, v["elevacion_grados"], v["azimut_grados"])
-        u0, _, u1, _ = caja_pantalla(pts, pos, obj, v["lente_mm"], sensor, v["resolucion"], (v["desplazamiento_x"], v["desplazamiento_y"]))
-        ocupa = u1 - u0
+        u0, v0, u1, v1 = caja_pantalla(pts, pos, obj, v["lente_mm"], sensor, v["resolucion"], (v["desplazamiento_x"], v["desplazamiento_y"]))
+        ocupa = (v1 - v0) if v.get("eje") == "v" else (u1 - u0)
         if ocupa > v["ocupacion_ancho"]:
             lo = d
         else:
@@ -441,3 +456,63 @@ def normal_cara(verts, cara):
     u = (b[0] - a[0], b[1] - a[1], b[2] - a[2])
     v = (c[0] - a[0], c[1] - a[1], c[2] - a[2])
     return _norm(_cruz(u, v))
+
+
+# ------------------------------------------------------------------ v3: páginas curvas unidas al lomo
+def suave_paso(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3 - 2 * t)
+
+
+def lineas(a, b, n):
+    return [a + (b - a) * i / n for i in range(n + 1)]
+
+
+def espejo_x(verts, caras):
+    return [(-x, y, z) for x, y, z in verts], [list(reversed(c)) for c in caras]
+
+
+def hoja_curva(xa, xb, alto, radio, zfun, grosor, lc=0.014):
+    """Hoja (lado derecho, x de xa a xb) como rejilla con grosor: cada vértice sube a z = zfun(x). El borde exterior
+    tiene esquinas redondeadas (el cuadrado de la esquina se proyecta sobre un cuarto de círculo). Los lados llevan
+    vértices propios, así la superficie es suave y los cantos son duros."""
+    xs = sorted(set(round(x, 9) for x in lineas(xa, xa + lc, 7) + lineas(xa + lc, xb - radio, 2) + lineas(xb - radio, xb, 4)))
+    ys = sorted(set(round(y, 9) for y in lineas(-alto / 2, -alto / 2 + radio, 4) + lineas(-alto / 2 + radio, alto / 2 - radio, 3) + lineas(alto / 2 - radio, alto / 2, 4)))
+    nx, ny = len(xs), len(ys)
+    cx = xb - radio
+
+    def plano_xy(i, j):
+        x, y = xs[i], ys[j]
+        if x > cx + 1e-12 and (y < -alto / 2 + radio - 1e-12 or y > alto / 2 - radio + 1e-12):
+            cy = (-alto / 2 + radio) if y < 0 else (alto / 2 - radio)
+            vx, vy = x - cx, abs(y - cy)
+            d = math.hypot(vx, vy)
+            if d > 1e-12:
+                s = max(vx, vy) / d
+                x, y = cx + vx * s, cy + math.copysign(vy * s, y - cy)
+        return x, y
+
+    P = [[plano_xy(i, j) for j in range(ny)] for i in range(nx)]
+    verts, T, B = [], {}, {}
+    for i in range(nx):
+        for j in range(ny):
+            x, y = P[i][j]
+            z = zfun(x)
+            T[i, j] = len(verts); verts.append((x, y, z + grosor))
+            B[i, j] = len(verts); verts.append((x, y, z))
+    caras = []
+    for i in range(nx - 1):
+        for j in range(ny - 1):
+            caras.append([T[i, j], T[i + 1, j], T[i + 1, j + 1], T[i, j + 1]])
+            caras.append([B[i, j + 1], B[i + 1, j + 1], B[i + 1, j], B[i, j]])
+    borde = [(i, 0) for i in range(nx)] + [(nx - 1, j) for j in range(1, ny)] + [(i, ny - 1) for i in range(nx - 2, -1, -1)] + [(0, j) for j in range(ny - 2, 0, -1)]
+    pared = {}
+    for (i, j) in borde:
+        x, y = P[i][j]
+        z = zfun(x)
+        pared[i, j] = (len(verts), len(verts) + 1)
+        verts.append((x, y, z)); verts.append((x, y, z + grosor))
+    for k in range(len(borde)):
+        a, b = pared[borde[k]], pared[borde[(k + 1) % len(borde)]]
+        caras.append([a[0], b[0], b[1], a[1]])
+    return orientar(verts, caras)

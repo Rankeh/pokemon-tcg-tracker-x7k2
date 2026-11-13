@@ -10,13 +10,13 @@ def _apuntar(ob, desde, hacia):
     ob.rotation_euler = G.euler_camara(desde, hacia)   # misma convención: mira a -Z, arriba +Y (vale para luces de área)
 
 
-def luz_area(nombre, col, pos, objetivo, w, color_hex, tam, forma="RECTANGLE"):
+def luz_area(nombre, col, pos, objetivo, w, color_hex, tam, forma="RECTANGLE", tam_y=None):
     d = bpy.data.lights.new(nombre, "AREA")
     d.energy = w
     d.color = G.hex_a_lineal(color_hex)
     d.shape = forma
     d.size = tam
-    d.size_y = tam
+    d.size_y = tam_y or tam
     ob = bpy.data.objects.new(nombre, d)
     col.objects.link(ob)
     _apuntar(ob, pos, objetivo)
@@ -24,11 +24,14 @@ def luz_area(nombre, col, pos, objetivo, w, color_hex, tam, forma="RECTANGLE"):
 
 
 def crear_luces(cfg, col, objetivo, exposicion):
+    """Esquema estilizado: principal cálida grande y suave (sombras suaves pero definidas), secundaria fría y tenue,
+    dos luces de borde alargadas (cálida y fría) detrás para marcar los cantos acolchados y separar del fondo."""
     L, C = cfg["luces"], cfg["colores"]
     t = objetivo
-    luz_area("Principal", col, (t[0] - 0.95, t[1] - 0.55, t[2] + 0.75), t, L["principal_w"], C["luz_principal"], 0.75)
-    luz_area("Relleno", col, (t[0] + 1.0, t[1] - 0.85, t[2] + 0.45), t, L["relleno_w"], C["luz_relleno"], 1.2)
-    luz_area("Borde", col, (t[0] + 0.55, t[1] + 0.70, t[2] + 0.55), t, L["borde_w"], C["luz_borde"], 0.4)
+    luz_area("Principal", col, (t[0] - 0.70, t[1] - 0.55, t[2] + 0.85), t, L["principal_w"], C["luz_principal"], 0.55)
+    luz_area("Secundaria", col, (t[0] + 0.95, t[1] - 0.70, t[2] + 0.45), t, L["relleno_w"], C["luz_relleno"], 0.9)
+    luz_area("BordeCalido", col, (t[0] - 0.55, t[1] + 0.65, t[2] + 0.35), t, L["borde_w"], C["luz_borde_a"], 0.18, "RECTANGLE", 0.7)
+    luz_area("BordeFrio", col, (t[0] + 0.60, t[1] + 0.60, t[2] + 0.40), t, L["borde_w"], C["luz_borde_b"], 0.18, "RECTANGLE", 0.7)
     # mundo: degradado neutro de estudio (suelo cálido oscuro, cielo gris azulado) para que el metal tenga
     # algo que reflejar y haya relleno ambiental suave sin dominante de color
     mundo = bpy.data.worlds.new("Mundo")

@@ -9,8 +9,8 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from teselia import config as CFG, geometria as G, escena
 
-COLOR = {"cubierta": "#34373A", "hilo": "#D7C5A5", "metal": "#C9C6BE", "hoja": "#2B2D30", "soldadura": "#8E8E8A",
-         "madera": "#6B4A32", "atril": "#8A6244", "pared": "#4A5056", "carta": "#FFFFFF"}
+COLOR = {"cubierta": "#2C3A55", "hilo": "#C8B08A", "hoja": "#2B2D30", "hoja_b": "#3A3D42", "soldadura": "#55595F",
+         "suelo": "#3A3D42", "carta": "#FFFFFF"}
 
 
 def renderizar(cfg, vista, ancho=1280):
@@ -24,7 +24,7 @@ def renderizar(cfg, vista, ancho=1280):
     img = np.zeros((H, W, 3), np.float32)
     img[:] = np.array([0.10, 0.10, 0.11])
     zbuf = np.zeros((H, W), np.float32)   # guarda 1/z: mayor = más cerca
-    luz = G._norm((-0.9, -0.6, 0.9))
+    luz = G._norm((-0.7, -0.55, 0.85))
     texturas = {}
     for p in piezas:
         if p["mat"] == "funda":
