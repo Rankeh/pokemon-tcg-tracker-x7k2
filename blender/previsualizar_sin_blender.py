@@ -9,7 +9,7 @@ from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from teselia import config as CFG, geometria as G, escena, prueba
 
-COLOR = {"cubierta": "#2C3A55", "hilo": "#C8B08A", "hoja": "#2B2D30", "hoja_b": "#3A3D42", "soldadura": "#55595F",
+COLOR = {"panel_lomo": "#33466B", "cubierta": "#2C3A55", "hilo": "#C8B08A", "hoja": "#2B2D30", "hoja_b": "#3A3D42", "soldadura": "#55595F",
          "suelo": "#3A3D42", "carta": "#FFFFFF", "carta_holo": "#FFFFFF"}
 
 

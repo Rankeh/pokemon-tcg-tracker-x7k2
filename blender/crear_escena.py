@@ -42,16 +42,17 @@ def construir(cfg, vista, exposicion):
     scn.collection.children.link(col)
     C = cfg["colores"]
     mats = {
-        "cubierta": M.cubierta(C["cubierta"], C["cubierta_b"]),
+        "cubierta": M.cubierta(C["cubierta"], C["cubierta_b"], C["borde_cubierta"]),
+        "panel_lomo": M.cubierta(C["panel_lomo"], C["cubierta_b"], C["borde_cubierta"]),
         "hilo": M.liso("Hilo", C["hilo"], 0.75, 0.0, 0.25),
-        "hoja": M.liso("Hoja", C["hoja"], 0.48, 0.0, 0.30),
-        "hoja_b": M.liso("HojaB", C["hoja_b"], 0.48, 0.0, 0.30),
-        "funda": M.funda(),
-        "soldadura": M.soldadura(),
-        "suelo": M.liso("Suelo", C["suelo"], 0.62, 0.0, 0.25),
+        "hoja": M.hoja_grafito(),
+        "hoja_b": M.liso("HojaB", C["hoja_b"], 0.6, 0.0, 0.2),
+        "funda": M.funda_pelicula(),          # sistema validado en la depuración
+        "soldadura": M.soldadura_discreta(),  # idem
+        "suelo": M.liso("Suelo", C["suelo"], 0.8, 0.0, 0.2),
     }
     piezas, _info = escena.construir(cfg)
-    modelos.instanciar(piezas, col, mats)
+    modelos.instanciar(piezas, col, mats, os.path.join(AQUI, "salida", "texturas"))
     cam, pos, obj, dist = LC.crear_camara(cfg, col, vista)
     LC.crear_luces(cfg, col, obj, cfg["luces"]["exposicion"] if exposicion is None else exposicion)
     return pos, obj, dist

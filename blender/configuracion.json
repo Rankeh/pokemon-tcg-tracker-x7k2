@@ -37,17 +37,36 @@
     "carta": {
       "ancho": 0.063,
       "alto": 0.088,
-      "grosor": 0.0004,
+      "grosor": 0.0005,
       "radio_esquina": 0.003,
       "holgura": 0.0007
     },
-    "cartas_derecha": 9,
-    "cartas_izquierda": 5,
-    "inclinacion_grados": 0
+    "inclinacion_grados": 0,
+    "ocupados_derecha": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6,
+      7
+    ],
+    "ocupados_izquierda": [
+      0,
+      1,
+      3,
+      4
+    ],
+    "holo_derecha": [
+      4
+    ],
+    "holo_izquierda": [
+      1
+    ]
   },
   "colores": {
-    "cubierta": "#1E2838",
-    "cubierta_b": "#2A3850",
+    "cubierta": "#1B2535",
+    "cubierta_b": "#2E4163",
     "hilo": "#C8B08A",
     "hoja": "#1D1F22",
     "hoja_b": "#33363B",
@@ -55,7 +74,9 @@
     "luz_principal": "#FFE1C0",
     "luz_relleno": "#9DB8E6",
     "luz_borde_a": "#FFD9B0",
-    "luz_borde_b": "#B5CCF5"
+    "luz_borde_b": "#B5CCF5",
+    "borde_cubierta": "#7F93B8",
+    "panel_lomo": "#26354F"
   },
   "vistas": {
     "escritorio": {
@@ -70,7 +91,8 @@
       "eje": "u",
       "desplazamiento_x": 0.0,
       "desplazamiento_y": -0.04,
-      "objetivo": "doble"
+      "objetivo": "doble",
+      "f_stop": 5.6
     },
     "movil": {
       "resolucion": [

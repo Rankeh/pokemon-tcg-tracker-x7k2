@@ -78,7 +78,7 @@ def crear_camara(cfg, col, vista):
     d.shift_x, d.shift_y = v["desplazamiento_x"], v["desplazamiento_y"]
     d.dof.use_dof = True
     d.dof.focus_distance = dist
-    d.dof.aperture_fstop = cfg["camara"]["f_stop"]
+    d.dof.aperture_fstop = v.get("f_stop", cfg["camara"]["f_stop"])
     ob = bpy.data.objects.new("Camara", d)
     col.objects.link(ob)
     ob.location = pos

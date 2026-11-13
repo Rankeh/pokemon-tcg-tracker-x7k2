@@ -4,6 +4,10 @@ from . import geometria as G
 from .utilidades import nuevo_material, nodo, enlazar, fijar, aviso
 
 
+def _mix_rgb(nt, tipo, x, y):
+    return nodo(nt, "ShaderNodeMixRGB", x, y, blend_type=tipo)
+
+
 def _principled(nt, x=300, y=0):
     return nodo(nt, "ShaderNodeBsdfPrincipled", x, y)
 
@@ -81,7 +85,7 @@ def madera(nombre="Madera", oscuro=(0.050, 0.034, 0.024, 1), claro=(0.27, 0.17, 
     return mat
 
 
-def cubierta(color_a, color_b):
+def cubierta(color_a, color_b, color_borde=None):
     """Sintético premium azul noche: dos tonos mezclados con ruido grande (variación), grano fino en relieve,
     brillo sedoso en rasante (Sheen) y barniz suave (Coat). Reflejos controlados: rugosidad media."""
     mat, nt = nuevo_material("Cubierta")
@@ -102,7 +106,25 @@ def cubierta(color_a, color_b):
     fijar(bsdf, ["Sheen Weight", "Sheen"], 0.35)
     enlazar(nt, coord, "Object", var, "Vector"); enlazar(nt, coord, "Object", grano, "Vector")
     enlazar(nt, var, "Fac", mezcla, "Fac")
-    enlazar(nt, mezcla, "Color", bsdf, "Base Color")
+    final = mezcla
+    if color_borde:
+        try:   # realce de aristas: Bevel (normal suavizada) vs normal real -> máscara de borde -> color más claro
+            bev = nodo(nt, "ShaderNodeBevel", -420, -420); fijar(bev, "Radius", 0.0018); bev.samples = 4
+            geo = nodo(nt, "ShaderNodeNewGeometry", -420, -600)
+            dot = nodo(nt, "ShaderNodeVectorMath", -200, -450, operation="DOT_PRODUCT")
+            enlazar(nt, bev, "Normal", dot, 0); enlazar(nt, geo, "Normal", dot, 1)
+            rampa = nodo(nt, "ShaderNodeValToRGB", -20, -450)
+            rampa.color_ramp.elements[0].position, rampa.color_ramp.elements[0].color = 0.80, (1, 1, 1, 1)
+            rampa.color_ramp.elements[1].position, rampa.color_ramp.elements[1].color = 0.985, (0, 0, 0, 1)
+            enlazar(nt, dot, "Value", rampa, "Fac")
+            borde = _mix_rgb(nt, "MIX", 120, 150)
+            fijar(borde, "Color2", lineal4(color_borde)); fijar(borde, "Fac", 0.0)
+            enlazar(nt, rampa, "Color", borde, "Fac")
+            enlazar(nt, mezcla, "Color", borde, "Color1")
+            final = borde
+        except Exception:
+            final = mezcla
+    enlazar(nt, final, "Color", bsdf, "Base Color")
     enlazar(nt, grano, "Fac", bump, "Height"); enlazar(nt, bump, "Normal", bsdf, "Normal")
     _salida(nt, bsdf)
     return mat
@@ -196,10 +218,6 @@ def imagen_carta(indice):
 
 
 # ================================================================== Fase 3.4.4: conjunto de materiales de carta y funda
-def _mix_rgb(nt, tipo, x, y):
-    return nodo(nt, "ShaderNodeMixRGB", x, y, blend_type=tipo)
-
-
 def hoja_grafito():
     """Página: negro grafito mate con textura sutil (ruido fino + fibra más grande), sin brillo."""
     mat, nt = nuevo_material("HojaGrafito")

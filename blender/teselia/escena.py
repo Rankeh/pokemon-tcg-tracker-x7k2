@@ -8,6 +8,7 @@ Capas de un bolsillo, de abajo a arriba: hoja → marco de soldadura (plano) →
 import math
 import random
 from . import geometria as G
+from .prueba import soldadura_u
 
 
 def _p(nombre, mv, mat, suave=False, uv=None, carta=None, origen=(0.0, 0.0, 0.0), padre=None):
@@ -27,6 +28,13 @@ def construir(cfg):
 
     # --- lomo continuo con volumen (redondeado en todo su contorno) y cubiertas acolchadas
     piezas.append(_p("Lomo", G.losa_biselada(lomo["ancho"], ch, 0.008, 0, zs, 0.0042, 6, 6), "cubierta", True, origen=pivote))
+    pw, ph = lomo["ancho"] - 0.014, ch - 0.030
+    piezas.append(_p("PanelLomo", G.losa_biselada(pw, ph, 0.006, zs, zs + 0.0007, 0.0003, 3, 6), "panel_lomo", True, origen=pivote, padre="Lomo"))
+    verts, caras = [], []
+    for q in G.puntadas(G.rect_redondeado(pw - 0.005, ph - 0.005, 0.0035, 6), 0.0045, 0.0028, 0.0010):
+        v, c = G.losa(q, zs + 0.0007, zs + 0.0011)
+        off = len(verts); verts += v; caras += [[i + off for i in f] for f in c]
+    piezas.append(_p("CosturaLomo", (verts, caras), "hilo", origen=pivote, padre="Lomo"))
     for lado, tag in ((1, "Der"), (-1, "Izq")):
         cx = lado * (sw + hend + cw / 2)
         piezas.append(_p("Cubierta" + tag, G.losa_biselada(cw, ch, cub["radio_esquina"], 0, cg, cub["bisel"], 7, 7, cx=cx), "cubierta", True))
@@ -40,8 +48,9 @@ def construir(cfg):
         piezas.append(_p("Costura" + tag, (verts, caras), "hilo", padre="Cubierta" + tag))
 
     # --- hojas unidas al lomo: cada hoja es una rejilla que baja hacia el lomo (curvatura de la encuadernación)
-    n_cartas = {1: a["cartas_derecha"], -1: a["cartas_izquierda"]}
-    primera = {1: 0, -1: a["cartas_derecha"]}
+    ocupados = {1: a["ocupados_derecha"], -1: a["ocupados_izquierda"]}
+    holos = {1: a["holo_derecha"], -1: a["holo_izquierda"]}
+    primera = {1: 0, -1: len(a["ocupados_derecha"])}
 
     def zfun_k(zk):
         return lambda x: cg + (zk - cg) * (1 - 0.95 * (1 - G.suave_paso((x - xa) / lc)))
@@ -58,19 +67,27 @@ def construir(cfg):
         z_base = cg + nh * pila["paso"]
         piezas.append(hoja_obj("Hoja" + tag, lado, z_base, hoja["grosor"], "hoja"))
         z_hoja = z_base + hoja["grosor"]
-        for k, (px, py) in enumerate(G.posiciones_bolsillos(cfg, lado)):
-            z_sold, z_carta = z_hoja + 0.0002, z_hoja + 0.0004
-            z_funda = z_carta + car["grosor"] + car["holgura"]
-            padre = "Hoja" + tag
-            piezas.append(_p("Soldadura%s%d" % (tag, k), G.marco_plano(bol["ancho"], bol["alto"], bol["radio_esquina"], bol["soldadura"], z_sold, 4, px, py), "soldadura", padre=padre))
-            if k < n_cartas[lado]:
-                v, c = G.losa(G.rect_redondeado(car["ancho"], car["alto"], car["radio_esquina"], 3, px, py), z_carta, z_carta + car["grosor"])
+        centros = G.posiciones_bolsillos(cfg, lado)
+        z_sold, z_carta = z_hoja + 0.0002, z_hoja + 0.0004
+        z_funda = z_carta + car["grosor"] + car["holgura"]
+        padre = "Hoja" + tag
+        n_carta = 0
+        for k, (px, py) in enumerate(centros):
+            piezas.append(_p("Soldadura%s%d" % (tag, k), soldadura_u(bol["ancho"], bol["alto"], bol["radio_esquina"], bol["soldadura"], z_sold, px, py), "soldadura", padre=padre))
+            if k in ocupados[lado]:
+                v, c = G.losa(G.rect_redondeado(car["ancho"], car["alto"], car["radio_esquina"], 5, px, py), z_carta, z_carta + car["grosor"])
                 uv = G.uv_planas([(x - px, y - py, zz) for x, y, zz in v], c, car["ancho"], car["alto"])
                 ang = math.radians(azar.uniform(-0.6, 0.6))
                 v = G.rotar_z_alrededor([(x + azar.uniform(-0.0005, 0.0005), y, zz) for x, y, zz in v], ang, px, py)
-                piezas.append(_p("Carta%s%d" % (tag, k), (v, c), "carta", uv=uv, carta=primera[lado] + k, padre=padre))
-            piezas.append(_p("Funda%s%d" % (tag, k), G.plano(G.rect_redondeado(bol["ancho"], bol["alto"], bol["radio_esquina"], 4, px, py), z_funda), "funda", uv=None, padre=padre))
-            info.append({"lado": lado, "k": k, "z_hoja": z_hoja, "z_sold": z_sold, "z_carta0": z_carta, "z_carta1": z_carta + car["grosor"], "z_funda": z_funda, "tiene_carta": k < n_cartas[lado]})
+                holo = k in holos[lado]
+                piezas.append(_p("Carta%s%d" % (tag, k), (v, c), "carta_holo" if holo else "carta", uv=uv, carta=primera[lado] + n_carta, padre=padre))
+                n_carta += 1
+            info.append({"lado": lado, "k": k, "z_hoja": z_hoja, "z_sold": z_sold, "z_carta0": z_carta, "z_carta1": z_carta + car["grosor"], "z_funda": z_funda, "tiene_carta": k in ocupados[lado]})
+        # UNA lámina de funda por página (como en la prueba validada): cubre los 9 bolsillos con un único reflejo continuo
+        xs = [c[0] for c in centros]; ys = [c[1] for c in centros]
+        fx0, fx1 = min(xs) - bol["ancho"] / 2 - 0.006, max(xs) + bol["ancho"] / 2 + 0.006
+        fy0, fy1 = min(ys) - bol["alto"] / 2 - 0.006, max(ys) + bol["alto"] / 2 + 0.006
+        piezas.append(_p("Funda" + tag, G.plano(G.rect_redondeado(fx1 - fx0, fy1 - fy0, 0.008, 5, (fx0 + fx1) / 2, (fy0 + fy1) / 2), z_funda), "funda", padre=padre))
 
     for p in piezas:   # inclinación opcional del álbum (0 por defecto = identidad)
         p["verts"] = [G.a_mundo(v, cfg) for v in p["verts"]]

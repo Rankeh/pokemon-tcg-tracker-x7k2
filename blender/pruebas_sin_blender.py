@@ -64,11 +64,13 @@ v, c = G.losa_biselada(0.245, 0.305, 0.014, 0, 0.0075, 0.0022)
 ok(G.volumen_con_signo(v, c) > 0, "losa biselada: normales hacia fuera")
 ok(all(abs(G.normal_cara(v, f)[2] - 1) < 1e-9 for f in c[:1]) and all(abs(G.normal_cara(v, f)[2] + 1) < 1e-9 for f in c[1:2]), "losa biselada: tapas con normal exactamente ±Z (arista dura)")
 fundas = [p for p in piezas if p["mat"] == "funda"]
-ok(len(fundas) == 18 and all(len(p["caras"]) == 1 for p in fundas), "18 fundas, cada una UNA sola cara plana")
+ok(len(fundas) == 2 and all(len(p["caras"]) == 1 for p in fundas), "una lámina de funda por página, cada una UNA sola cara plana")
 n_up = (0.0, 0.0, 1.0)
 ok(all(sum(x * y for x, y in zip(G.normal_cara(p["verts"], p["caras"][0]), n_up)) > 0.999 for p in fundas), "fundas: normal hacia el espectador y paralela a la hoja")
-cartas = [p for p in piezas if p["mat"] == "carta"]
-ok(len(cartas) == a["cartas_derecha"] + a["cartas_izquierda"], "%d cartas de prueba" % len(cartas))
+cartas = [p for p in piezas if p["mat"] in ("carta", "carta_holo")]
+ok(len(cartas) == len(a["ocupados_derecha"]) + len(a["ocupados_izquierda"]), "%d cartas de prueba, %d bolsillos vacíos" % (len(cartas), 18 - len(cartas)))
+ok(sum(1 for p in cartas if p["mat"] == "carta_holo") == len(a["holo_derecha"]) + len(a["holo_izquierda"]), "cartas holográficas incluidas")
+ok(4 in a["ocupados_derecha"], "el bolsillo central derecho (vista de detalle) tiene carta")
 ok(all(G.volumen_con_signo(p["verts"], p["caras"]) > 0 for p in cartas), "cartas: normales hacia fuera")
 ok(all(p["uv"] and len(p["uv"]) == 2 * sum(len(f) for f in p["caras"]) for p in cartas), "cartas: un UV por bucle")
 ok(all(-1e-6 <= u <= 1 + 1e-6 for p in cartas for u in p["uv"]), "cartas: UV dentro de [0,1]")
@@ -78,7 +80,7 @@ hoja_ok = all(abs(i["z_carta0"] - i["z_hoja"] - 0.0004) < 1e-12 for i in info)
 ok(hoja_ok, "cartas apoyadas a 0,4 mm sobre la hoja")
 ok(max(p["mat"] == "funda" and 0 for p in piezas) == 0, "ninguna funda con grosor ni modificadores")
 ok(not any(p["nombre"].startswith(("Taza", "Bokeh", "CajaMazo", "Anilla", "Remache", "Mecanismo", "Atril", "Pared")) for p in piezas), "sin anillas, mecanismos, props ni pared")
-ok(set(p["mat"] for p in piezas) <= {"cubierta", "hilo", "hoja", "hoja_b", "funda", "soldadura", "suelo", "carta"}, "solo materiales de álbum (nada metálico)")
+ok(set(p["mat"] for p in piezas) <= {"cubierta", "panel_lomo", "hilo", "hoja", "hoja_b", "funda", "soldadura", "suelo", "carta", "carta_holo"}, "solo materiales de álbum (nada metálico)")
 cg = a["cubierta"]["grosor"]
 hojas = [p for p in piezas if p["nombre"].startswith(("Pila", "Hoja"))]
 ok(all(G.volumen_con_signo(p["verts"], p["caras"]) > 0 for p in hojas), "%d hojas curvas: normales hacia fuera" % len(hojas))
@@ -186,7 +188,7 @@ try:
     import runpy
     runpy.run_path(os.path.join(AQUI, "crear_escena.py"), run_name="__main__")
     llamadas = bpy.data.objects.new.call_count
-    ok(llamadas >= 77, "crear_escena.py recorre todo el flujo (%d objetos creados)" % llamadas)
+    ok(llamadas >= 60, "crear_escena.py recorre todo el flujo (%d objetos creados)" % llamadas)
 except Exception as ex:  # noqa
     import traceback; traceback.print_exc()
     ok(False, "crear_escena.py con bpy simulado: %r" % ex)

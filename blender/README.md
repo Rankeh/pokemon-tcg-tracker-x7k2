@@ -4,6 +4,15 @@ Escena independiente (no toca la app, la base de datos ni el catálogo). **Estos
 todavía** (mi entorno no lo tiene): lo que sí está comprobado sin Blender es la geometría, el encuadre y que el flujo de
 Python no tiene errores (`python blender/pruebas_sin_blender.py`). El aspecto real del render hay que verlo en tu PC.
 
+## v6 (Fase 3.4.5b): álbum sin anillas con cartas (sistema validado integrado)
+`blender\ejecutar_windows.bat previa escritorio` (álbum completo) y `blender\ejecutar_windows.bat previa detalle` (bolsillo central
+derecho, holográfico). Resultados en `salida\teselia_<vista>_previa.png` + `teselia_poc.blend`.
+Integrado: `hoja_grafito`, `carta_satinada` (+holo), `funda_pelicula` (UNA lámina por página, un reflejo continuo),
+`soldadura_discreta` (en U), texturas guardadas como PNG real en `salida\texturas\`. Bolsillos: derecha 7 cartas (1 holo, centro)
+y 2 vacíos; izquierda 4 cartas (1 holo) y 5 vacíos (`ocupados_*` y `holo_*` en `configuracion.json`).
+Mejoras de cubierta/lomo: azul noche con variación y **realce de aristas** (nodo Bevel), panel de lomo en relieve con costura,
+costura de cubierta crema. Luz: principal cálida + secundaria fría + 2 bordes, autoexposición. Escritorio a f/5,6 (profundidad).
+
 ## v5 (Fase 3.4.5): depuración de la carta ilustrada
 `blender\ejecutar_depuracion_windows.bat [todos|1|2|3]` → tres PNG independientes en `salida\`:
 `depuracion_1_carta_sin_funda.png`, `depuracion_2_carta_con_funda.png`, `depuracion_3_holografica.png`
