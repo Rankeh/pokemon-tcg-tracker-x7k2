@@ -7,7 +7,8 @@
 html, body { height: 100%; margin: 0; overflow: hidden; }
 body { background: radial-gradient(120% 90% at 50% 35%, #2a3140 0%, var(--fondo) 70%); color: var(--texto);
   font: 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
-.app { position: fixed; inset: 0; overflow: hidden; }
+/* Altura dinámica: 100dvh sigue a las barras de Safari al mostrarse/ocultarse; 100% y 100vh son alternativas para navegadores antiguos */
+.app { position: fixed; left: 0; right: 0; top: 0; height: 100%; height: 100vh; height: 100dvh; overflow: hidden; }
 #lienzo { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 [hidden] { display: none !important; }
 .solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -22,19 +23,23 @@ h1 small { color: var(--acento); font-weight: 600; margin-left: 8px; }
 .aviso { top: 20%; border-color: var(--acento); }
 
 /* Barra de navegación inferior: botones grandes, sin desbordar horizontalmente */
-.barra { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;
-  padding: 10px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
-  background: linear-gradient(transparent, rgba(8, 10, 14, 0.85) 35%); }
-button, select { min-height: 48px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--borde); background: rgba(255, 255, 255, 0.08);
+.barra { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; align-items: center;
+  padding: 6px max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  background: linear-gradient(transparent, rgba(8, 10, 14, 0.7) 25%); }
+button, select { min-height: 48px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--borde); background: rgba(255, 255, 255, 0.08);
   color: var(--texto); font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); }
 button:disabled { opacity: 0.38; cursor: default; }
 button:focus-visible, select:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
 button.principal { background: var(--acento); color: #231a0c; border-color: var(--acento); font-weight: 650; }
 button.secundario { min-height: 40px; font-size: 0.8rem; color: var(--suave); }
-#b-ant, #b-sig { min-width: 52px; font-size: 1.4rem; padding: 0 14px; }
+#b-ant, #b-sig { min-width: 48px; font-size: 1.4rem; padding: 0 10px; }
+#b-vista { min-width: 48px; padding: 0 8px; letter-spacing: -0.15em; }
+/* Las herramientas de diagnóstico siguen existiendo pero solo se ven con ?debug=1 (la interfaz definitiva llega en 3.7.3) */
+body:not(.debug) .secundario { display: none; }
 .salto { display: contents; }
-#b-salto { max-width: 46vw; }
+#b-salto { flex: 1 1 84px; min-width: 84px; max-width: 150px; text-overflow: ellipsis; }
+.barra > button { flex: none; }
 .ficha-abierta .barra { visibility: hidden; }
 
 .panel, .informe { position: absolute; left: 12px; right: 12px; top: 64px; margin: 0; padding: 10px 12px; background: var(--panel); border: 1px solid var(--borde);
@@ -44,7 +49,7 @@ button.secundario { min-height: 40px; font-size: 0.8rem; color: var(--suave); }
   background: rgba(0, 0, 0, 0.78); border: 1px solid var(--acento); border-radius: 8px; font: 9.5px/1.35 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
 
 /* Ficha: panel inferior en móvil (cabe con áreas seguras), tarjeta lateral en pantallas anchas */
-.ficha-fondo { position: absolute; inset: 0; background: rgba(5, 7, 10, 0.35); z-index: 6; }
+.ficha-fondo { position: absolute; inset: 0; background: rgba(5, 7, 10, 0.12); z-index: 6; }
 .ficha { position: absolute; z-index: 7; left: 0; right: 0; bottom: 0; max-height: 78dvh; max-height: 78vh; overflow: auto; display: grid; grid-template-columns: minmax(96px, 34%) 1fr; gap: 14px;
   padding: 16px max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   background: linear-gradient(180deg, rgba(27, 37, 53, 0.97), rgba(14, 19, 28, 0.98)); border-top: 1px solid var(--azul); border-radius: 20px 20px 0 0;

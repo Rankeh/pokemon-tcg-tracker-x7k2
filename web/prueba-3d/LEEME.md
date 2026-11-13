@@ -65,3 +65,29 @@ Abre la URL de GitHub Pages (o `http://192.168.1.156:5500/web/prueba-3d/` en la 
 
 ### Protocolo manual
 1. Abre el álbum y pulsa «Abrir álbum». 2. Toca un bolsillo vacío (placa «pendiente»). 3. Pulsa + : la carta entra en la funda. 4. Recarga: sigue ahí. 5. Pulsa − hasta 0: sale y vuelve la placa. 6. Salta a otra página con el selector, vuelve y comprueba el estado. 7. Abre la app original **en el mismo origen** y comprueba que la cantidad coincide (y viceversa). 8. Toca un hueco de la página 18: no debe abrir ficha. 9. En el iPhone, repite y prueba giro con el dedo y zona táctil. 10. Prueba con ajuste «reducir movimiento» activado.
+
+## 3.7.1 — Cámara, encuadre y composición responsive
+
+**Qué cambia:** solo la cámara y la composición. No se toca IndexedDB, `ModeloColeccion`, `Almacen`, el adaptador, el catálogo, las texturas/caché, el picking ni el GLB (una prueba comprueba que esos archivos no han cambiado desde `1230f6f`).
+
+**Cómo se calcula el encuadre** (`js/encuadre.js`, puro y probado en Node): se parte de la *caja* del álbum que debe verse (dimensiones reales leídas del GLB: tapa 0,258 × 0,322 m, altura 0,0435 m) según el estado (cerrado, portada, dos páginas, una página, giro, selección). Se proyectan sus esquinas con el fov, la proporción del lienzo y la elevación, y se resuelve el radio mínimo para que quepan en el **rectángulo libre**: pantalla menos cabecera, barra inferior y (si está abierta) ficha, que se **miden en el DOM** en cada momento. Después se desplaza el objetivo para centrarlo en ese rectángulo. Nada usa una distancia fija. Los planos near/far salen de la distancia y del zoom máximo.
+
+**Estados de cámara:** álbum cerrado; abierto (portada); dos páginas; una página (modo por defecto en vertical); giro de hoja (se encuadra también el barrido de la hoja al ponerse vertical, con una ligera apertura que se recupera al acabar); selección (la página entera encuadrada en el espacio que deja la ficha, elevación algo mayor y aro dorado sobre la carta); cierre de ficha (se *recalcula* el encuadre de navegación; no se restaura un valor guardado). Todas las transiciones son suaves (con *reducir movimiento*, instantáneas).
+
+**Vertical vs horizontal:** un álbum abierto es apaisado, así que en un móvil vertical dos páginas dejaban mucho vacío. En vertical se enfoca **una página** a la vez (≈ 2,2× más ancha: de ≈ 170 px a ≈ 378 px en 390 px de pantalla). Se pasa de página deslizando el dedo (izquierda = siguiente, derecha = anterior, como un álbum), con ‹ › o con el selector; el botón ▯/▯▯ alterna entre una y dos páginas. En horizontal y escritorio se muestran dos páginas.
+
+**Safari:** el contenedor usa `100dvh` (con `100%`/`100vh` de reserva) y `env(safe-area-inset-*)`; se recalcula con `ResizeObserver`, `visualViewport.resize` y `orientationchange` (con un pequeño retardo, porque iOS actualiza las medidas tarde) y el encuadre sale de las medidas reales, de modo que seguirá siendo correcto cuando Safari muestre u oculte sus barras.
+
+**Cambios mínimos de interfaz necesarios para liberar espacio** (la interfaz definitiva es 3.7.3): barra inferior en una sola fila; Métricas/Medir/Informe solo visibles con `?debug=1` (siguen existiendo); botón ▯/▯▯ nuevo; ficha con fondo menos oscuro.
+
+**Pruebas:** `node --test web/prueba-3d/pruebas/*.test.mjs` (70, incluye `encuadre37.test.mjs`: 9 viewports × estados sin recortes, near/far, giro, raycast con la cámara nueva, selección, cierre, 18 páginas, reservado DOM, protección de módulos) y `node web/prueba-3d/pruebas/ejecutar-pagina.mjs`: abre la **página real** en Chromium (viewport de iPhone, CSS, DOM, gestos y IndexedDB reales en una BD desechable) con Three.js simulado, 36 comprobaciones. **No es WebGL ni Safari:** lo que se ve de verdad solo se confirma en tu iPhone.
+
+**Para probarlo:** `git pull` y abre `web/prueba-3d/index.html` (Live Server; `?debug=1` muestra diagnóstico). En iPhone, la URL de GitHub Pages. Comprueba: álbum grande al abrir, una página llena la pantalla, deslizar cambia de página, tocar una carta abre la ficha sin tapar la carta ni perder la página, + / − funcionan, cerrar vuelve al encuadre, girar el móvil reencuadra, Safari con/sin barras.
+
+**Limitaciones:** el aro de resalte (`resaltado.js`) y la apertura de cámara durante el giro no se han visto renderizados; el iPhone SE antiguo (320 px) puede partir la barra en dos filas (el encuadre se adapta igualmente); en horizontal el álbum está limitado por la altura.
+
+### Propuesta resumida 3.7.2 (iluminación y materiales) — NO implementada
+Luz principal suave + relleno tenue + luz de contorno (rim) para separar el álbum del fondo; hemisférica más baja; exposición medida; cubierta de grafito con rugosidad/relieve (normal map pequeño generado por código o en Blender), lomo más claro, cantos y costuras con color propio, fundas con `MeshPhysicalMaterial` de baja complejidad o `MeshStandardMaterial` translúcido sin reflejos sobre la ilustración; entorno ligero (envMap pequeño) solo si se mide. Sin sombras en tiempo real por defecto; sombra de contacto falsa (textura) bajo el álbum; niveles de calidad (`?calidad=`) y medición de FPS antes y después de cada efecto.
+
+### Propuesta resumida 3.7.3 (interfaz y microinteracciones) — NO implementada
+Barra superior fina (nombre, progreso «X/158», página); navegación flotante compacta (‹ › selector, abrir/cerrar) con zonas táctiles de 48 px; panel de diagnóstico oculto tras `?debug=1` o pulsación larga en el título; ficha integrada con el estilo del álbum (cristal oscuro, acento dorado), animación de entrada/salida, contador con transición, háptica/sonido opcionales y desactivables, y respeto de `prefers-reduced-motion`.

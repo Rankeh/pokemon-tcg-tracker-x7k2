@@ -5,7 +5,9 @@ import { Almacen } from '../../js/almacen.js';
 import { ModeloColeccion } from '../../js/album/modelo.js';
 import { crearMapa, AdaptadorColeccion } from './adaptador-coleccion.js';
 import { cargarAlbum } from './album3d.js';
-import { OrbitaLigera, distanciaEncuadre, planosRecorte } from './camara.js';
+import { OrbitaLigera } from './camara.js';
+import { dimensiones, puntosVista, puntosGiro, calcularEncuadre, elevacionPara, planos, reservadoDesdeDom, claseVista } from './encuadre.js';
+import { Resaltado } from './resaltado.js';
 import { Metricas } from './metricas.js';
 import { Diagnostico } from './diagnostico.js';
 import { CacheTexturas } from './texturas.js';
@@ -31,7 +33,8 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 
 const scene = new THREE.Scene();
-const camara = new THREE.PerspectiveCamera(32, 1, 0.02, 5);
+const FOV = 32;
+const camara = new THREE.PerspectiveCamera(FOV, 1, 0.02, 5);
 scene.add(new THREE.HemisphereLight(0xbfd2f2, 0x2a2018, 0.9));
 const luzPrincipal = new THREE.DirectionalLight(0xffe1c0, 2.4); luzPrincipal.position.set(-0.5, 0.9, 0.5); scene.add(luzPrincipal);
 const luzRelleno = new THREE.DirectionalLight(0x9db8e6, 0.7); luzRelleno.position.set(0.7, 0.5, 0.2); scene.add(luzRelleno);
@@ -44,24 +47,75 @@ let sucioHasta = 0, continuo = false, forzarDibujo = false, claveNav = '';
 const pedirFrame = (ms = 1200) => { sucioHasta = Math.max(sucioHasta, performance.now() + ms); };
 const avisar = (t) => { $('aviso').textContent = t || ''; $('aviso').hidden = !t; };
 
+// ------------------------------------------------------------------ cámara cinematográfica (Fase 3.7.1)
+// El encuadre NO usa distancias fijas: se calcula con calcularEncuadre() a partir del viewport, la proporción, la elevación, las dimensiones reales
+// del modelo, las páginas visibles y el espacio que ocupan la cabecera, la barra inferior y la ficha (medidos en el DOM).
+let dim = null, tamano = { w: 0, h: 0 }, claveCamara = '', resaltado = null;
+let modoVista = null, manual = false, lado = 'der';            // 'doble' | 'pagina' (en vertical, por defecto una página a la vez)
+const esVertical = () => camara.aspect < 0.9;
+const modoEfectivo = () => modoVista || (esVertical() ? 'pagina' : 'doble');
+
+function reservado() {
+  const lr = canvas.getBoundingClientRect(), vis = (el) => el && !el.hidden && getComputedStyle(el).visibility !== 'hidden' && el.getBoundingClientRect().height > 0;
+  const cab = $('estado').getBoundingClientRect(), barra = $('barra');
+  const rect = ctrl && ctrl.fichaAbierta ? $('ficha').getBoundingClientRect() : null;
+  return reservadoDesdeDom({ ancho: lr.width, alto: lr.height, cabeceraAbajo: cab.bottom - lr.top + 6,
+    barraArriba: vis(barra) ? barra.getBoundingClientRect().top - lr.top - 4 : lr.height,
+    ficha: rect ? { left: rect.left - lr.left, top: rect.top - lr.top } : null });
+}
+
+/** Encuadre deseado para el contexto actual: álbum cerrado / abierto / dos páginas / giro / selección. */
+function encuadreDeseado() {
+  const e = album.estado, n = dim.n, aspect = camara.aspect, el = elevacionPara(aspect);
+  if (ctrl.fichaAbierta) {                                     // selección: la PÁGINA completa (contexto) dentro del espacio que deja la ficha
+    const cara = ctrl.seleccion.nombre.includes('_D_') ? 'izq' : 'der';
+    return { ...calcularEncuadre({ puntos: puntosVista({ vueltas: e.vueltas, dim, modo: 'pagina', lado: cara }), fovGrados: FOV, aspect, el: el + 8 * GRAD, reservado: reservado(), margen: 0.03 }), clave: 'sel' };
+  }
+  let puntos;
+  if (e.animando) puntos = [...puntosVista({ vueltas: e.vueltas, dim, modo: 'doble' }), ...puntosVista({ vueltas: e.objetivo, dim, modo: 'doble' }), ...puntosGiro(dim)];
+  else puntos = puntosVista({ vueltas: e.vueltas, dim, modo: modoEfectivo(), lado });
+  return calcularEncuadre({ puntos, fovGrados: FOV, aspect, el, reservado: reservado(), margen: 0.015 });
+}
+
+/** Aplica el encuadre: con transición suave (por defecto) o de golpe (cambio de tamaño). Fija límites de zoom y planos near/far derivados de la distancia. */
+function aplicarCamara(animado) {
+  if (!album || !ctrl) return;
+  const c = encuadreDeseado();
+  const lim = [Math.max(0.12, c.radio * 0.55), c.radio * 1.5];
+  orbita.limites.radio = lim;
+  const pl = planos(c.radio, lim[1]);
+  camara.near = pl.near; camara.far = pl.far; camara.updateProjectionMatrix();
+  const dest = { az: c.az, el: c.el, radio: c.radio, objetivo: c.objetivo };
+  if (animado && !reducirMovimiento) orbita.llevarA(dest, ctrl.fichaAbierta ? 0.55 : album.estado.animando ? 0.3 : 0.7);
+  else { orbita.tween = null; Object.assign(orbita, { az: dest.az, el: dest.el, radio: dest.radio, objetivo: dest.objetivo }); }
+  pedirFrame();
+}
+
+/** Huella del contexto de cámara: si cambia, se recalcula el encuadre con transición. */
+function huellaCamara() {
+  const e = album.estado;
+  return ctrl.fichaAbierta ? 'sel:' + ctrl.seleccion.nombre : `v${e.vueltas}>${e.objetivo}:${e.animando ? 'giro' : 'quieto'}:${modoEfectivo()}:${lado}`;
+}
+
 function ajustarTamano() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (!w || !h) return;
   renderer.setSize(w, h, false);
   camara.aspect = w / h;
-  // Encuadre: distancia calculada para que el álbum abierto quepa en ancho y alto; near/far salen de esa distancia (corrección 3.5.1).
-  const radio = distanciaEncuadre({ fovGrados: camara.fov, aspect: camara.aspect, elevacion: orbita.el });
-  if (!ctrl || !ctrl.fichaAbierta) orbita.radio = radio;
-  orbita.limites.radio = [Math.min(0.3, radio), radio * 1.6];
-  const pl = planosRecorte(radio, orbita.limites.radio[1]);
-  camara.near = pl.near; camara.far = pl.far;
   camara.updateProjectionMatrix();
+  tamano = { w, h };
+  if (album && ctrl) { claveCamara = huellaCamara(); aplicarCamara(false); }
   pedirFrame();
 }
 new ResizeObserver(ajustarTamano).observe(canvas);
+// Safari iOS: las barras que aparecen/desaparecen y el giro de pantalla cambian el viewport visual; se reencuadra con un pequeño retardo (iOS tarda en actualizar medidas)
+let _t = 0; const reajustar = () => { clearTimeout(_t); _t = setTimeout(ajustarTamano, 120); };
+window.visualViewport?.addEventListener('resize', reajustar); addEventListener('orientationchange', reajustar); addEventListener('resize', reajustar);
 canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); if (diag) diag.contextoPerdido = true; avisar('El navegador ha perdido el contexto WebGL (en iPhone pasa si se gasta mucha memoria). Espera o recarga la página.'); });
 canvas.addEventListener('webglcontextrestored', () => { avisar(''); vista?.refrescar(); pedirFrame(); });
 
 if (params.get('debug') === '1') {
+  document.body.classList.add('debug');
   diag = new Diagnostico($('diag'), { renderer, scene, camara, orbita, getAlbum: () => album, getExtra: () => ({ cache, vista, adaptador }) });
   diag.estadoGlb = 'cargando…';
   setInterval(() => diag.pintar(), 500);
@@ -69,18 +123,34 @@ if (params.get('debug') === '1') {
 }
 
 // ------------------------------------------------------------------ navegación (botones, teclado, salto directo)
-const botones = { abrir: $('b-abrir'), ant: $('b-ant'), sig: $('b-sig'), salto: $('b-salto'), metricas: $('b-metricas'), medir: $('b-medir'), informe: $('b-informe') };
+const botones = { vista: $('b-vista'), abrir: $('b-abrir'), ant: $('b-ant'), sig: $('b-sig'), salto: $('b-salto'), metricas: $('b-metricas'), medir: $('b-medir'), informe: $('b-informe') };
 const puedeNavegar = () => !ctrl.fichaAbierta && !continuo;
 
+/** Páginas que se ven en el estado `v` (1..18); en modo página solo la del lado enfocado. */
+function paginasDe(v) { return { izquierda: v >= 2 ? 2 * (v - 1) : null, derecha: v >= 1 && 2 * v - 1 <= adaptador.mapa.totalPaginas ? 2 * v - 1 : null }; }
+function ladoValido() {                                         // en la portada la izquierda está vacía; si no hay página en un lado se usa el otro
+  const e = album.estado, { izquierda, derecha } = paginasDe(e.objetivo);
+  if (!izquierda && derecha) lado = 'der'; else if (!derecha && izquierda) lado = 'izq';
+}
+
 function actualizarUi() {
-  const e = album.estado, total = adaptador.mapa.totalPaginas;
-  $('estado').textContent = etiquetaPaginas(e.objetivo, total);
-  botones.abrir.textContent = e.objetivo === 0 ? 'Abrir álbum' : 'Cerrar álbum';
-  const libre = puedeNavegar();
-  botones.abrir.disabled = !libre; botones.ant.disabled = !libre || !e.puedeRetroceder(); botones.sig.disabled = !libre || !e.puedeAvanzar(); botones.salto.disabled = !libre;
-  const v = e.objetivo, sel = botones.salto;
-  const { izquierda, derecha } = { izquierda: v >= 2 ? 2 * (v - 1) : null, derecha: v >= 1 ? 2 * v - 1 : null };
-  sel.value = String(derecha || izquierda || '');
+  const e = album.estado, total = adaptador.mapa.totalPaginas, modo = modoEfectivo();
+  ladoValido();
+  const { izquierda, derecha } = paginasDe(e.objetivo);
+  $('estado').textContent = modo === 'pagina' && e.objetivo > 0 && (izquierda || derecha)
+    ? `Página ${lado === 'izq' ? izquierda : derecha} de ${total}` : etiquetaPaginas(e.objetivo, total);
+  botones.abrir.textContent = e.objetivo === 0 ? 'Abrir' : 'Cerrar';
+  botones.abrir.setAttribute('aria-label', e.objetivo === 0 ? 'Abrir álbum' : 'Cerrar álbum');
+  botones.vista.textContent = modo === 'pagina' ? '▯▯' : '▯';
+  botones.vista.setAttribute('aria-label', modo === 'pagina' ? 'Ver dos páginas' : 'Ver una página');
+  const libre = puedeNavegar(), enPagina = modo === 'pagina' && e.objetivo > 0;
+  botones.abrir.disabled = !libre; botones.vista.disabled = !libre;
+  botones.ant.disabled = !libre || !(e.puedeRetroceder());
+  botones.sig.disabled = !libre || !(e.puedeAvanzar() || (enPagina && lado === 'izq' && derecha));
+  botones.ant.disabled = botones.ant.disabled && !(libre && enPagina && lado === 'der' && izquierda);
+  botones.salto.disabled = !libre;
+  const sel = botones.salto;
+  sel.value = String((modo === 'pagina' ? (lado === 'izq' ? izquierda : derecha) : derecha) || derecha || izquierda || '');
 }
 
 function pintarProgreso() {
@@ -94,8 +164,22 @@ function sincronizarTexturas() {
   vista.sincronizar(paginasNecesarias([e.vueltas, e.objetivo], adaptador.mapa.totalPaginas, 1));
 }
 
-function avanzar() { if (puedeNavegar() && album.estado.avanzar()) { pedirFrame(); sincronizarTexturas(); actualizarUi(); } }
-function retroceder() { if (puedeNavegar() && album.estado.retroceder()) { pedirFrame(); sincronizarTexturas(); actualizarUi(); } }
+function avanzar() { if (puedeNavegar() && album.estado.avanzar()) { lado = 'der'; pedirFrame(); sincronizarTexturas(); actualizarUi(); } }
+function retroceder() { if (puedeNavegar() && album.estado.retroceder()) { lado = 'izq'; pedirFrame(); sincronizarTexturas(); actualizarUi(); } }
+/** Siguiente/anterior «paso» de lectura: en modo página, primero pasa de la página izquierda a la derecha y solo después gira la hoja. */
+function siguiente() {
+  if (!puedeNavegar()) return;
+  const e = album.estado, { derecha } = paginasDe(e.objetivo);
+  if (modoEfectivo() === 'pagina' && e.objetivo > 0 && lado === 'izq' && derecha) { lado = 'der'; actualizarUi(); return; }
+  avanzar();
+}
+function anterior() {
+  if (!puedeNavegar()) return;
+  const e = album.estado, { izquierda } = paginasDe(e.objetivo);
+  if (modoEfectivo() === 'pagina' && e.objetivo > 0 && lado === 'der' && izquierda) { lado = 'izq'; actualizarUi(); return; }
+  retroceder();
+}
+function alternarVista() { if (!puedeNavegar()) return; manual = true; modoVista = modoEfectivo() === 'pagina' ? 'doble' : 'pagina'; actualizarUi(); }
 function alternarAbrir() {
   if (!puedeNavegar()) return;
   if (album.estado.objetivo === 0) avanzar(); else irAPagina0();
@@ -104,11 +188,12 @@ function irAPagina0() { album.estado.irA(0); album.aplicar(); sincronizarTextura
 function saltarA(pagina) {
   if (!puedeNavegar()) return;
   const r = irAPagina(album.estado, pagina, adaptador.mapa.totalPaginas);
+  lado = pagina % 2 === 1 ? 'der' : 'izq';
   if (!r.animado) album.aplicar();
   sincronizarTexturas(); actualizarUi(); pedirFrame();
 }
 
-botones.abrir.onclick = alternarAbrir; botones.sig.onclick = avanzar; botones.ant.onclick = retroceder;
+botones.abrir.onclick = alternarAbrir; botones.sig.onclick = siguiente; botones.ant.onclick = anterior; botones.vista.onclick = alternarVista;
 botones.salto.onchange = () => saltarA(+botones.salto.value);
 botones.metricas.onclick = () => { $('panel').hidden = !$('panel').hidden; pedirFrame(); };
 botones.medir.onclick = () => medir();
@@ -119,7 +204,7 @@ botones.informe.onclick = async () => {
 };
 addEventListener('keydown', (e) => {
   if (ctrl?.fichaAbierta) { if (e.key === 'Escape') cerrarFicha(); return; }
-  if (e.key === 'ArrowRight') avanzar(); else if (e.key === 'ArrowLeft') retroceder();
+  if (e.key === 'ArrowRight') siguiente(); else if (e.key === 'ArrowLeft') anterior();
 });
 
 // ------------------------------------------------------------------ selección táctil / ratón (rayo → bolsillo → adaptador)
@@ -133,14 +218,21 @@ canvas.addEventListener('pointerdown', (e) => {
 canvas.addEventListener('pointermove', (e) => {
   if (!puntero.activo || e.pointerId !== puntero.id) return;
   if (Math.hypot(e.clientX - puntero.x0, e.clientY - puntero.y0) > 10) puntero.arrastre = true;     // umbral algo mayor en táctil
-  if (puntero.arrastre && !ctrl?.fichaAbierta) { orbita.arrastrar(e.clientX - puntero.x, e.clientY - puntero.y, canvas.clientWidth); pedirFrame(300); }
+  if (puntero.arrastre && !ctrl?.fichaAbierta && modoEfectivo() !== 'pagina') { orbita.arrastrar(e.clientX - puntero.x, e.clientY - puntero.y, canvas.clientWidth); pedirFrame(300); }
   puntero.x = e.clientX; puntero.y = e.clientY;
 });
 const soltar = (e, cancelado) => {
   if (!puntero.activo || e.pointerId !== puntero.id) return;
   puntero.activo = false;
-  if (!cancelado && !puntero.arrastre) tocar(e.clientX, e.clientY);
+  if (cancelado) return;
+  if (!puntero.arrastre) tocar(e.clientX, e.clientY);
+  else if (modoEfectivo() === 'pagina' && !ctrl?.fichaAbierta) deslizar(e.clientX - puntero.x0, e.clientY - puntero.y0);
 };
+/** Gesto de lectura en modo página: deslizar a la izquierda = siguiente, a la derecha = anterior (como pasar las hojas de un álbum). */
+function deslizar(dx, dy) {
+  if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+  dx < 0 ? siguiente() : anterior();
+}
 canvas.addEventListener('pointerup', (e) => soltar(e, false));
 canvas.addEventListener('pointercancel', (e) => soltar(e, true));
 canvas.addEventListener('wheel', (e) => { e.preventDefault(); if (!ctrl?.fichaAbierta) { orbita.zoom(Math.exp(e.deltaY * 0.001)); pedirFrame(300); } }, { passive: false });
@@ -153,18 +245,17 @@ function tocar(cx, cy) {
   const golpe = elegirBolsillo([o.x, o.y, o.z], [d.x, d.y, d.z], candidatosTocables(album.estado, adaptador, (n) => album.matrizMundo(n)));
   if (!golpe) return;                                            // toque fuera del álbum, en un hueco o en una hoja enterrada: no pasa nada
   if (ctrl.seleccionar(golpe.nombre)) {
-    const m = album.matrizMundo(golpe.nombre);
-    foco.previo = orbita.estado();
-    orbita.llevarA({ az: 0, el: 74 * GRAD, radio: innerHeight > innerWidth ? 0.42 : 0.24, objetivo: [m[12], m[13], m[14]] }, reducirMovimiento ? 0.01 : 0.7);
+    resaltado.mostrar(album.nodo.get(golpe.nombre));
+    claveCamara = huellaCamara(); aplicarCamara(true);              // encuadre de selección: la página entera dentro del espacio que deja la ficha
     actualizarUi(); pedirFrame();
   }
 }
-const foco = { previo: null };
 
 function cerrarFicha() {
   if (!ctrl.fichaAbierta) return;
   ctrl.cerrar();
-  if (foco.previo) orbita.llevarA(foco.previo, reducirMovimiento ? 0.01 : 0.6);
+  resaltado.ocultar();
+  claveCamara = huellaCamara(); aplicarCamara(true);               // vuelve al encuadre de la navegación (calculado de nuevo, no un valor guardado)
   actualizarUi(); pedirFrame();
 }
 
@@ -192,8 +283,11 @@ function bucle(ahora) {
   let activo = album.actualizar(dt);
   activo = orbita.actualizar(dt) || activo;
   activo = vista.avanzar(dt) || activo;
+  activo = resaltado.avanzar(dt) || activo;
   const clave = album.estado.vueltas + ':' + album.estado.objetivo + ':' + album.estado.animando;
   if (clave !== claveNav) { claveNav = clave; sincronizarTexturas(); actualizarUi(); }
+  const hc = huellaCamara();
+  if (hc !== claveCamara) { claveCamara = hc; aplicarCamara(true); }      // cambio de estado: cerrado ↔ abierto, giro, página enfocada…
   if (!(activo || continuo || forzarDibujo || ahora < sucioHasta)) { metricas.pausa(); return; }
   const [x, y, z] = orbita.posicion();
   camara.position.set(x, y, z);
@@ -227,6 +321,8 @@ async function arrancar() {
   album.onCambio = () => pedirFrame();
   if (reducirMovimiento) album.estado.duracion = 0.01;
   scene.add(album.escena);
+  dim = dimensiones(album.params);
+  resaltado = new Resaltado({ reducirMovimiento: () => reducirMovimiento });
 
   const manifiesto = await cargarManifiesto();
   cache = new CacheTexturas({ presupuestoBytes: (+params.get('mem') || 32) * 1048576, concurrencia: 4 });
@@ -256,13 +352,13 @@ async function arrancar() {
   metricas = new Metricas($('panel'), renderer, album, cache, vista);
   metricas.tiempo('modeloListoMs', performance.now());
   metricas.tiempo('arranqueMs', performance.now() - t0);
-  ajustarTamano();
   const inicial = +params.get('pagina');
-  if (inicial >= 1 && inicial <= mapa.totalPaginas) { album.estado.irA(vueltasParaPagina(inicial)); album.aplicar(); }
+  if (inicial >= 1 && inicial <= mapa.totalPaginas) { album.estado.irA(vueltasParaPagina(inicial)); album.aplicar(); lado = inicial % 2 === 1 ? 'der' : 'izq'; }
   sincronizarTexturas(); pintarProgreso(); actualizarUi();
+  ajustarTamano();                                              // primer encuadre (instantáneo) con la interfaz ya montada
   $('cargando').hidden = true;
   setInterval(() => { if (!$('panel').hidden) metricas.pintar(); }, 500);
-  window.__album3d = { album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
+  window.__album3d = { dim, resaltado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
   requestAnimationFrame(bucle);
   if (params.get('auto') === 'medir') setTimeout(medir, 800);
 }
