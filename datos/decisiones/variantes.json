@@ -1,12 +1,12 @@
 {
-  "comentario": "Decisiones humanas sobre claves repetidas idCarta|variantId. El generador nunca decide solo. 'separar' = son dos cartas físicas distintas (cada una con su contador, clave acabada en #sufijo, identificada por un id de Cardmarket/TCGplayer). 'fusionar' = es la misma carta repetida en TCGdex (una sola variante, cuenta 1).",
+  "comentario": "Decisiones humanas sobre claves repetidas idCarta|variantId. El generador nunca decide solo. 'separar' = dos cartas físicas distintas (clave acabada en #sufijo, localizada por un id de Cardmarket/TCGplayer: 'ancla'). 'fusionar' = misma carta repetida en TCGdex (cuenta 1). 'verificada': true solo cuando se ha comprobado qué producto es cada id; entonces desaparece el aviso DUDOSA. Cada versión puede llevar 'nombre' y 'diferenciaFisica' (se copian al catálogo).",
   "colisiones": [
     {
       "carta": "sv10.5b-034",
       "variantId": "mtltux8quqoc7vwp24c9zzhgmzduu8xcik8",
       "decision": "separar",
-      "dudosa": true,
-      "motivo": "Zekrom ex con sello player-rewards-program: TCGdex da dos productos (Cardmarket 864406 y 894193). No se ha podido confirmar si son dos impresiones físicas o un duplicado. Si se confirma duplicado, cambiar a 'fusionar'.",
+      "verificada": false,
+      "motivo": "Zekrom ex 034, sello player-rewards-program en ambas entradas de TCGdex. Confirmado en fuentes: existe una versión sellada 'Black Bolt' (Unova Heavy Hitters Premium Collection) y Cardmarket separa BLK 034 y xBLK 034. NO confirmado: qué producto es cada ID (864406 / 894193 / TCGplayer) ni la diferencia física exacta.",
       "versiones": [
         { "sufijo": "a", "ancla": "864406" },
         { "sufijo": "b", "ancla": "894193" }

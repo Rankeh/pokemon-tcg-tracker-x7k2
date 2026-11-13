@@ -59,7 +59,7 @@ public final class ResolutorVariantes {
                 continue;
             }
             String tipo = decision.path("decision").asText();
-            boolean dudosa = decision.path("dudosa").asBoolean(false);
+            boolean dudosa = !decision.path("verificada").asBoolean(false);
             String nota = decision.path("motivo").asText("");
 
             if (tipo.equals("fusionar")) {
@@ -76,7 +76,8 @@ public final class ResolutorVariantes {
                 Set<String> usadas = new HashSet<>();
                 List<ObjectNode> separadas = new ArrayList<>();
                 for (JsonNode e : entradas) {
-                    String sufijo = sufijoPara(decision, e);
+                    JsonNode version = versionPara(decision, e);
+                    String sufijo = version == null ? null : version.path("sufijo").asText();
                     if (sufijo == null || !usadas.add(sufijo)) {
                         anomalias.error("Decisión 'separar' incompleta o ambigua en " + resumen
                                 + ": revisa las 'versiones' (ancla/sufijo).");
@@ -85,12 +86,18 @@ public final class ResolutorVariantes {
                     }
                     ObjectNode v = construir(claveBase + "#" + sufijo, e, anomalias);
                     marcar(v, dudosa, nota);
+                    if (version.hasNonNull("nombre")) {
+                        v.put("nombre", version.get("nombre").asText());
+                    }
+                    if (version.hasNonNull("diferenciaFisica")) {
+                        v.put("diferenciaFisica", version.get("diferenciaFisica").asText());
+                    }
                     separadas.add(v);
                 }
                 salida.addAll(separadas);
                 if (!separadas.isEmpty()) {
                     anomalias.aviso("SEPARADA " + resumen + " -> cuentan como " + separadas.size()
-                            + " variantes" + (dudosa ? " (DUDOSA)" : "") + ".");
+                            + " variantes" + (dudosa ? " (DUDOSA: pendiente de verificar)" : " (VERIFICADA)") + ".");
                 }
             } else {
                 anomalias.error("Decisión desconocida '" + tipo + "' para " + claveBase
@@ -117,10 +124,10 @@ public final class ResolutorVariantes {
         return salida;
     }
 
-    private static String sufijoPara(JsonNode decision, JsonNode entrada) {
+    private static JsonNode versionPara(JsonNode decision, JsonNode entrada) {
         for (JsonNode version : decision.path("versiones")) {
             if (contieneValor(entrada.path("thirdParty"), version.path("ancla").asText())) {
-                return version.path("sufijo").asText();
+                return version;
             }
         }
         return null;
