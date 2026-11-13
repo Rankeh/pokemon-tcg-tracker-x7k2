@@ -7,36 +7,43 @@ import { aabbMundo } from './encuadre.js';
 
 // ------------------------------------------------------------------ parámetros artísticos (un solo sitio)
 export const PALETA = {
-  cubierta: 0x344052,      // grafito azulado: más claro que la mesa, sin llegar al gris lavado
-  pagina: 0x40444d,        // grafito neutro, algo distinto de la cubierta
-  lomo: 0x384562,          // mismo grafito que la cubierta, un punto más azul y más claro
-  soldadura: 0x555b69,     // costuras y bordes de funda: algo más claras para que se lean sin gritar
-  funda: 0xe3ebff,
+  cubierta: 0x384559,      // grafito azul noche: más claro que la mesa, sin llegar al gris lavado
+  pagina: 0x4a4e58,        // grafito neutro y claramente más claro que la cubierta (se separan hoja y tapa)
+  lomo: 0x3f4d6b,          // el mismo azul noche, más saturado y claro: el lomo se lee como pieza aparte
+  soldadura: 0x7a8296,     // marco protector de cada bolsillo: plástico pulido, la pieza más clara (junto con los cantos) pero sin neón
+  funda: 0xf2f6ff,
   mesa: 0x22262d,
 };
 export const MATERIALES = {
-  cubierta: { rugosidad: 0.78, relieve: 0.42 },
-  pagina: { rugosidad: 0.62, relieve: 0.0 },       // satinado suave
-  lomo: { rugosidad: 0.58, relieve: 0.3 },         // algo más liso que las tapas: la luz de contorno le dibuja el redondeo
-  soldadura: { rugosidad: 0.55 },
-  funda: { rugosidad: 0.5, opacidad: 0.06 },       // MUY transparente y mate: no produce reflejos sobre la ilustración
+  cubierta: { rugosidad: 0.8, relieve: 0.5 },
+  pagina: { rugosidad: 0.6, relieve: 0.0 },        // satinado suave
+  lomo: { rugosidad: 0.55, relieve: 0.32 },        // más liso que las tapas: la luz de contorno le dibuja el redondeo
+  soldadura: { rugosidad: 0.36 },                  // pulido: da un destello suave en el borde protector según el ángulo
+  funda: { rugosidad: 0.45, opacidad: 1 },         // la transparencia sale del mapa de reflejo (alfa ≤ 0,06): jamás tapa ni lava la ilustración
   mesa: { rugosidad: 0.95 },
 };
+// Cantos: se pintan en los VÉRTICES (sin UV ni texturas ni mallas nuevas) según la normal: cara plana = 1, canto/bisel = multiplicador.
+export const CANTOS = {
+  cubierta: { canto: [1.55, 1.55, 1.6] },          // el bisel «atrapa» la luz: la tapa se separa del fondo y de las hojas
+  pagina: { canto: [1.75, 1.6, 1.35] },            // canto de hoja algo más claro y cálido (acento cálido controlado)
+  lomo: { curvatura: 0.55 },                       // oscurece los lados del cilindro: refuerza el redondeo y lo separa de las tapas
+};
+export const FUNDA_REFLEJO = { tam: 64, base: 0.02, brillo: 0.045, ancho: 0.11 };       // alfa total ≤ 0,065 sobre la carta
 export const EXPOSICION = 1.15;
 export const LUCES = {
-  hemi: { cielo: 0xa9b9d6, suelo: 0x2c3038, intensidad: 0.9 },
-  principal: { color: 0xfff1e0, intensidad: 2.7, pos: [-0.55, 0.85, 0.5] },     // lateral-izquierda, alta y algo frontal
-  relleno: { color: 0x9fb4dc, intensidad: 0.55, pos: [0.8, 0.3, 0.35] },        // lado contrario, tenue
-  contorno: { color: 0x8aa8ff, intensidad: 1.5, pos: [0.25, 0.45, -0.85] },     // por detrás: separa el álbum del fondo; frío y discreto
+  hemi: { cielo: 0xa9b9d6, suelo: 0x262a31, intensidad: 0.7 },                  // ambiente más bajo: deja que las caras laterales caigan y se lea el volumen
+  principal: { color: 0xfff1e0, intensidad: 3.3, pos: [-0.6, 0.62, 0.5] },      // lateral-izquierda y más rasante: revela relieve y cantos
+  relleno: { color: 0x9fb4dc, intensidad: 0.5, pos: [0.8, 0.3, 0.35] },         // lado contrario, tenue
+  contorno: { color: 0x8aa8ff, intensidad: 1.9, pos: [0.3, 0.5, -0.85] },       // por detrás: separa el álbum del fondo; frío y discreto
 };
 // Niveles: se comparte todo el código; cambian solo estos números.
 export const NIVELES = {
-  baja: { luces: ['hemi', 'principal'], relieve: 0, mapaRugosidad: false, sombra: true, anisotropia: 1 },
-  media: { luces: ['hemi', 'principal', 'relleno', 'contorno'], relieve: 128, mapaRugosidad: false, sombra: true, anisotropia: 2 },
-  alta: { luces: ['hemi', 'principal', 'relleno', 'contorno'], relieve: 256, mapaRugosidad: true, sombra: true, anisotropia: 4 },
+  baja: { luces: ['hemi', 'principal'], relieve: 0, mapaRugosidad: false, reflejoFunda: false, fisico: false, sombra: true, anisotropia: 1 },
+  media: { luces: ['hemi', 'principal', 'relleno', 'contorno'], relieve: 128, mapaRugosidad: true, reflejoFunda: true, fisico: false, sombra: true, anisotropia: 2 },
+  alta: { luces: ['hemi', 'principal', 'relleno', 'contorno'], relieve: 256, mapaRugosidad: true, reflejoFunda: true, fisico: true, sombra: true, anisotropia: 4 },       // fisico: MeshPhysicalMaterial con «sheen» de tejido en tapas y lomo
 };
 export const SOMBRA = { fraccion: 0.84, opacidad: 0.6, desplazamiento: [0.004, -0.004], y: -0.0002, tam: 96 };
-export const ESCALA_UV = 0.024;          // metros de álbum por repetición de la textura (grano fino)
+export const ESCALA_UV = 0.036;          // metros de álbum por repetición de la textura (grano fino)
 
 // ------------------------------------------------------------------ elección de calidad (sin detectar por nombre de dispositivo)
 export const NOMBRES_CALIDAD = ['baja', 'media', 'alta', 'legado'];
@@ -70,9 +77,9 @@ function ruidoPeriodico(x, y, periodo, semilla) {
 export function alturaRelieve(tam, semilla = 7) {
   const h = new Float32Array(tam * tam), paso = tam / 16;
   for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
-    const g1 = ruidoPeriodico(i * 8 / tam, j * 8 / tam, 8, semilla), g2 = ruidoPeriodico(i * 24 / tam, j * 24 / tam, 24, semilla + 1);
+    const g1 = ruidoPeriodico(i * 6 / tam, j * 6 / tam, 6, semilla), g2 = ruidoPeriodico(i * 24 / tam, j * 24 / tam, 24, semilla + 1), g3 = ruidoPeriodico(i * 12 / tam, j * 12 / tam, 12, semilla + 2);
     const trama = 0.5 + 0.25 * Math.sin(2 * Math.PI * i / paso) * Math.sin(2 * Math.PI * j / paso);
-    h[j * tam + i] = 0.5 * g1 + 0.28 * g2 + 0.22 * trama;
+    h[j * tam + i] = 0.34 * g1 + 0.26 * g3 + 0.22 * g2 + 0.18 * trama;      // g1/g3: ondulación suave «acolchada»; g2 y la trama: microtextura
   }
   return h;
 }
@@ -107,9 +114,38 @@ export function generarSombra(tam = SOMBRA.tam, fraccion = SOMBRA.fraccion, opac
   return out;
 }
 
+// ------------------------------------------------------------------ procedural: reflejo de la funda (RGBA blanco; solo varía el alfa, siempre ≤ 0,065)
+/** Alfa de una película protectora: velo mínimo + una franja diagonal suave de reflejo. La ilustración queda visible: el máximo alfa es 0,065. */
+export function generarReflejoFunda(tam = FUNDA_REFLEJO.tam, { base, brillo, ancho } = FUNDA_REFLEJO) {
+  const out = new Uint8Array(tam * tam * 4);
+  for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
+    const u = (i + 0.5) / tam, v = (j + 0.5) / tam, d = (u + 0.55 * v - 0.62) / ancho;        // franja diagonal que cruza la página
+    const d2 = (u + 0.55 * v - 1.05) / (ancho * 0.6);                                          // segunda franja, más fina y tenue
+    const a = base + brillo * Math.exp(-d * d) + 0.4 * brillo * Math.exp(-d2 * d2), k = (j * tam + i) * 4;
+    out[k] = out[k + 1] = out[k + 2] = 255; out[k + 3] = Math.round(a * 255);
+  }
+  return out;
+}
+
+// ------------------------------------------------------------------ colores de vértice por normal: cantos y curvatura sin mallas ni texturas extra
+/** `fn(ny)` → multiplicador RGB por vértice (ny = |normal.y|). Devuelve false si la geometría no tiene normales. */
+export function colorearPorNormal(geometria, fn) {
+  const nor = geometria.attributes.normal;
+  if (!nor) return false;
+  const c = new Float32Array(nor.count * 3);
+  for (let i = 0; i < nor.count; i++) { const m = fn(Math.abs(nor.getY(i))); c[i * 3] = m[0]; c[i * 3 + 1] = m[1]; c[i * 3 + 2] = m[2]; }
+  geometria.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
+  return true;
+}
+const suavizar = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+/** Canto: cara plana (ny ≥ 0,9) = 1; bisel y lateral (ny ≤ 0,6) = `canto`; entre medias, degradado. */
+export const cantoPorNormal = (canto) => (ny) => { const t = suavizar(0.6, 0.9, ny); return canto.map((k) => k + (1 - k) * t); };
+/** Curvatura: 1 arriba, `k` en los laterales (sombreado falso del redondeo del lomo). */
+export const curvaturaPorNormal = (k) => (ny) => { const m = k + (1 - k) * suavizar(0.15, 0.95, ny); return [m, m, m]; };
+
 // ------------------------------------------------------------------ UV planares en memoria (el GLB trae UV = 0 en tapa, lomo y hojas)
 /** Proyección por eje dominante de la normal. Solo se usa para el relieve; las cartas (UV propias) no se tocan. */
-export function rellenarUV(geometria, escala = ESCALA_UV) {
+export function rellenarUV(geometria, escala = ESCALA_UV, escalaV = escala) {
   const pos = geometria.attributes.position, nor = geometria.attributes.normal;
   if (!pos) return false;
   const uv = new Float32Array(pos.count * 2);
@@ -118,8 +154,18 @@ export function rellenarUV(geometria, escala = ESCALA_UV) {
     const nx = nor ? Math.abs(nor.getX(i)) : 0, ny = nor ? Math.abs(nor.getY(i)) : 1, nz = nor ? Math.abs(nor.getZ(i)) : 0;
     let u, v;
     if (ny >= nx && ny >= nz) { u = x; v = z; } else if (nx >= nz) { u = z; v = y; } else { u = x; v = y; }
-    uv[i * 2] = u / escala; uv[i * 2 + 1] = v / escala;
+    uv[i * 2] = u / escala; uv[i * 2 + 1] = v / escalaV;
   }
+  geometria.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  return true;
+}
+
+/** UV de página completa (la funda cubre media hoja: x ∈ [0, ancho], z centrada) para el mapa de reflejo. */
+export function uvPagina(geometria, ancho = 0.232, alto = 0.3) {
+  const pos = geometria.attributes.position;
+  if (!pos) return false;
+  const uv = new Float32Array(pos.count * 2);
+  for (let i = 0; i < pos.count; i++) { uv[i * 2] = pos.getX(i) / ancho; uv[i * 2 + 1] = pos.getZ(i) / alto + 0.5; }
   geometria.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   return true;
 }
@@ -205,38 +251,61 @@ export class Aspecto {
     return this.config ? new THREE.MeshBasicMaterial({ color, toneMapped: false }) : new THREE.MeshStandardMaterial({ color, roughness: rugosidad, metalness: 0 });
   }
 
-  /** Ajusta los materiales del GLB (por nombre) y rellena las UV que faltan. Idempotente. */
+  /** Ajusta los materiales del GLB (por nombre), pinta cantos en los vértices y rellena las UV que faltan. Idempotente. */
   aplicarAlbum(album) {
     if (!this.config || this.aplicado) return;
     this.aplicado = true;
-    const porNombre = new Map(), lomo = [];
+    const cfg = this.config, grupos = { cubierta: [], lomo: [], hoja: [], soldadura: [], funda: [] };
     album.escena.traverse((o) => {
       if (!o.isMesh || !o.material || o.userData?.tipo === 'vista-carta') return;
-      if (o.name === 'Lomo') lomo.push(o); else porNombre.set(o.material.name, o.material);
+      if (o.name === 'Lomo') grupos.lomo.push(o);
+      else { const g = { Cubierta: 'cubierta', Hoja: 'hoja', Soldadura: 'soldadura', Funda: 'funda' }[o.material.name]; if (g) grupos[g].push(o); }
     });
-    const cfg = this.config;
     const normal = cfg.relieve ? this._textura(generarNormales(cfg.relieve), cfg.relieve) : null;
-    const rugo = cfg.mapaRugosidad ? this._textura(generarRugosidad(cfg.relieve), cfg.relieve) : null;
-    const dar = (mat, hex, p, conRelieve) => {
-      mat.color.set(hex); mat.roughness = p.rugosidad; mat.metalness = 0;
-      if (conRelieve && normal && p.relieve) { mat.normalMap = normal; mat.normalScale.set(p.relieve, p.relieve); if (rugo) mat.roughnessMap = rugo; mat.needsUpdate = true; }
-      this.materiales.set(mat, true);
+    const rugo = cfg.mapaRugosidad && cfg.relieve ? this._textura(generarRugosidad(cfg.relieve), cfg.relieve) : null;
+
+    // un material por grupo (nunca por bolsillo); las mallas que lo comparten (p. ej. Tapa y Contratapa) siguen compartiéndolo
+    const nuevoMaterial = (grupo, hex, p, relieve) => {
+      const viejo = grupos[grupo][0].material;
+      let m = viejo;
+      if (cfg.fisico && relieve) {                                // alta: tejido técnico con «sheen» (brillo suave en rasante); solo tapas y lomo
+        m = this._recurso(new THREE.MeshPhysicalMaterial({ roughness: p.rugosidad, metalness: 0 }));
+        m.sheen = 0.55; m.sheenRoughness = 0.55; m.sheenColor.set(0x7f93b8);
+      } else if (grupo === 'lomo') m = this._recurso(viejo.clone());
+      m.name = { cubierta: 'Cubierta', lomo: 'Lomo', hoja: 'Hoja', soldadura: 'Soldadura' }[grupo];
+      m.color.set(hex); m.roughness = p.rugosidad; m.metalness = 0; m.vertexColors = true;
+      if (relieve && normal && p.relieve) { m.normalMap = normal; m.normalScale.set(p.relieve, p.relieve); if (rugo) m.roughnessMap = rugo; }
+      m.needsUpdate = true;
+      for (const o of grupos[grupo]) o.material = m;
+      if (m !== viejo && grupo !== 'lomo') viejo.dispose?.();
+      return m;
     };
-    const cub = porNombre.get('Cubierta'), hoja = porNombre.get('Hoja'), sol = porNombre.get('Soldadura'), fun = porNombre.get('Funda');
-    if (cub) dar(cub, PALETA.cubierta, MATERIALES.cubierta, true);
-    if (hoja) dar(hoja, PALETA.pagina, MATERIALES.pagina, false);
-    if (sol) dar(sol, PALETA.soldadura, MATERIALES.soldadura, false);
-    if (fun) { fun.color.set(PALETA.funda); fun.roughness = MATERIALES.funda.rugosidad; fun.opacity = MATERIALES.funda.opacidad; fun.transparent = true; fun.depthWrite = false; this.materiales.set(fun, true); }
-    if (cub && lomo.length) {                                 // el lomo comparte la geometría de «Cubierta» pero necesita su propio material (más liso y algo más claro)
-      const ml = this._recurso(cub.clone()); ml.name = 'Lomo';
-      dar(ml, PALETA.lomo, MATERIALES.lomo, true);
-      for (const o of lomo) o.material = ml;
+    if (grupos.cubierta.length) nuevoMaterial('cubierta', PALETA.cubierta, MATERIALES.cubierta, true);
+    if (grupos.lomo.length) {
+      if (!grupos.cubierta.length) grupos.lomo[0].material = grupos.lomo[0].material.clone?.() || grupos.lomo[0].material;
+      nuevoMaterial('lomo', PALETA.lomo, MATERIALES.lomo, true);
+    }
+    if (grupos.hoja.length) nuevoMaterial('hoja', PALETA.pagina, MATERIALES.pagina, false);
+    if (grupos.soldadura.length) nuevoMaterial('soldadura', PALETA.soldadura, MATERIALES.soldadura, false);
+
+    // cantos y curvatura en los vértices (una pasada por geometría; las geometrías están compartidas entre hojas/tapas)
+    const pintar = (grupo, fn) => { for (const o of grupos[grupo]) if (!o.geometry.attributes.color) colorearPorNormal(o.geometry, fn); };
+    pintar('cubierta', cantoPorNormal(CANTOS.cubierta.canto)); pintar('hoja', cantoPorNormal(CANTOS.pagina.canto)); pintar('lomo', curvaturaPorNormal(CANTOS.lomo.curvatura));
+
+    // funda: película con reflejo en el alfa (media/alta) o velo uniforme (baja). Siempre transparente y sin depthWrite: no bloquea el raycasting (no es un objeto de picking)
+    if (grupos.funda.length) {
+      const f = grupos.funda[0].material;
+      f.color.set(PALETA.funda); f.roughness = MATERIALES.funda.rugosidad; f.metalness = 0; f.transparent = true; f.depthWrite = false;
+      if (cfg.reflejoFunda) {
+        const t = this._recurso(new THREE.DataTexture(generarReflejoFunda(), FUNDA_REFLEJO.tam, FUNDA_REFLEJO.tam, THREE.RGBAFormat));
+        t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.magFilter = t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
+        f.map = t; f.opacity = MATERIALES.funda.opacidad;
+        for (const o of grupos.funda) if (!this.uvHechas.has(o.geometry)) { uvPagina(o.geometry); this.uvHechas.add(o.geometry); }
+      } else f.opacity = 0.06;
+      f.needsUpdate = true;
     }
     if (normal) {
-      album.escena.traverse((o) => {
-        if (!o.isMesh || o.userData?.tipo === 'vista-carta' || !o.material || !o.material.normalMap) return;
-        if (!this.uvHechas.has(o.geometry)) { rellenarUV(o.geometry); this.uvHechas.add(o.geometry); }
-      });
+      for (const o of [...grupos.cubierta, ...grupos.lomo]) if (!this.uvHechas.has(o.geometry)) { rellenarUV(o.geometry); this.uvHechas.add(o.geometry); }
     }
     this.sincronizar(album);
   }

@@ -50,13 +50,14 @@ test('3 materiales: se aplican por NOMBRE; cubierta/lomo con relieve, página si
   assert.notEqual(lomo, cub, 'el lomo tiene su propio material'); assert.equal(lomo.color.v, A.PALETA.lomo); assert.ok(lomo.roughness < cub.roughness, 'lomo algo más liso'); assert.ok(lomo.normalMap);
   assert.equal(hoja.name, 'Hoja'); assert.equal(hoja.color.v, A.PALETA.pagina); assert.ok(!hoja.normalMap, 'página satinada, sin relieve'); assert.notEqual(hoja.color.v, cub.color.v);
   const funda = a.nodo.get('Hoja_0_F_Funda').material;
-  assert.ok(funda.opacity <= 0.07 && funda.roughness >= 0.4 && funda.depthWrite === false && funda.transparent, 'funda: sin reflejos que tapen la carta');
+  assert.ok(funda.map && funda.map.isDataTexture && funda.opacity === 1 && funda.roughness >= 0.4 && funda.depthWrite === false && funda.transparent, 'funda: película con reflejo en el alfa, sin depthWrite');
+  const alfas = [...funda.map.datos].filter((_, i) => i % 4 === 3); assert.ok(Math.max(...alfas) <= 0.067 * 255 && Math.min(...alfas) >= 0.015 * 255, 'alfa de la funda entre 0,015 y 0,065: la carta siempre se ve');
   const sol = a.nodo.get('Hoja_0_F_Soldaduras').material;
   assert.equal(sol.color.v, A.PALETA.soldadura);
   for (const n of ['Tapa_Malla', 'Lomo', 'Hoja_0_Losa']) assert.equal(a.nodo.get(n).material.metalness, 0, 'nada de metal pulido');
 });
 
-test('4 niveles de calidad: relieve 0/128/256, mapa de rugosidad solo en alta, sin duplicar materiales ni texturas', async () => {
+test('4 niveles de calidad: relieve 0/128/256, rugosidad variable desde media, sin duplicar materiales ni texturas', async () => {
   const r = {};
   for (const n of ['baja', 'media', 'alta']) {
     const antes = T.stats.materiales, tex0 = T.stats.texturasCreadas;
@@ -65,9 +66,9 @@ test('4 niveles de calidad: relieve 0/128/256, mapa de rugosidad solo en alta, s
     r[n] = { normal: !!cub.normalMap, rug: !!cub.roughnessMap, tam: cub.normalMap?.ancho, texturas: T.stats.texturasCreadas - tex0, materiales: T.stats.materiales - antes, recursos: asp.recursos.length };
   }
   assert.equal(r.baja.normal, false); assert.equal(r.media.normal, true); assert.equal(r.media.tam, 128); assert.equal(r.alta.tam, 256);
-  assert.equal(r.media.rug, false); assert.equal(r.alta.rug, true);
+  assert.equal(r.baja.rug, false); assert.equal(r.media.rug, true); assert.equal(r.alta.rug, true);
   assert.ok(r.baja.recursos < r.media.recursos && r.media.recursos < r.alta.recursos, 'más calidad = más recursos');
-  assert.ok(r.alta.texturas <= 3 + 1, 'alta: normal + rugosidad + sombra (+ nada más)');
+  assert.ok(r.alta.texturas <= 4, 'alta: normal + rugosidad + reflejo de funda + sombra (no más)');
   const { a, asp } = await nuevo('media'); const n0 = asp.recursos.length; asp.aplicarAlbum(a); assert.equal(asp.recursos.length, n0, 'aplicarAlbum es idempotente');
   assert.equal(mat(a, 'Tapa_Malla').normalMap, mat(a, 'Lomo').normalMap, 'una sola textura de relieve compartida');
 });
@@ -164,4 +165,102 @@ test('12 no se altera nada del álbum: poses, visibilidad, tapas y navegación i
 test('13 los 158 ids y las cantidades siguen siendo las mismas (la capa visual no toca los datos)', async () => {
   const { m } = await nuevo('media', { cantidades: { [catalogo.cartas[0].id]: 2 } });
   assert.equal(m.mapa.cartas.length, 158); assert.equal(m.adaptador.cantidad(catalogo.cartas[0].id), 2);
+});
+
+// ======================================================================= 3.7.2b
+const dibujado2 = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
+
+test('14 cantos en vértices: cantos de tapa/hoja más claros que la cara plana, lomo más oscuro en los laterales, sin mallas ni texturas nuevas', async () => {
+  const { a } = await nuevo('media');
+  const col = (n) => a.nodo.get(n).geometry.attributes.color, nor = (n) => a.nodo.get(n).geometry.attributes.normal;
+  for (const n of ['Tapa_Malla', 'Hoja_0_Losa', 'Lomo']) { assert.ok(col(n) && col(n).count === nor(n).count && col(n).array.every(Number.isFinite), n); assert.equal(a.nodo.get(n).material.vertexColors, true); }
+  const rango = (n) => { const c = col(n), nn = nor(n); let plana = null, canto = null; for (let i = 0; i < c.count; i++) { const ny = Math.abs(nn.getY(i)); if (ny > 0.95) plana = c.array[i * 3]; if (ny < 0.3) canto = c.array[i * 3]; } return { plana, canto }; };
+  const t = rango('Tapa_Malla'), h = rango('Hoja_0_Losa'), l = rango('Lomo');
+  assert.equal(t.plana, 1); assert.ok(t.canto > 1.4 && t.canto < 1.8, 'canto de la tapa más claro'); assert.ok(h.canto > 1.4); assert.equal(l.plana, 1); assert.ok(l.canto < 0.7 && l.canto > 0.4, 'lomo: laterales más oscuros');
+  const cartaUV = a.geomCarta.F.attributes; assert.ok(!cartaUV.color, 'las geometrías de las cartas no se tocan');
+  const baja = await nuevo('baja'); assert.ok(baja.a.nodo.get('Tapa_Malla').geometry.attributes.color, 'baja: los cantos también (coste cero)');
+  const leg = await nuevo('legado'); assert.ok(!leg.a.nodo.get('Tapa_Malla').geometry.attributes.color, 'legado: intacto');
+});
+
+test('15 alta usa MeshPhysicalMaterial con sheen SOLO en tapas y lomo (2 materiales); media y baja siguen con Standard; Contratapa y Tapa comparten material', async () => {
+  const alta = await nuevo('alta'), media = await nuevo('media');
+  const cub = mat(alta.a, 'Tapa_Malla'), lomo = mat(alta.a, 'Lomo');
+  assert.equal(cub.constructor.name, 'MeshPhysicalMaterial'); assert.ok(cub.sheen > 0 && cub.sheen < 0.8 && cub.sheenRoughness >= 0.4, 'sheen discreto'); assert.equal(mat(alta.a, 'Contratapa'), cub); assert.notEqual(lomo, cub); assert.equal(lomo.constructor.name, 'MeshPhysicalMaterial');
+  assert.equal(mat(alta.a, 'Hoja_0_Losa').constructor.name, 'MeshStandardMaterial'); assert.equal(alta.a.nodo.get('Hoja_0_F_Funda').material.constructor.name, 'MeshStandardMaterial');
+  assert.equal(mat(media.a, 'Tapa_Malla').constructor.name, 'MeshStandardMaterial'); assert.ok(mat(media.a, 'Tapa_Malla').roughnessMap, 'media: rugosidad con pequeñas variaciones');
+  const unicos = (a) => { const s = new Set(); a.escena.traverse((o) => o.isMesh && s.add(o.material)); return s.size; };
+  assert.ok(unicos(alta.a) <= 7 && unicos(media.a) <= 7, 'materiales del álbum: cubierta, lomo, hoja, soldadura, funda, carta… (nunca uno por bolsillo)');
+});
+
+test('16 funda: UV de página completa para el reflejo, la misma película en las 162 fundas y sin tocar el raycasting (no es un candidato de picking)', async () => {
+  const { a } = await nuevo('media');
+  const g = a.nodo.get('Hoja_0_F_Funda').geometry, uv = g.attributes.uv;
+  assert.ok(uv.array.every((v) => v >= -0.01 && v <= 1.01), 'UV dentro de [0,1]');
+  let n = 0, distintos = new Set(); a.escena.traverse((o) => { if (o.isMesh && o.material.name === 'Funda') { n++; distintos.add(o.material); } });
+  assert.equal(n, 18); assert.equal(distintos.size, 1, 'un solo material de funda para todas');
+  const picking = await import('../js/picking.js'); const src = await (await import('node:fs/promises')).readFile(new URL('../js/picking.js', import.meta.url), 'utf8');
+  assert.ok(!/Funda|material/.test(src), 'el picking trabaja con geometría de bolsillos, no con materiales de funda');
+  assert.equal(typeof picking.elegirBolsillo, 'function');
+});
+
+test('17 huecos pendientes y aro de selección: la etiqueta es más legible y el aro dorado no depende del tone mapping', async () => {
+  const { dibujarEtiquetaPendiente } = await import('../js/marcadores.js'); const { lienzoFalso } = await import('./mundo.mjs');
+  const usados = []; const l = lienzoFalso(128, 179); const ctx = l.getContext('2d');
+  const prox = new Proxy({}, { get: (_, k) => (k in ctx ? ctx[k] : () => {}), set: (_, k, v) => { if (k === 'fillStyle' || k === 'strokeStyle') usados.push(v); return true; } });
+  dibujarEtiquetaPendiente({ getContext: () => prox }, 128, 179, { nombre: 'Pikachu', numero: '25' });
+  const lum = (h) => { const n = parseInt(h.slice(1), 16); return 0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255); };
+  assert.ok(lum(usados.find((u) => u !== usados[0] && lum(u) > 150)) > 150, 'texto del nombre claro sobre placa oscura'); assert.ok(lum(usados[0]) < 60, 'placa hundida (más oscura que la hoja)');
+  const src = await (await import('node:fs/promises')).readFile(new URL('../js/resaltado.js', import.meta.url), 'utf8');
+  assert.ok(/toneMapped: false/.test(src) && /depthTest: false/.test(src) && /color = 0xe8b25a/.test(src), 'aro dorado sin tone mapping, por delante de la funda, mismo color');
+});
+
+test('18 cambiar de calidad no filtra recursos: crear y liberar un Aspecto de cada nivel deja a cero texturas y materiales propios', async () => {
+  for (const n of ['baja', 'media', 'alta', 'legado', 'alta', 'media']) {
+    const m = await crearMundo(); const sc = new T.Object3D();
+    const t0 = T.stats.texturasCreadas - T.stats.texturasLiberadas, m0 = T.stats.materiales - T.stats.materialesLiberados;
+    const asp = new A.Aspecto({ renderer: {}, scene: sc, nivel: n }); asp.aplicarAlbum(m.album);
+    const propios = asp.recursos.length; asp.liberar();
+    assert.equal(T.stats.texturasCreadas - T.stats.texturasLiberadas, t0, n + ': texturas propias liberadas');
+    assert.equal(sc.children.length, 0); assert.ok(propios >= 2);
+    for (const r of asp.recursos) assert.fail('quedan recursos');
+  }
+});
+
+test('19 materiales y texturas compartidos NO se liberan mientras se usan: liberar() no toca los del GLB ni la geometría de las cartas', async () => {
+  const { a, asp } = await nuevo('media');
+  const hoja = mat(a, 'Hoja_0_Losa'), sold = a.nodo.get('Hoja_0_F_Soldaduras').material, funda = a.nodo.get('Hoja_0_F_Funda').material;
+  asp.liberar();
+  for (const x of [hoja, sold]) assert.notEqual(x.disposed, true, 'material del GLB sin liberar');
+  assert.equal(a.geomCarta.F.disposed, undefined);
+  const m = await crearMundo({ materialCarta: null }); m.album.estado.irA(1); m.album.aplicar(); m.vista.sincronizar(new Map([[1, 0]]));
+  const b = m.vista.porId.get(m.mapa.paginas[0].bolsillos[0].id); const mc = (b.tarjeta || b.fantasma).material; m.vista.sincronizar(new Map()); assert.equal(mc.disposed, true, 'la carta desmontada sí libera SU material');
+});
+
+test('20 estimación de contraste 3.7.2b (analítica, NO medición de GPU): hoja ≠ cubierta ≠ lomo, marco protector el más claro, huecos más oscuros que la hoja, fondo discreto', () => {
+  const o = { activas: ['hemi', 'principal', 'relleno'] }, L = (h, k = [1, 1, 1]) => A.luminanciaSrgb(A.estimarSalida(h, o).map((v, i) => Math.min(1, v * k[i])));
+  const cub = L(A.PALETA.cubierta), pag = L(A.PALETA.pagina), lomo = L(A.PALETA.lomo), sold = L(A.PALETA.soldadura), mesa = L(A.PALETA.mesa), ghost = A.luminanciaSrgb([0x18 / 255, 0x21 / 255, 0x3a / 255]);
+  assert.ok(pag > cub * 1.15, `hoja (${pag.toFixed(3)}) más clara que la cubierta (${cub.toFixed(3)})`); assert.ok(sold > pag * 1.5, 'el borde protector destaca sobre la hoja');
+  assert.ok(ghost < pag * 0.6, 'hueco pendiente más oscuro que la hoja'); assert.ok(cub > mesa * 2, 'fondo discreto'); assert.ok(Math.abs(lomo - cub) > 0.01 || A.PALETA.lomo !== A.PALETA.cubierta);
+  assert.ok(sold < 0.65, 'sin neón: el marco no se quema');
+  const cx = A.cantoPorNormal(A.CANTOS.cubierta.canto); assert.deepEqual(cx(1), [1, 1, 1]); assert.ok(cx(0)[0] > 1.5);
+});
+
+test('21 con los materiales nuevos (media y alta): selección por rayo, ficha, añadir/retirar y persistencia en las 18 páginas; las fundas no bloquean el rayo', async () => {
+  const { elegirBolsillo, candidatosTocables } = await import('../js/picking.js'); const { Controlador } = await import('../js/controlador.js');
+  const { vueltasParaPagina, paginasNecesarias } = await import('../js/navegacion3d.js'); const { nombreBolsillo } = await import('../js/adaptador-coleccion.js');
+  for (const nivel of ['media', 'alta']) {
+    const w = await nuevo(nivel, { materialCarta: null }); const { m, a, asp } = w;
+    const ficha = { abrir() {}, actualizar() {}, error() {}, guardando() {}, cerrar() {} }; let reloj = 0;
+    const ctl = new Controlador({ adaptador: m.adaptador, estado: a.estado, vista: m.vista, ficha, ahora: () => reloj });
+    for (let p = 1; p <= 18; p++) {
+      reloj += 1000; a.estado.irA(vueltasParaPagina(p)); a.aplicar(); asp.sincronizar(a); m.vista.sincronizar(paginasNecesarias([a.estado.vueltas], 18, 1));
+      const pos = [1, 5, 9].map((k) => nombreBolsillo(p, k)).find((n) => m.adaptador.puedeEditar(n)); assert.ok(pos, `p${p} tiene bolsillo editable`);
+      const M = a.matrizMundo(pos), alto = M[13] + 0.4;
+      const golpe = elegirBolsillo([M[12], alto, M[14]], [0, -1, 0], candidatosTocables(a.estado, m.adaptador, (n) => a.matrizMundo(n)));
+      assert.ok(golpe && golpe.nombre === pos, `p${p} (${nivel}): el rayo atraviesa la funda y llega al bolsillo ${pos} (${golpe && golpe.nombre})`);
+      assert.ok(ctl.seleccionar(pos)); const id = m.adaptador.mapa.porNombre.get(pos).carta.id, antes = m.adaptador.cantidad(id);
+      await ctl.anadir(); assert.equal(m.adaptador.cantidad(id), antes + 1); await ctl.retirar(); assert.equal(m.adaptador.cantidad(id), antes); ctl.cerrar();
+    }
+    assert.equal(m.almacen.constructor.name, 'AlmacenMemoria');
+  }
 });

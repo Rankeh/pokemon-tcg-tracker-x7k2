@@ -174,3 +174,36 @@ No hay medición de GPU real en este entorno: lo medido con Three.js simulado **
 ### Límites y propuestas (no aplicadas)
 - **No verificado en Safari/WebGL real:** aspecto final, que el relieve no muestre costuras en las esquinas biseladas (UV por eje dominante), el brillo del contorno y la lectura de la sombra sobre la mesa. Es la comprobación visual pendiente; los números de color son una estimación analítica.
 - Propuesta de GLB (requiere aprobación): UV reales y un bisel algo mayor en tapas/lomo; costuras como geometría con vértices coloreados. No se ha tocado el GLB.
+
+## Fase 3.7.2b — Refinamiento artístico y acabado premium
+
+### Qué se investigó antes de editar
+- **Geometría real del GLB** (leída del archivo): `tapa` 98 vértices (50 en caras planas, 48 en bisel/canto con normales distintas), `lomo` 66 (cilindro redondeado), `losa_hoja` 82, `funda_f/d` 21 (una película por cara de página, no una por bolsillo), `sold_f/d` 108 (los nueve marcos de bolsillo, planos). UV = 0 en tapa, lomo, hoja y funda. Conclusión: los cantos existen como vértices con normal propia → se pueden pintar **por vértice** sin texturas ni mallas nuevas.
+- **Materiales/recursos:** un material por grupo (Cubierta, Hoja, Soldadura, Funda) + 1 para el lomo; nunca uno por bolsillo. Las cartas llevan su propio `MeshBasicMaterial` (se libera al desmontar la página; la textura la gestiona la caché por recuento). No hay conflicto con la caché: Aspecto no toca texturas de cartas.
+
+### Técnicas aplicadas (por grupos)
+1. **Cubiertas y lomo:** relieve procedural re-hecho (ondulación suave «acolchada» + microtextura + trama, mosaico sin costuras), escala 36 mm por repetición, `normalScale` 0,5; **mapa de rugosidad con pequeñas variaciones desde `media`**; en `alta`, `MeshPhysicalMaterial` con *sheen* discreto (brillo de tejido en rasante) solo en tapas y lomo (2 materiales).
+2. **Cantos y profundidad (colores de vértice, coste de dibujo ≈ 0):** cantos/biseles de tapa ×1,55 (atrapan la luz), cantos de hoja más claros y cálidos (acento cálido controlado), y el lomo se oscurece en los laterales (curvatura falsa) para separarlo de las tapas. Se aplica en todos los niveles salvo `legado`. *Límite:* el sombreado entre hojas apiladas depende solo de este tinte de canto y de la luz; no hay oclusión ambiental real entre hojas.
+3. **Fundas:** la película pasa a tener un **reflejo en el canal alfa** (franja diagonal suave + velo mínimo, alfa total entre 0,02 y 0,065, UV de página completa), mate (rugosidad 0,45), sin `depthWrite`, mismo material en las 18×2 fundas, sin nuevos draw calls. Los **marcos de bolsillo** (soldaduras) pasan a plástico pulido claro (`#7a8296`, rugosidad 0,36): dan el «borde protector» y un destello según el ángulo. No se usan transparencias nuevas ni capas extra. Las fundas no son candidatas de picking: el rayo las atraviesa (test 16 y 21).
+4. **Iluminación:** principal más rasante y fuerte (3,3, y=0,62), ambiente más bajo (0,7), contorno 1,9 por detrás, relleno tenue. Objetivo: modelar volumen, no iluminar por igual; el brillo medio (estimación analítica) se mantiene: lo que cambia es la dirección.
+5. **Contraste/legibilidad:** hoja `#4a4e58` > cubierta `#384559`; marco protector la pieza más clara; huecos pendientes con placa más hundida (`#18213a`) pero con borde y texto más claros (`#c3cde2`); **aro de selección** dorado sin tone mapping (`toneMapped:false`) por delante de la funda, mismo color `#e8b25a` y opacidad 0,95 (no neón: sin brillo añadido).
+6. **Calidad:** `baja` (hemisférica+principal, cantos por vértice, sin relieve ni reflejo), `media` (4 luces, relieve 128 px, rugosidad variable, reflejo de funda), `alta` (relieve 256 px, Physical+sheen). `legado` = 3.7.1c. Cambiar: `?calidad=baja|media|alta|legado`. Alta **no** se fuerza en iPhone: el automático móvil sigue siendo `media` (≥ 6 núcleos) o `baja`.
+
+### Tamaño del álbum en vista de dos páginas (medido, sin tocar la cámara)
+Con el mismo cálculo de `encuadre.js` y Three.js simulado (proporciones reales, sin GPU): horizontal 844×390 → el álbum ocupa el **95 % del ancho libre** (80 % del alto); 750×340 → 95 % / 78 %; vertical manual 390×844 y 430×932 → **96 % del ancho libre y solo 27 % del alto**. Es decir, el tamaño lo limita la **proporción del álbum abierto** (≈ 2,2 : 1) y no la cámara: no hay zoom posible sin recortar. El espacio vacío vertical en retrato es físico. Solo podría ganarse reduciendo las columnas/cabecera de la interfaz (decisión de diseño, no de cámara): no se ha hecho.
+
+### Costes de la fase (contados en Node, no medidos en GPU)
+- Draw calls: **sin cambios**. Geometrías: sin cambios. Materiales del álbum: sin aumento (alta: tapa y lomo pasan de Standard a Physical; el lomo ya tenía material propio desde 3.7.2a).
+- Texturas nuevas (DataTexture compartidas): relieve 128²/256² RGBA (+ mipmaps ≈ 85/340 KB), rugosidad igual (media/alta), reflejo de funda 64² (16 KB), sombra 96² (37 KB). **Total ≈ 0,3 MB en media y ≈ 0,8 MB en alta**: estimación aritmética (w·h·4·1,33), no medida.
+- Vértices con atributo `color` (tapa, hoja, lomo): +12 bytes/vértice, despreciable.
+- `alta` usa shader Physical con sheen en 2 mallas: es lo único con coste de fragmento mayor; mídelo antes de adoptarlo en iPhone.
+
+### Qué es visible y qué es solo teórico
+- **Esperable a la vista (pendiente de tus capturas):** más separación hoja/cubierta, lomo con redondeo, cantos claros, marcos de bolsillo con destello, reflejo diagonal en fundas, placa de hueco más legible, aro dorado estable.
+- **Solo teórico/estimado:** colores finales (estimación ACES analítica), ausencia de costuras en los biseles (UV por eje dominante), carga de GPU, FPS.
+
+### Probar en Windows e iPhone
+1. `git pull` y Live Server en `web/prueba-3d/index.html` (o GitHub Pages tras el push). 2. Compara `?calidad=legado`, `?calidad=baja`, `?calidad=media`, `?calidad=alta`. 3. Rendimiento: `?calidad=XXX&auto=escenas` (informe JSON con FPS medio/mínimo, p95, draw calls, triángulos, geometrías, **materiales**, texturas y MB estimados). 4. Para comparar con 3.7.2a: `git checkout 6f5746c` en otra carpeta, misma medición. En iPhone: abre la URL, espera ~45 s, copia el informe del cuadro de texto.
+
+### Pruebas (no verifican el dibujo real)
+`pruebas/aspecto37.test.mjs` (tests 14–21 nuevos: cantos en vértices, Physical solo en alta, fundas y raycast, etiquetas y aro, fugas al cambiar de calidad, materiales compartidos, contraste estimado, selección/ficha/añadir/retirar en las 18 páginas con media y alta) y el runner de página real con 152 comprobaciones. Todas usan Three.js simulado: validan configuración, estructura y cableado, **no** el aspecto ni el rendimiento en GPU.

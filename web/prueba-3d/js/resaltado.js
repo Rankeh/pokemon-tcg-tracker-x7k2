@@ -17,7 +17,7 @@ export class Resaltado {
     this.geo = new THREE.BufferGeometry();
     this.geo.setAttribute('position', new THREE.Float32BufferAttribute(d.posiciones, 3));
     this.geo.setIndex(d.indices);
-    this.mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, side: THREE.DoubleSide, depthTest: false, depthWrite: false });
+    this.mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, side: THREE.DoubleSide, depthTest: false, depthWrite: false, toneMapped: false })   // 3.7.2b: sin tone mapping → el dorado es el mismo con cualquier luz;
     this.malla = new THREE.Mesh(this.geo, this.mat);
     this.malla.renderOrder = 999; this.malla.visible = false;
     this.reducir = reducirMovimiento; this.destino = 0; this.nodo = null;

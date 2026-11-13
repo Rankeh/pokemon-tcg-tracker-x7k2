@@ -38,6 +38,7 @@ export class MeshStandardMaterial {
   clone() { const m = new MeshStandardMaterial(this.opts); Object.assign(m, { name: this.name, opacity: this.opacity, transparent: this.transparent, depthWrite: this.depthWrite, roughness: this.roughness, metalness: this.metalness, normalMap: this.normalMap, roughnessMap: this.roughnessMap }); m.color.v = this.color.v; m.normalScale = new Vector2(this.normalScale.x, this.normalScale.y); return m; }
   dispose() { if (!this.disposed) { this.disposed = true; stats.materialesLiberados++; } }
 }
+export class MeshPhysicalMaterial extends MeshStandardMaterial { constructor(o = {}) { super(o); this.sheen = 0; this.sheenRoughness = 1; this.sheenColor = { v: 0, set(c) { this.v = c; } }; } }
 export class MeshBasicMaterial {
   constructor(o = {}) { this.map = null; this.disposed = false; this.opts = o; this.toneMapped = o.toneMapped ?? true; this.transparent = !!o.transparent; this.color = { v: o.color, set(c) { this.v = c; } }; if (o.map) this.map = o.map; stats.materiales++; }
   dispose() { if (!this.disposed) { this.disposed = true; stats.materialesLiberados++; } }

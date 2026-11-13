@@ -1,8 +1,8 @@
 // Three.js SIMULADO para ejecutar main.js en Chromium real (DOM, CSS, IndexedDB y eventos reales; SIN WebGL): amplía three-doble.mjs con lo que main.js necesita.
 // Sirve para comprobar el cableado (cámara, interfaz, gestos, ficha, persistencia), no el dibujo.
-import { Object3D, Mesh, MeshStandardMaterial, MeshBasicMaterial, Texture, CanvasTexture, DataTexture, TextureLoader, SRGBColorSpace, Vector2, PlaneGeometry, Float32BufferAttribute, HemisphereLight, DirectionalLight, ACESFilmicToneMapping, DoubleSide, RGBAFormat, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, ClampToEdgeWrapping } from './three-doble.mjs';
+import { Object3D, Mesh, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, Texture, CanvasTexture, DataTexture, TextureLoader, SRGBColorSpace, Vector2, PlaneGeometry, Float32BufferAttribute, HemisphereLight, DirectionalLight, ACESFilmicToneMapping, DoubleSide, RGBAFormat, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, ClampToEdgeWrapping } from './three-doble.mjs';
 import { rayoNDC } from '../js/encuadre.js';
-export { Object3D, Mesh, MeshStandardMaterial, MeshBasicMaterial, Texture, CanvasTexture, DataTexture, TextureLoader, SRGBColorSpace, Vector2, PlaneGeometry, Float32BufferAttribute, HemisphereLight, DirectionalLight, ACESFilmicToneMapping, DoubleSide, RGBAFormat, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, ClampToEdgeWrapping };
+export { Object3D, Mesh, MeshStandardMaterial, MeshPhysicalMaterial, MeshBasicMaterial, Texture, CanvasTexture, DataTexture, TextureLoader, SRGBColorSpace, Vector2, PlaneGeometry, Float32BufferAttribute, HemisphereLight, DirectionalLight, ACESFilmicToneMapping, DoubleSide, RGBAFormat, LinearFilter, LinearMipmapLinearFilter, RepeatWrapping, ClampToEdgeWrapping };
 export class Scene extends Object3D {}
 export class Group extends Object3D {}
 export class BufferGeometry { constructor() { this.attributes = {}; this.index = null; } setAttribute(n, a) { this.attributes[n] = a; } setIndex(i) { this.index = { count: i.length }; } dispose() {} }

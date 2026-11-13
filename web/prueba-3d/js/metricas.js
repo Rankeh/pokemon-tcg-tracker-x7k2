@@ -50,6 +50,7 @@ export class Metricas {
       fps: { media: +f.fps.toFixed(1), minimo: +f.fpsMin.toFixed(1), p95_ms: +f.p95Ms.toFixed(1), muestras: f.muestras },
       ultimoFrame: { llamadasDibujo: info.render.calls, triangulosDibujados: info.render.triangles },
       escenaEstatica: { triangulosTotales: total.triangulos, mallasTotales: total.mallas, triangulosVisibles: vis.triangulos, mallasVisibles: vis.mallas },
+      materiales: (() => { const sc = window.__album3d && window.__album3d.scene, m = new Set(); if (sc) sc.traverse((o) => { if (o.isMesh && o.material) m.add(o.material); }); return m.size; })(),
       memoriaRenderer: { geometrias: info.memory.geometries, texturas: info.memory.textures },
       texturasEstimadas: { cantidad: mem.texturas, tamano: 'estimado por textura (RGBA + mipmaps)', megabytes: +(mem.bytes / 1048576).toFixed(2), nota: 'ESTIMACIÓN: el navegador no expone la memoria de GPU real' },
       cacheTexturas: this.cache ? this.cache.estadisticas() : null,

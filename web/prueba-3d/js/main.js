@@ -343,7 +343,7 @@ async function medirEscenas(segundos = 4) {
       await esperarMs(100);
     }
     const r = metricas.terminarBench(), i = metricas.instantanea();
-    salida.escenas.push({ escena: e.id, ...r, llamadasDibujo: i.ultimoFrame.llamadasDibujo, triangulos: i.ultimoFrame.triangulosDibujados, geometrias: i.memoriaRenderer.geometrias,
+    salida.escenas.push({ escena: e.id, ...r, llamadasDibujo: i.ultimoFrame.llamadasDibujo, triangulos: i.ultimoFrame.triangulosDibujados, geometrias: i.memoriaRenderer.geometrias, materiales: i.materiales,
       texturas: i.memoriaRenderer.texturas, texturasMB_estimados: i.texturasEstimadas.megabytes });
     if (e.seleccionar && ctrl.fichaAbierta) cerrarFicha();
   }

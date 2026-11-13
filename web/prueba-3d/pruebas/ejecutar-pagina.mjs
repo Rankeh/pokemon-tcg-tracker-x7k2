@@ -192,6 +192,20 @@ for (const vp of [{ width: 844, height: 390 }, { width: 750, height: 340 }, { wi
   });
 }
 
+// ------------------------------------------------------------------ 3.7.2b: MEDICIÓN del espacio en vista de dos páginas (sin cambiar la cámara): ¿limita la interfaz o la proporción del álbum?
+for (const vp of [{ width: 390, height: 844 }, { width: 430, height: 932 }]) {
+  await sesion(vp, async (pag) => {
+    await pag.click('#b-abrir'); await dormir(2000); await pag.click('#b-sig'); await dormir(2000);
+    if (!/Páginas/.test(await etiqueta(pag))) { await pag.click('#b-vista'); await dormir(1800); }
+    const piezas = [await proyectar(pag, { malla: 'Contratapa' }), await proyectar(pag, { malla: 'Tapa_Malla' }), await proyectar(pag, { malla: 'Lomo' })];
+    const caja = { x0: Math.min(...piezas.map((q) => q.x0)), x1: Math.max(...piezas.map((q) => q.x1)), y0: Math.min(...piezas.map((q) => q.y0)), y1: Math.max(...piezas.map((q) => q.y1)), libre: piezas[0].libre };
+    const lw = caja.libre.x1 - caja.libre.x0, lh = caja.libre.y1 - caja.libre.y0, e = await etiqueta(pag);
+    const fx = (caja.x1 - caja.x0) / lw, fy = (caja.y1 - caja.y0) / lh;
+    ok(dentro(caja), `${vp.width}×${vp.height} vertical, vista de dos páginas («${e}»): sin recortes; ocupa ${(100 * fx).toFixed(0)} % del ancho libre y ${(100 * fy).toFixed(0)} % del alto libre → limitado por el ANCHO (proporción del álbum, no por la cámara)`);
+    ok(fx > 0.9, `${vp.width}×${vp.height}: el ancho libre está aprovechado (${(100 * fx).toFixed(0)} %): no hay zoom posible sin recortar`);
+  });
+}
+
 // ------------------------------------------------------------------ 3.7.2a: niveles de calidad cableados en la página real (Three.js simulado: valida el cableado, no el dibujo)
 for (const nivel of ['baja', 'media', 'alta', 'legado']) {
   await sesion({ width: 390, height: 844 }, async (pag) => {
@@ -209,7 +223,7 @@ for (const nivel of ['baja', 'media', 'alta', 'legado']) {
 await sesion({ width: 844, height: 390 }, async (pag) => {
   const r = await pag.evaluate(() => window.__album3d.medirEscenas(0.3));
   ok(r && r.escenas.length === 6 && r.escenas.map((x) => x.escena).join() === 'cerrado,pagina-1,paginas-4-5,pagina-18,carta-seleccionada,giro-de-hoja', 'medición por escenas: las 6 escenas pedidas');
-  ok(r.escenas.every((x) => 'fpsMedio' in x && 'p95_ms' in x && 'fpsMinimo' in x && 'llamadasDibujo' in x && 'triangulos' in x && 'geometrias' in x && 'texturas' in x && 'texturasMB_estimados' in x), 'medición por escenas: FPS medio/mínimo, p95, draw calls, triángulos, geometrías, texturas y memoria');
+  ok(r.escenas.every((x) => 'fpsMedio' in x && 'p95_ms' in x && 'fpsMinimo' in x && 'llamadasDibujo' in x && 'triangulos' in x && 'geometrias' in x && 'materiales' in x && 'texturas' in x && 'texturasMB_estimados' in x), 'medición por escenas: FPS medio/mínimo, p95, draw calls, triángulos, geometrías, texturas y memoria');
   ok(await pag.evaluate(() => !document.getElementById('informe').hidden && document.getElementById('informe').value.includes('"escenas"')), 'medición por escenas: el informe queda en el cuadro para copiarlo');
   ok(await pag.evaluate(() => !document.getElementById('ficha').hidden === false), 'medición por escenas: no deja la ficha abierta');
 }, '&calidad=media');

@@ -27,12 +27,12 @@ export function dibujarMarcador(lienzo, w, h, carta) {
 /** Etiqueta de carta PENDIENTE (aún no la tienes): placa oscura con el nombre y el número, para ubicarla en el bolsillo. */
 export function dibujarEtiquetaPendiente(lienzo, w, h, carta) {
   const ctx = lienzo.getContext('2d');
-  ctx.fillStyle = '#141a26'; ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = '#2c3a52'; ctx.lineWidth = Math.max(2, w * 0.025); ctx.setLineDash?.([w * 0.06, w * 0.05]);
+  ctx.fillStyle = '#18213a'; ctx.fillRect(0, 0, w, h);                       // placa hundida: más oscura que la hoja pero con detalle legible
+  ctx.strokeStyle = '#5a6d90'; ctx.lineWidth = Math.max(2, w * 0.025); ctx.setLineDash?.([w * 0.06, w * 0.05]);
   ctx.strokeRect(w * 0.06, w * 0.06, w * 0.88, h - w * 0.12); ctx.setLineDash?.([]);
-  ctx.textAlign = 'center'; ctx.fillStyle = '#7f8da6'; ctx.font = `700 ${Math.round(w * 0.13)}px system-ui, sans-serif`;
+  ctx.textAlign = 'center'; ctx.fillStyle = '#c3cde2'; ctx.font = `700 ${Math.round(w * 0.13)}px system-ui, sans-serif`;
   ctx.fillText(ajustarTexto(ctx, carta.nombre, w * 0.84), w / 2, h * 0.5);
-  ctx.fillStyle = '#56627a'; ctx.font = `500 ${Math.round(w * 0.1)}px system-ui, sans-serif`;
+  ctx.fillStyle = '#8c9ab6'; ctx.font = `500 ${Math.round(w * 0.1)}px system-ui, sans-serif`;
   ctx.fillText('Nº ' + carta.numero, w / 2, h * 0.62);
   ctx.fillText('pendiente', w / 2, h * 0.72);
 }
