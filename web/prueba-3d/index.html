@@ -19,6 +19,7 @@
   <p id="cargando" class="cargando">Cargando modelo 3D…</p>
   <p id="aviso" class="aviso" role="alert" hidden></p>
 
+  <pre id="diag" class="diag" hidden aria-label="Diagnóstico"></pre>
   <pre id="panel" class="panel" aria-label="Métricas de rendimiento" hidden></pre>
   <textarea id="informe" class="informe" rows="8" readonly hidden aria-label="Informe de métricas (copia este texto)"></textarea>
 
@@ -46,6 +47,12 @@
   </nav>
 </main>
 
+<script>
+// Captura de errores desde el primer instante (se ven en el modo ?debug=1 sin necesitar la consola de Safari).
+window.__errores = [];
+addEventListener('error', (e) => window.__errores.push('JS: ' + e.message + ' (' + (e.filename || '').split('/').pop() + ':' + e.lineno + ')'));
+addEventListener('unhandledrejection', (e) => window.__errores.push('Promesa: ' + (e.reason && e.reason.message || e.reason)));
+</script>
 <script>
 // Arranque: Three.js se toma de web/vendor/three/ si está (funciona sin internet) y, si no, de jsDelivr con versión fija.
 (async () => {

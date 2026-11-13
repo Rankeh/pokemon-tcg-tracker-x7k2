@@ -45,3 +45,18 @@ export class OrbitaLigera {
     return [tx + this.radio * c * Math.sin(this.az), ty + this.radio * Math.sin(this.el), tz + this.radio * c * Math.cos(this.az)];
   }
 }
+
+/**
+ * Distancia a la que hay que poner la cámara para que el álbum abierto quepa en pantalla (ancho y alto), sea cual sea la proporción.
+ * (Antes se dividía además por cos(elevación): en un móvil vertical daba 3,6 m y el álbum quedaba más allá del plano far=3 → no se dibujaba.)
+ */
+export function distanciaEncuadre({ fovGrados, aspect, ancho = 0.58, profundidad = 0.34, elevacion = 62 * GRAD, margen = 1.08 }) {
+  const tv = Math.tan(fovGrados * GRAD / 2), th = tv * aspect;
+  const alto = profundidad * Math.sin(elevacion) + 0.04;
+  return Math.max(ancho / 2 / th, alto / 2 / tv) * margen;
+}
+
+/** Planos de recorte derivados de la distancia (nunca fijos): el álbum siempre queda entre near y far, también al alejar con el zoom. */
+export function planosRecorte(radio, radioMax) {
+  return { near: Math.max(0.02, Math.min(radio, 0.5) * 0.03), far: Math.max(5, radioMax * 3) };
+}

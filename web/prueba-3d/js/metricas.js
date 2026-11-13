@@ -43,6 +43,7 @@ export class Metricas {
       navegador: navigator.userAgent,
       pantalla: { css: [innerWidth, innerHeight], pixelRatioDispositivo: devicePixelRatio, pixelRatioUsado: this.renderer.getPixelRatio() },
       webgl: this.gl(),
+      camara: window.__album3d ? { near: window.__album3d.camara.near, far: window.__album3d.camara.far, aspect: window.__album3d.camara.aspect, radio: window.__album3d.orbita.radio } : null,
       carga: { ...a.carga, ...this.tiempos },
       fps: { media: +f.fps.toFixed(1), minimo: +f.fpsMin.toFixed(1), p95_ms: +f.p95Ms.toFixed(1), muestras: f.muestras },
       ultimoFrame: { llamadasDibujo: info.render.calls, triangulosDibujados: info.render.triangles },

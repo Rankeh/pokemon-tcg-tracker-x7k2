@@ -1,7 +1,8 @@
 // Prueba 3.5 — Álbum 3D (Blender → GLB → Three.js). Ruta independiente: no usa IndexedDB, ni el catálogo, ni la navegación de la app.
 import * as THREE from 'three';
 import { cargarAlbum } from './album3d.js';
-import { OrbitaLigera } from './camara.js';
+import { OrbitaLigera, distanciaEncuadre, planosRecorte } from './camara.js';
+import { Diagnostico } from './diagnostico.js';
 import { Metricas } from './metricas.js';
 import { limitar } from './logica.js';
 
@@ -33,25 +34,26 @@ mesa.position.y = -0.0005;
 scene.add(mesa);
 
 const orbita = new OrbitaLigera();
-let album = null, metricas = null;
-let sucioHasta = 0, continuo = false;
+let album = null, metricas = null, diag = null;
+let sucioHasta = 0, continuo = false, forzarDibujo = false;
 const pedirFrame = (ms = 1200) => { sucioHasta = Math.max(sucioHasta, performance.now() + ms); };
 
 function ajustarTamano() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
   renderer.setSize(w, h, false);
   camara.aspect = w / h;
-  // Encuadre: el álbum abierto mide ~0,52 m de ancho; la cámara se aleja lo justo para que quepa también en vertical (móvil).
-  const tv = Math.tan(camara.fov * GRAD / 2), th = tv * camara.aspect;
-  const radio = Math.max(0.62, (0.30 / th) / Math.cos(orbita.el) * 0.95);
+  // Encuadre: distancia calculada para que el álbum abierto quepa en ancho y alto; los planos near/far salen de esa distancia.
+  const radio = distanciaEncuadre({ fovGrados: camara.fov, aspect: camara.aspect, elevacion: orbita.el });
   if (!sel) orbita.radio = radio;
-  orbita.limites.radio = [Math.min(0.3, radio), radio * 1.5];
+  orbita.limites.radio = [Math.min(0.3, radio), radio * 1.6];
+  const pl = planosRecorte(radio, orbita.limites.radio[1]);
+  camara.near = pl.near; camara.far = pl.far;
   camara.updateProjectionMatrix();
   pedirFrame();
 }
 new ResizeObserver(ajustarTamano).observe(canvas);
 
-canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); $('aviso').hidden = false; $('aviso').textContent = 'El navegador ha perdido el contexto WebGL (pasa en iPhone si la página gasta mucha memoria). Espera o recarga.'; });
+canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); if (diag) diag.contextoPerdido = true; $('aviso').hidden = false; $('aviso').textContent = 'El navegador ha perdido el contexto WebGL (pasa en iPhone si la página gasta mucha memoria). Espera o recarga.'; });
 canvas.addEventListener('webglcontextrestored', () => { $('aviso').hidden = true; pedirFrame(); });
 
 // ------------------------------------------------------------------ interfaz
@@ -134,7 +136,7 @@ function seleccionar(mesh) {
   const cara = bolsillo.userData.cara;
   sel = { mesh, bolsillo, cara, lift: 0, cerrando: false, previo: orbita.estado() };
   const p = mesh.getWorldPosition(new THREE.Vector3());
-  orbita.llevarA({ az: 0, el: 74 * GRAD, radio: Math.max(0.2, 0.2 * (innerHeight > innerWidth ? 1.5 : 1)), objetivo: [p.x, p.y, p.z] }, reducirMovimiento ? 0.01 : 0.7);
+  orbita.llevarA({ az: 0, el: 74 * GRAD, radio: innerHeight > innerWidth ? 0.34 : 0.2, objetivo: [p.x, p.y, p.z] }, reducirMovimiento ? 0.01 : 0.7);
   const f = $('ficha');
   $('f-img').src = mesh.userData.url || urlCarta(mesh.userData.imagen);
   $('f-titulo').textContent = 'Carta de prueba ' + String(mesh.userData.imagen + 1).padStart(2, '0');
@@ -205,7 +207,7 @@ function bucle(ahora) {
   activo = orbita.actualizar(dt) || activo;
   activo = avanzarSeleccion(dt) || activo;
   if (activo) { album.cargarVisibles(); actualizarUi(); }
-  if (!(activo || continuo || ahora < sucioHasta)) { metricas.pausa(); return; }
+  if (!(activo || continuo || forzarDibujo || ahora < sucioHasta)) { metricas.pausa(); return; }
   const [x, y, z] = orbita.posicion();
   camara.position.set(x, y, z);
   camara.lookAt(...orbita.objetivo);
@@ -215,9 +217,16 @@ function bucle(ahora) {
 }
 
 // ------------------------------------------------------------------ arranque
+if (params.get('debug') === '1') {
+  diag = new Diagnostico($('diag'), { renderer, scene, camara, orbita, getAlbum: () => album });
+  diag.estadoGlb = 'cargando…';
+  setInterval(() => diag.pintar(), 500);
+  forzarDibujo = true;                               // en diagnóstico se dibuja siempre, para ver FPS y llamadas reales
+}
 (async () => {
   try {
     album = await cargarAlbum('modelo/' + (/^[\w.-]+\.glb$/.test(params.get('modelo') || '') ? params.get('modelo') : 'album.glb'), { renderer, urlCarta });
+    if (diag) diag.estadoGlb = 'ok · ' + album.carga.bytes + ' bytes · descarga ' + Math.round(album.carga.descargaMs) + ' ms · proceso ' + Math.round(album.carga.procesoMs) + ' ms';
     album.onCambio = () => pedirFrame();
     if (reducirMovimiento) album.estado.duracion = 0.01;
     scene.add(album.escena);
@@ -233,6 +242,7 @@ function bucle(ahora) {
     if (params.get('auto') === 'medir') setTimeout(medir, 800);
   } catch (err) {
     console.error(err);
+    if (diag) diag.estadoGlb = 'ERROR: ' + err.message;
     $('cargando').textContent = 'Error: ' + err.message;
   }
 })();

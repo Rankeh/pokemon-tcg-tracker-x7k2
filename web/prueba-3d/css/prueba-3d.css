@@ -68,3 +68,6 @@ button.principal { background: var(--acento); color: #231a0c; border-color: var(
 .ficha:not([hidden]) ~ .barra { visibility: hidden; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+.diag { position: absolute; left: 6px; right: 6px; top: 52px; margin: 0; padding: 8px; max-height: 58vh; overflow: auto; pointer-events: none;
+  background: rgba(0, 0, 0, 0.78); border: 1px solid var(--acento); border-radius: 8px; font: 9.5px/1.35 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
