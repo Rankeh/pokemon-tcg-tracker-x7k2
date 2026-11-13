@@ -43,7 +43,7 @@ ok(len(hojas) == 9 and "Tapa" in nombres and "Lomo" in nombres and "Contratapa" 
 ok(all("mesh" not in n for n in hojas) and "mesh" not in nodos[nombres.index("Tapa")], "los pivotes de hoja/tapa no llevan malla (giran sin deformar nada)")
 mallas = js["meshes"]
 maxtri = max(js["accessors"][m["primitives"][0]["indices"]]["count"] // 3 for m in mallas)
-ok(maxtri < 300, "ninguna malla fusiona el álbum (máx. %d triángulos por malla)" % maxtri)
+ok(maxtri < 2500, "ninguna malla fusiona el álbum (máx. %d triángulos por malla; 3.7.6: tapas y lomo biselados ya no son de ~300)" % maxtri)
 bols = [n for n in nodos if n.get("extras", {}).get("tipo") == "bolsillo"]
 cartas = [n for n in nodos if n.get("extras", {}).get("tipo") == "carta"]
 plant = [n for n in nodos if n.get("extras", {}).get("tipo") == "plantilla"]
@@ -96,7 +96,7 @@ ok(dentro, "todos los bolsillos caben dentro de la hoja")
 ok(MW.SEP_FUNDA + p["grosor_hoja"] / 2 < MW.PASO - p["grosor_hoja"] / 2 - 0.0005, "funda y carta no tocan la hoja de encima (separación entre hojas suficiente)")
 ok(MW.ALTO_CARTA < MW.SEP_FUNDA, "la funda queda sobre la carta")
 est = MW.contar(modelo)
-ok(est["triangulos_instanciados"] < 5000, "ligero: %d triángulos instanciados, %d únicos" % (est["triangulos_instanciados"], est["triangulos_unicos"]))
+ok(est["triangulos_instanciados"] < 30000, "ligero (3.7.6, presupuesto para iPhone): %d triángulos instanciados, %d únicos" % (est["triangulos_instanciados"], est["triangulos_unicos"]))
 
 print("Exportador de Blender (bpy simulado)")
 bpy = mock.MagicMock(name="bpy")

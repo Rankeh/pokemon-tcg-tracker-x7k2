@@ -92,3 +92,18 @@ test('M8 FichaUI.cerrar: sin animación se oculta al instante; con animación es
   f.cerrar(); await new Promise((r) => setTimeout(r, SALIDA_MS + 60)); assert.equal(el.raiz.hidden, true); assert.ok(!el.raiz.classList.has('saliendo'));
   delete globalThis.getComputedStyle;
 });
+
+test('M9 modelo refinado (3.7.6): misma estructura y dimensiones que antes, más suave y dentro del presupuesto', async () => {
+  const m = await crearMundo(), a = m.album;
+  for (const n of ['Album', 'Contratapa', 'Lomo', 'Tapa', 'Tapa_Malla', 'Hoja_0', 'Hoja_8', 'Hoja_0_Losa', 'Hoja_0_F_Soldaduras', 'Hoja_0_D_Funda', 'Hoja_8_D_Bolsillo_8']) assert.ok(a.nodo.get(n), n);
+  assert.equal(a.geo.n, 9); assert.equal(a.params.ancho_tapa, 0.258); assert.equal(a.params.paso, 0.0035);
+  const c = a.cajaMalla('Tapa_Malla');                                  // el bisel se talla hacia dentro: la caja exterior no cambia (258 × 322 mm, 6 mm)
+  assert.ok(Math.abs((c.max[0] - c.min[0]) - 0.258) < 1e-4 && Math.abs((c.max[2] - c.min[2]) - 0.322) < 1e-4 && Math.abs((c.max[1] - c.min[1]) - 0.006) < 1e-5);
+  const l = a.cajaMalla('Lomo'); assert.ok(Math.abs(l.max[1] - 0.0435) < 1e-5 && Math.abs(l.min[1]) < 1e-6, 'el lomo conserva su altura (la cara superior coincide con la de la tapa)');
+  const tris = (n) => { const g = a.nodo.get(n).geometry; return g.index.count / 3; };
+  assert.ok(tris('Tapa_Malla') > 800 && tris('Lomo') > 800 && tris('Hoja_0_Losa') > 300, 'bordes biselados (ya no son losas de ~100 triángulos)');
+  const n = a.nodo.get('Tapa_Malla').geometry.attributes.normal; let inclinadas = 0;
+  for (let i = 0; i < n.count; i++) { const y = Math.abs(n.getY(i)); if (y > 0.05 && y < 0.95) inclinadas++; }
+  assert.ok(inclinadas > 100, 'hay normales intermedias (bisel suave, no aristas vivas)');
+  assert.ok(a.contarEscena({ soloVisibles: false }).triangulos < 30000, 'presupuesto para iPhone');
+});

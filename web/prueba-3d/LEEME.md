@@ -238,3 +238,15 @@ Inspirado en las referencias del usuario (interfaz de cristal flotante tipo visi
 - Ejemplos: `?tapa=cuero`, `?tapa=acolchado&calidad=alta`.
 
 **Qué está verificado y qué no**: lógica, cableado, CSS (reglas presentes) y temporización con Three.js simulado y Chromium. **No** está verificado cómo se ven los materiales ni la fluidez (FPS con desenfoque + animaciones) en el iPhone: eso requiere tus capturas/pruebas reales. Si el desenfoque penaliza los FPS, basta con quitar `backdrop-filter` del bloque 3.7.5/claro.
+
+## 3.7.6 · Modelo 3D más refinado (menos «low-poly»)
+
+Petición del usuario: el álbum se veía demasiado poligonal. `blender/teselia/modelo_web.py` genera ahora el GLB con:
+- `losa_biselada_xz`: tapas, hojas y lomo con **cantos redondeados** (perfil de cuarto de círculo, normales suaves). El bisel se talla hacia dentro: las dimensiones exteriores, alturas y cajas **no cambian** (encuadre, raycasting y animaciones iguales).
+- Tapas: bisel de 1,9 mm en 6 pasos y esquinas de 14 segmentos; **lomo** casi cilíndrico (bisel 8,5 mm); hojas, fundas y cartas con esquinas de 7–10 segmentos.
+- Soldaduras: de tiras planas a barras con chaflán (0,5 mm de relieve).
+- Coste: de ~2.300 a ~26.000 triángulos totales (GLB 161 KB). Con el culling de detalle de 3.7.1c solo se dibujan las hojas cercanas. Los nombres de nodos, `extras` y materiales son los mismos.
+- Los tests de «presupuesto de triángulos» de `blender/pruebas_glb.py` pasan a 30.000 totales / 2.500 por malla; `album.glb` sale de la lista de archivos protegidos (por petición expresa) y su estructura se vigila en `movimiento37.test.mjs` (M9).
+- Para regenerar: `python blender/exportar_glb.py`. Vista previa sin Blender: `python blender/previsualizar_glb.py 0 3`.
+
+**Pendiente de validar en iPhone**: el aspecto real con luces/materiales y los FPS (26 k triángulos es modesto, pero no lo he medido en GPU). Si baja la fluidez, basta con bajar los pasos de bisel en `modelo_web.py`.

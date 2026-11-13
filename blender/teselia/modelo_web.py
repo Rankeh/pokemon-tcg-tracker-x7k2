@@ -136,6 +136,74 @@ def tiras_u(cx, cz, ancho, alto, grosor, y, hacia_arriba, material):
     return m
 
 
+def _normales_poligono(poligono):
+    """Normal exterior (x, z) de cada vértice de un polígono convexo: media de las normales de sus dos aristas."""
+    k = len(poligono)
+    cx, cz = _centro(poligono)
+    out = []
+    for i in range(k):
+        px, pz = poligono[i - 1]
+        qx, qz = poligono[(i + 1) % k]
+        nx, nz = qz - pz, -(qx - px)
+        d = math.hypot(nx, nz) or 1.0
+        nx, nz = nx / d, nz / d
+        if nx * (poligono[i][0] - cx) + nz * (poligono[i][1] - cz) < 0:
+            nx, nz = -nx, -nz
+        out.append((nx, nz))
+    return out
+
+
+def losa_biselada_xz(poligono, y0, y1, bisel, seg, material):
+    """3.7.6 · Prisma de base convexa con los DOS cantos redondeados (perfil de cuarto de círculo, `seg` pasos) y normales suaves.
+    Mismas dimensiones exteriores que losa_xz (el bisel se talla hacia dentro): las cajas, el encuadre y las alturas no cambian.
+    Los círculos de las esquinas del polígono deben tener radio ≥ bisel."""
+    bisel = min(bisel, (y1 - y0) / 2 - 1e-6)
+    m = Malla(material)
+    cx, cz = _centro(poligono)
+    nv = _normales_poligono(poligono)
+    k = len(poligono)
+    anillos = []                                             # (lista de índices, y) de arriba a abajo
+    angulos = [90.0 * (seg - j) / seg for j in range(seg + 1)]
+    for sup in (True, False):
+        for a in (angulos if sup else angulos[::-1]):
+            t = math.radians(a)
+            d = bisel * (1.0 - math.cos(t))
+            y = (y1 - bisel + bisel * math.sin(t)) if sup else (y0 + bisel - bisel * math.sin(t))
+            sy = 1.0 if sup else -1.0
+            ids = [m.vertice((x - nv[i][0] * d, y, z - nv[i][1] * d), (nv[i][0] * math.cos(t), sy * math.sin(t), nv[i][1] * math.cos(t)))
+                   for i, (x, z) in enumerate(poligono)]
+            anillos.append(ids)
+    for y, n in ((y1, (0, 1, 0)), (y0, (0, -1, 0))):         # tapas planas: abanico desde el centro hasta el anillo de 90°
+        c = m.vertice((cx, y, cz), n)
+        ring = anillos[0] if y == y1 else anillos[-1]
+        for i in range(k):
+            m.triangulo(c, ring[i], ring[(i + 1) % k], n)
+    for r in range(len(anillos) - 1):
+        a, b = anillos[r], anillos[r + 1]
+        for i in range(k):
+            j = (i + 1) % k
+            nn = (nv[i][0] + nv[j][0], 0.0, nv[i][1] + nv[j][1])
+            if abs(nn[0]) + abs(nn[2]) < 1e-9:
+                nn = (nv[i][0], 0.0, nv[i][1])
+            nn = (nn[0], 0.35 if r < len(anillos) // 2 - 1 else (-0.35 if r >= len(anillos) // 2 else 0.0), nn[2])
+            m.triangulo(a[i], b[i], a[j], nn)
+            m.triangulo(a[j], b[i], b[j], nn)
+    return m
+
+
+def tiras_u_biseladas(cx, cz, ancho, alto, grosor, y, hacia_arriba, material, altura=0.0005):
+    """Soldadura en U como TRES barras redondeadas (relieve de sellado térmico) en vez de tiras planas."""
+    m = Malla(material)
+    x0, x1, z0, z1 = cx - ancho / 2, cx + ancho / 2, cz - alto / 2, cz + alto / 2
+    rects = [(x0 - grosor, z0, x0, z1 + grosor), (x1, z0, x1 + grosor, z1 + grosor), (x0 - grosor, z1, x1 + grosor, z1 + grosor)]
+    for a, b, c, d in rects:
+        poli = [(a, b), (c, b), (c, d), (a, d)]                      # 4 vértices + 1 paso de bisel: a 0,4 mm de alto no se distingue de un redondeo y cuesta 4× menos
+        poli = [(x, z) for x, z in poli]
+        y0, y1 = (y, y + altura) if hacia_arriba else (y - altura, y)
+        m.fusionar(losa_biselada_xz(poli, y0, y1, altura * 0.45, 1, material))
+    return m
+
+
 # ------------------------------------------------------------------ nodos
 def nodo(nombre, malla=None, pos=(0.0, 0.0, 0.0), rotz=0.0, extras=None, hijos=None):
     return {"nombre": nombre, "malla": malla, "pos": tuple(pos), "rotz": rotz, "extras": extras or {}, "hijos": hijos or []}
@@ -166,23 +234,23 @@ def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.0):
 
     mallas = {}
     # --- mallas compartidas
-    mallas["losa_hoja"] = losa_xz(_poli(G.rect_redondeado(W, H, hoja["radio_esquina"], 4, W / 2, 0)), -grosor_h / 2, grosor_h / 2, "Hoja")
-    mallas["tapa"] = losa_xz(_poli(G.rect_redondeado(cub["ancho"], cub["alto"], cub["radio_esquina"], 5, cub["ancho"] / 2, 0)),
-                             -GROSOR_TAPA / 2, GROSOR_TAPA / 2, "Cubierta")
+    mallas["losa_hoja"] = losa_biselada_xz(_poli(G.rect_redondeado(W, H, hoja["radio_esquina"], 10, W / 2, 0)), -grosor_h / 2, grosor_h / 2, 0.0004, 2, "Hoja")
+    mallas["tapa"] = losa_biselada_xz(_poli(G.rect_redondeado(cub["ancho"], cub["alto"], cub["radio_esquina"], 14, cub["ancho"] / 2, 0)),
+                                      -GROSOR_TAPA / 2, GROSOR_TAPA / 2, 0.0019, 6, "Cubierta")
     ancho_lomo = lomo_ancho = 0.020
-    mallas["lomo"] = losa_xz(_poli(G.rect_redondeado(ancho_lomo, cub["alto"], 0.006, 3)), 0.0, GROSOR_TAPA * 2 + n_hojas * PASO, "Cubierta")
-    poli_carta = _poli(G.rect_redondeado(car["ancho"], car["alto"], car["radio_esquina"], 3))
+    mallas["lomo"] = losa_biselada_xz(_poli(G.rect_redondeado(ancho_lomo, cub["alto"], 0.0095, 10)), 0.0, GROSOR_TAPA * 2 + n_hojas * PASO, 0.0085, 8, "Cubierta")
+    poli_carta = _poli(G.rect_redondeado(car["ancho"], car["alto"], car["radio_esquina"], 7))
     cw, ch = car["ancho"], car["alto"]
     mallas["carta_f"] = lamina_xz(poli_carta, 0.0, True, "Carta", lambda x, z: (x / cw + 0.5, z / ch + 0.5))
     mallas["carta_d"] = lamina_xz(poli_carta, 0.0, False, "Carta", lambda x, z: (0.5 - x / cw, z / ch + 0.5))
-    poli_funda = _poli(G.rect_redondeado(W - 0.004, H - 0.004, hoja["radio_esquina"] - 0.002, 4, W / 2, 0))
+    poli_funda = _poli(G.rect_redondeado(W - 0.004, H - 0.004, hoja["radio_esquina"] - 0.002, 10, W / 2, 0))
     mallas["funda_f"] = lamina_xz(poli_funda, 0.0, True, "Funda")
     mallas["funda_d"] = lamina_xz(poli_funda, 0.0, False, "Funda")
     sold = {True: Malla("Soldadura"), False: Malla("Soldadura")}
     for k in range(9):
         r, c = divmod(k, 3)
         for arriba in (True, False):
-            sold[arriba].fusionar(tiras_u(x_ini + c * paso_x, z_ini + r * paso_z, bol["ancho"], bol["alto"], bol["soldadura"], 0.0, arriba, "Soldadura"))
+            sold[arriba].fusionar(tiras_u_biseladas(x_ini + c * paso_x, z_ini + r * paso_z, bol["ancho"], bol["alto"], bol["soldadura"], 0.0, arriba, "Soldadura"))
     mallas["sold_f"], mallas["sold_d"] = sold[True], sold[False]
 
     # --- alturas de pivote, álbum cerrado (todo en la pila derecha)

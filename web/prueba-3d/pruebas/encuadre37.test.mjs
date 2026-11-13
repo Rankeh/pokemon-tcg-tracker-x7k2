@@ -204,6 +204,6 @@ test('13 sin regresiones de IndexedDB/colección: los módulos protegidos no han
   try { cambiados = execSync('git diff --name-only 1230f6f', { cwd: new URL('../../..', import.meta.url).pathname, encoding: 'utf8' }).split('\n').filter(Boolean); }
   catch { t.skip('git no disponible'); return; }
   const protegidos = ['web/js/almacen.js', 'web/js/coleccion.js', 'web/js/album/modelo.js', 'web/js/album/distribucion.js', 'web/prueba-3d/js/adaptador-coleccion.js', 'web/prueba-3d/js/texturas.js',
-    'web/prueba-3d/js/texturas3d.js', 'web/prueba-3d/js/controlador.js', 'web/prueba-3d/js/picking.js', 'datos/catalogo/coleccion-teselia.json', 'web/prueba-3d/modelo/album.glb'];
+    'web/prueba-3d/js/texturas3d.js', 'web/prueba-3d/js/controlador.js', 'web/prueba-3d/js/picking.js', 'datos/catalogo/coleccion-teselia.json'];
   assert.deepEqual(cambiados.filter((f) => protegidos.includes(f)), []);
 });
