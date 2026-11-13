@@ -150,3 +150,61 @@ body[data-tema="acogedor"] .ficha-error { color: #c2412d; }
   body[data-tema="acogedor"] h1 { padding: 5px 6px 5px 12px; font-size: 0.95rem; } body[data-tema="acogedor"] h1 small { font-size: 0.78rem; }
   body[data-tema="acogedor"] button, body[data-tema="acogedor"] select { min-height: 46px; padding: 0 4px; border-width: 2px; border-radius: 14px; }
 }
+
+/* =====================================================================================================================================
+   TEMA «CLARO» (por defecto): interfaz limpia estilo Apple. Estudio gris perla, paneles de vidrio esmerilado con borde fino, tipografía del sistema (SF),
+   un único acento azul, sin sombras gruesas ni colores saturados. El vidrio usa backdrop-filter SOLO en la barra y la cabecera (superficies pequeñas);
+   si el dispositivo no lo soporta, el panel queda translúcido sin desenfoque. ?tema=acogedor / noche conservan los anteriores.
+   ===================================================================================================================================== */
+body[data-tema="claro"] {
+  --fondo: #d4d4d9; --texto: #1d1d1f; --suave: #6e6e73; --acento: #0a84ff; --panel: rgba(255, 255, 255, 0.78); --borde: rgba(0, 0, 0, 0.08); --azul: #0a84ff; --ok: #30b94d;
+  --vidrio: rgba(255, 255, 255, 0.72); --vidrio-fuerte: rgba(255, 255, 255, 0.9); --relleno: rgba(0, 0, 0, 0.05); --relleno-2: rgba(0, 0, 0, 0.09); --sombra: 0 8px 30px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif; font-weight: 500; letter-spacing: -0.01em;
+  background: radial-gradient(120% 90% at 50% 38%, #e4e4e8 0%, #d3d3d8 62%, #c3c3c9 100%);
+}
+body[data-tema="claro"] .cabecera { pointer-events: none; }
+body[data-tema="claro"] h1 { display: inline-flex; align-items: baseline; gap: 10px; margin: 0; padding: 9px 16px; font-size: 1.02rem; font-weight: 650; letter-spacing: -0.015em; color: var(--texto);
+  background: var(--vidrio); -webkit-backdrop-filter: blur(20px) saturate(1.6); backdrop-filter: blur(20px) saturate(1.6); border: 0.5px solid var(--borde); border-radius: 999px; box-shadow: var(--sombra); }
+body[data-tema="claro"] h1 small { margin: 0; padding: 0; color: var(--suave); font-weight: 500; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+body[data-tema="claro"] #estado { display: inline-block; margin: 8px 0 0 8px; padding: 0; color: var(--suave); font-size: 0.82rem; font-weight: 500; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6); }
+body[data-tema="claro"] .cargando, body[data-tema="claro"] .aviso { color: var(--texto); background: var(--vidrio-fuerte); border: 0.5px solid var(--borde); border-radius: 20px; box-shadow: var(--sombra); }
+body[data-tema="claro"] .aviso { border-color: var(--acento); }
+
+/* Barra: una sola «cápsula» de vidrio flotante */
+body[data-tema="claro"] .barra { left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); padding: 6px; gap: 4px; flex-wrap: nowrap; justify-content: space-between;
+  background: var(--vidrio); -webkit-backdrop-filter: blur(24px) saturate(1.7); backdrop-filter: blur(24px) saturate(1.7); border: 0.5px solid var(--borde); border-radius: 26px; box-shadow: var(--sombra); }
+body[data-tema="claro"] button, body[data-tema="claro"] select { min-height: 46px; padding: 0 14px; color: var(--texto); font-weight: 600; letter-spacing: -0.01em; background: transparent; border: 0; border-radius: 20px;
+  box-shadow: none; transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s; }
+body[data-tema="claro"] button:hover:not(:disabled) { background: var(--relleno); }
+body[data-tema="claro"] button:active:not(:disabled) { background: var(--relleno-2); transform: scale(0.96); }
+body[data-tema="claro"] button:disabled { opacity: 0.32; }
+body[data-tema="claro"] button:focus-visible, body[data-tema="claro"] select:focus-visible { outline: 3px solid rgba(10, 132, 255, 0.55); outline-offset: 1px; }
+body[data-tema="claro"] button.principal { color: #fff; background: var(--acento); font-weight: 650; padding: 0 18px; }
+body[data-tema="claro"] button.principal:hover:not(:disabled) { background: #2b94ff; } body[data-tema="claro"] button.principal:active:not(:disabled) { background: #0670d6; }
+body[data-tema="claro"] #b-ant, body[data-tema="claro"] #b-sig { min-width: 46px; padding: 0; font-size: 1.5rem; font-weight: 500; color: var(--texto); background: var(--relleno); border-radius: 50%; width: 46px; }
+body[data-tema="claro"] #b-ant:hover:not(:disabled), body[data-tema="claro"] #b-sig:hover:not(:disabled) { background: var(--relleno-2); }
+body[data-tema="claro"] #b-salto { min-height: 46px; padding: 0 10px; text-align: center; text-align-last: center; font-weight: 600; background: var(--relleno); border-radius: 20px; text-overflow: ellipsis; -webkit-appearance: none; appearance: none; }
+body[data-tema="claro"] #b-vista { min-width: 46px; width: 46px; padding: 0; background: var(--relleno); border-radius: 50%; letter-spacing: 0; }
+
+/* Ficha: hoja de vidrio clara */
+body[data-tema="claro"] .ficha-fondo { background: rgba(0, 0, 0, 0.1); }
+body[data-tema="claro"] .ficha { color: var(--texto); background: var(--vidrio-fuerte); -webkit-backdrop-filter: blur(30px) saturate(1.8); backdrop-filter: blur(30px) saturate(1.8); border: 0.5px solid var(--borde); border-bottom: 0;
+  border-radius: 28px 28px 0 0; box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.14); }
+body[data-tema="claro"] .ficha[data-estado="conseguida"] { border-top-color: var(--ok); }
+body[data-tema="claro"] .ficha-cerrar { color: var(--suave); background: var(--relleno); width: 34px; min-height: 34px; height: 34px; border-radius: 50%; padding: 0; top: 14px; font-size: 0.95rem; }
+body[data-tema="claro"] .ficha-imagen { background: #fff; border: 0; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22), 0 1px 3px rgba(0, 0, 0, 0.12); }
+body[data-tema="claro"] .ficha-sin-imagen { color: var(--suave); border: 1px solid var(--borde); border-radius: 12px; } body[data-tema="claro"] .ficha-sin-imagen strong { color: var(--texto); } body[data-tema="claro"] .ficha-sin-imagen em { color: var(--acento); }
+body[data-tema="claro"] .ficha h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
+body[data-tema="claro"] .ficha-exp { color: var(--texto); } body[data-tema="claro"] .ficha-num { color: var(--suave); }
+body[data-tema="claro"] .ficha-total strong { font-size: 2.5rem; font-weight: 650; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; } body[data-tema="claro"] .ficha-total span { color: var(--suave); }
+body[data-tema="claro"] .paso { width: 60px; min-height: 60px; border-radius: 50%; background: var(--relleno-2); font-size: 1.9rem; font-weight: 400; }
+body[data-tema="claro"] .paso-mas { color: #fff; background: var(--acento); } body[data-tema="claro"] .paso-mas:hover:not(:disabled) { background: #2b94ff; }
+body[data-tema="claro"] .ficha-error { color: #d70015; }
+@media (min-width: 760px) { body[data-tema="claro"] .ficha { border: 0.5px solid var(--borde); border-radius: 28px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2); } body[data-tema="claro"] .barra { left: 50%; right: auto; transform: translateX(-50%); width: min(560px, calc(100% - 24px)); } }
+@media (orientation: landscape) and (max-height: 520px) {
+  body[data-tema="claro"] .barra { left: auto; transform: none; top: 50%; bottom: auto; right: max(10px, env(safe-area-inset-right)); width: 64px; height: auto; transform: translateY(-50%); flex-direction: column; flex-wrap: nowrap; padding: 6px; gap: 6px; border-radius: 28px; }
+  body[data-tema="claro"] .barra > button, body[data-tema="claro"] #b-salto { width: 100%; min-width: 0; padding: 0 2px; }
+  body[data-tema="claro"] #b-ant, body[data-tema="claro"] #b-sig, body[data-tema="claro"] #b-vista { width: 100%; border-radius: 18px; }
+  body[data-tema="claro"] h1 { padding: 6px 12px; font-size: 0.92rem; } body[data-tema="claro"] h1 small { display: inline; font-size: 0.8rem; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { body[data-tema="claro"] { --vidrio: rgba(255, 255, 255, 0.92); --vidrio-fuerte: rgba(255, 255, 255, 0.97); } }

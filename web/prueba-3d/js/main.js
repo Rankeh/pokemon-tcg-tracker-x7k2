@@ -39,7 +39,7 @@ const camara = new THREE.PerspectiveCamera(FOV, 1, 0.02, 5);
 // Fase 3.7.2a: luces, mesa, sombra de contacto, materiales y tone mapping los gestiona Aspecto según el nivel de calidad (?calidad=baja|media|alta|legado).
 const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchMedia('(pointer: coarse)').matches,
   nucleos: navigator.hardwareConcurrency || 0, memoriaGb: navigator.deviceMemory || 0 });
-const tema = elegirTema(params.get('tema'));                 // ?tema=acogedor (por defecto, estilo videojuego) | noche (grafito de 3.7.2)
+const tema = elegirTema(params.get('tema'));                 // ?tema=claro (por defecto, estilo Apple) | acogedor (videojuego cálido) | noche (grafito de 3.7.2)
 document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
 const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema });
 

@@ -199,6 +199,19 @@ export const luminanciaSrgb = (c) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[
 // ------------------------------------------------------------------ clase Aspecto: aplica todo a la escena y lo libera
 // ------------------------------------------------------------------ TEMAS (3.7.3 · dirección «videojuego»): mismos materiales y niveles, distinta paleta/luz/escenario
 export const TEMAS = {
+  // CLARO (por defecto desde 3.7.4): estudio neutro estilo producto Apple. Grafito + blanco roto, un único acento (azul), suelo gris perla que se funde con el fondo, sin alfombra ni colores saturados.
+  claro: {
+    paleta: { cubierta: 0x343a43, pagina: 0xf0eee8, lomo: 0x424951, soldadura: 0xa8a49a, funda: 0xffffff, mesa: 0xe6e6ea },
+    luces: {
+      hemi: { cielo: 0xffffff, suelo: 0xb9b9c1, intensidad: 0.9 },
+      principal: { color: 0xfff6ec, intensidad: 2.2, pos: [-0.6, 0.62, 0.5] },
+      relleno: { color: 0xe6edff, intensidad: 0.5, pos: [0.8, 0.3, 0.35] },
+      contorno: { color: 0xffffff, intensidad: 1.3, pos: [0.3, 0.5, -0.85] },
+    },
+    cantos: { cubierta: { canto: [1.5, 1.5, 1.5] }, pagina: { canto: [0.9, 0.88, 0.82] }, lomo: { curvatura: 0.62 } },
+    exposicion: 1.12, sheen: 0xcfd6e2, aro: 0x0a84ff, sombraOpacidad: 0.32,
+    escenario: { suelo: [0xe6e6ea], tablones: false, alfombra: null, ladoSuelo: 3 },
+  },
   noche: { paleta: PALETA, luces: LUCES, cantos: CANTOS, exposicion: EXPOSICION, sheen: 0x7f93b8, aro: 0xe8b25a, sombraOpacidad: SOMBRA.opacidad, escenario: null },
   acogedor: {
     paleta: { cubierta: 0x3a7f92, pagina: 0xeadfc8, lomo: 0xb9733f, soldadura: 0xb48a58, funda: 0xffffff, mesa: 0xc9a47c },
@@ -214,16 +227,16 @@ export const TEMAS = {
   },
 };
 export const NOMBRES_TEMA = Object.keys(TEMAS);
-export const elegirTema = (p) => (TEMAS[(p || '').toLowerCase()] ? (p || '').toLowerCase() : 'acogedor');
+export const elegirTema = (p) => (TEMAS[(p || '').toLowerCase()] ? (p || '').toLowerCase() : 'claro');
 
 const rgb = (h) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
 /** Suelo de madera clara: tablones suaves, centro algo más luminoso y alfa que se desvanece hacia el borde (deja ver el fondo desenfocado de la página). RGBA8 sRGB. */
-export function generarSuelo(tam = 128, color = 0xc79a6b) {
+export function generarSuelo(tam = 128, color = 0xc79a6b, tablones = true) {
   const out = new Uint8Array(tam * tam * 4), [r, g, b] = rgb(color);
   for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
     const u = (i + 0.5) / tam, v = (j + 0.5) / tam, d = Math.hypot(u - 0.5, v - 0.5) * 2;
-    const tablon = Math.floor(u * 14), junta = Math.abs(((u * 14) % 1) - 0.0) < 0.04 ? 0.88 : 1;
-    const tono = (0.96 + 0.06 * hash(tablon, 3, 5)) * junta * (1.06 - 0.16 * Math.min(1, d));
+    const tablon = Math.floor(u * 14), junta = tablones && Math.abs(((u * 14) % 1) - 0.0) < 0.04 ? 0.88 : 1;
+    const tono = (tablones ? 0.96 + 0.06 * hash(tablon, 3, 5) : 1) * junta * (1.06 - 0.16 * Math.min(1, d));
     const k = (j * tam + i) * 4;
     out[k] = Math.min(255, r * tono); out[k + 1] = Math.min(255, g * tono); out[k + 2] = Math.min(255, b * tono);
     out[k + 3] = Math.round(255 * (1 - suavizar(0.3, 0.95, d)));
@@ -231,15 +244,14 @@ export function generarSuelo(tam = 128, color = 0xc79a6b) {
   return out;
 }
 /** Alfombra redonda de juego: centro crema, anillo rosado, costura discontinua y borde; alfa circular con borde suave. RGBA8 sRGB. */
-export function generarAlfombra(tam = 256, p = TEMAS.acogedor.escenario.alfombra) {
+export function generarAlfombra(tam = 512, p = TEMAS.acogedor.escenario.alfombra) {
   const out = new Uint8Array(tam * tam * 4), C = { c: rgb(p.centro), a: rgb(p.anillo), b: rgb(p.borde), s: rgb(p.costura) };
   for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
     const x = ((i + 0.5) / tam - 0.5) * 2, y = ((j + 0.5) / tam - 0.5) * 2, r = Math.hypot(x, y), ang = Math.atan2(y, x);
-    let col = C.c;
-    if (r > 0.64) col = C.a;
-    if (r > 0.9) col = C.b;
-    if (Math.abs(r - 0.8) < 0.012 && Math.sin(ang * 36) > 0) col = C.s;              // costura discontinua
-    if (Math.abs(r - 0.64) < 0.01) col = C.b;
+    const px = 1.5 / tam * 2, mezcla = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t), paso = (e) => suavizar(e - px, e + px, r);      // bordes antialias (~1,5 px): sin escalones al ampliar
+    let col = mezcla(C.c, C.a, paso(0.64));
+    col = mezcla(col, C.b, paso(0.9));
+    col = mezcla(col, C.s, Math.max(0, 1 - Math.abs(r - 0.8) / (px * 1.2)) * 0.9);               // costura continua fina
     const luz = 1.04 - 0.1 * r, k = (j * tam + i) * 4;
     out[k] = Math.min(255, col[0] * luz); out[k + 1] = Math.min(255, col[1] * luz); out[k + 2] = Math.min(255, col[2] * luz);
     out[k + 3] = Math.round(255 * (1 - suavizar(0.955, 0.985, r)));
@@ -297,8 +309,8 @@ export class Aspecto {
       const o = new THREE.Mesh(this._recurso(new THREE.PlaneGeometry(lado, lado)), m);
       o.rotation.x = -Math.PI / 2; o.position.y = y; o.renderOrder = orden; o.name = nombre; this._anadir(o); return o;
     };
-    this.mesa = plano('Suelo', esc.ladoSuelo, { datos: generarSuelo(128, esc.suelo[0]), tam: 128 }, -0.0008, -3);
-    this.alfombra = plano('Alfombra', esc.radioAlfombra * 2, { datos: generarAlfombra(256, esc.alfombra), tam: 256 }, -0.0005, -2);
+    this.mesa = plano('Suelo', esc.ladoSuelo, { datos: generarSuelo(128, esc.suelo[0], esc.tablones !== false), tam: 128 }, -0.0008, -3);
+    if (esc.alfombra) this.alfombra = plano('Alfombra', esc.radioAlfombra * 2, { datos: generarAlfombra(512, esc.alfombra), tam: 512 }, -0.0005, -2);
   }
 
   _montarSombra() {
@@ -339,7 +351,9 @@ export class Aspecto {
         m.sheen = 0.55; m.sheenRoughness = 0.55; m.sheenColor.set(this.t.sheen);
       } else if (grupo === 'lomo') m = this._recurso(viejo.clone());
       m.name = { cubierta: 'Cubierta', lomo: 'Lomo', hoja: 'Hoja', soldadura: 'Soldadura' }[grupo];
-      m.color.set(hex); m.roughness = p.rugosidad; m.metalness = 0; m.vertexColors = true;
+      m.color.set(hex); m.roughness = p.rugosidad; m.metalness = 0;
+      m.vertexColors = grupo === 'cubierta' || grupo === 'lomo' || grupo === 'hoja';          // SOLO los grupos cuyas geometrías reciben color de vértice: sin atributo, Three pinta negro (era el marco negro de los bolsillos)
+      if (grupo === 'lomo') { m.polygonOffset = true; m.polygonOffsetFactor = 1; m.polygonOffsetUnits = 4; }     // la cara superior del lomo (y=0,0435) coincide con la de la tapa cerrada (0,0405+0,003): se empuja atrás para que no haya z-fighting
       if (relieve && normal && p.relieve) { m.normalMap = normal; m.normalScale.set(p.relieve, p.relieve); if (rugo) m.roughnessMap = rugo; }
       m.needsUpdate = true;
       for (const o of grupos[grupo]) o.material = m;

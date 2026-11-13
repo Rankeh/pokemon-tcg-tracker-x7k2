@@ -207,12 +207,15 @@ for (const vp of [{ width: 390, height: 844 }, { width: 430, height: 932 }]) {
 }
 
 // ------------------------------------------------------------------ 3.7.3: tema de interfaz aplicado de verdad (estilos calculados por Chromium real; el 3D es simulado)
-for (const [consulta, esperado] of [['', 'acogedor'], ['&tema=acogedor', 'acogedor'], ['&tema=noche', 'noche']]) {
+for (const [consulta, esperado] of [['', 'claro'], ['&tema=claro', 'claro'], ['&tema=acogedor', 'acogedor'], ['&tema=noche', 'noche']]) {
   await sesion({ width: 390, height: 844 }, async (pag) => {
     const r = await pag.evaluate(() => { const css = (sel, p) => getComputedStyle(document.querySelector(sel))[p];
-      return { tema: document.body.dataset.tema, boton: css('#b-sig', 'backgroundColor'), principal: css('#b-abrir', 'backgroundColor'), h1: css('h1', 'backgroundColor'), fuente: css('body', 'fontFamily'), escenario: !!window.__album3d.scene.children.find((o) => o.name === 'Alfombra'), aro: window.__album3d.resaltado.mat.color.v, ancho: document.documentElement.scrollWidth <= innerWidth }; });
+      return { tema: document.body.dataset.tema, boton: css('#b-sig', 'backgroundColor'), principal: css('#b-abrir', 'backgroundColor'), h1: css('h1', 'backgroundColor'), fuente: css('body', 'fontFamily'), escenario: !!window.__album3d.scene.children.find((o) => o.name === 'Alfombra'), suelo: !!window.__album3d.scene.children.find((o) => o.name === 'Suelo'), aro: window.__album3d.resaltado.mat.color.v, ancho: document.documentElement.scrollWidth <= innerWidth }; });
     ok(r.tema === esperado, `tema «${esperado}»${consulta ? ' (' + consulta.slice(1) + ')' : ' por defecto'}`);
-    if (esperado === 'acogedor') {
+    if (esperado === 'claro') {
+      ok(r.h1.startsWith('rgba(255, 255, 255, 0.72') && r.principal === 'rgb(10, 132, 255)', `claro: cabecera de vidrio blanco y «Abrir» en azul sistema (${r.h1} / ${r.principal})`);
+      ok(/apple|SF Pro|Segoe|system-ui/i.test(r.fuente), 'claro: tipografía del sistema'); ok(r.escenario === false && r.suelo, 'claro: suelo perla sin alfombra'); ok(r.aro === 0x0a84ff, 'claro: aro de selección azul');
+    } else if (esperado === 'acogedor') {
       ok(r.h1 === 'rgb(255, 246, 228)' && r.principal === 'rgb(124, 195, 94)' && r.boton === 'rgb(127, 167, 217)', `acogedor: cabecera crema, «Abrir» verde, flechas azules (${r.h1} / ${r.principal} / ${r.boton})`);
       ok(/rounded|Nunito|Segoe|Trebuchet/i.test(r.fuente), 'acogedor: tipografía redondeada del sistema'); ok(r.escenario, 'acogedor: suelo y alfombra en la escena'); ok(r.aro === 0xf0701e, 'acogedor: aro de selección naranja');
     } else { ok(!r.escenario && r.aro === 0xe8b25a, 'noche: escena y aro como en 3.7.2'); }

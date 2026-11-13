@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#e7b98a">
+  <meta name="theme-color" content="#f5f5f7">
   <title>Álbum 3D Teselia</title>
   <link rel="stylesheet" href="css/prueba-3d.css">
-  <script>/* tema antes del primer pintado (evita el parpadeo): ?tema=noche | acogedor (por defecto) */document.addEventListener('DOMContentLoaded', () => { const t = new URLSearchParams(location.search).get('tema'); document.body.dataset.tema = t === 'noche' ? 'noche' : 'acogedor'; });</script>
+  <script>/* tema antes del primer pintado (evita el parpadeo): ?tema=claro (por defecto) | acogedor | noche */document.addEventListener('DOMContentLoaded', () => { const t = new URLSearchParams(location.search).get('tema'); document.body.dataset.tema = t === 'noche' || t === 'acogedor' ? t : 'claro'; });</script>
 </head>
 <body>
 <main class="app">
