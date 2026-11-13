@@ -10,7 +10,7 @@ import { dimensiones, puntosVista, puntosGiro, calcularEncuadre, elevacionPara, 
 import { crearGeometria } from './logica.js';
 import { Resaltado } from './resaltado.js';
 import { Metricas } from './metricas.js';
-import { Aspecto, elegirCalidad, elegirTema, TEMAS } from './aspecto.js';
+import { Aspecto, elegirCalidad, elegirTema, elegirAcabado, TEMAS } from './aspecto.js';
 import { fijarTemaMarcadores } from './marcadores.js';
 import { Diagnostico } from './diagnostico.js';
 import { CacheTexturas } from './texturas.js';
@@ -41,7 +41,8 @@ const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchM
   nucleos: navigator.hardwareConcurrency || 0, memoriaGb: navigator.deviceMemory || 0 });
 const tema = elegirTema(params.get('tema'));                 // ?tema=claro (por defecto, estilo Apple) | acogedor (videojuego cálido) | noche (grafito de 3.7.2)
 document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
-const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema });
+const tapa = elegirAcabado(params.get('tapa'));               // ?tapa=grafito (por defecto) | fieltro | cuero | tejido | acolchado
+const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa });
 
 const orbita = new OrbitaLigera();
 let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl = null, adaptador = null, ficha = null;

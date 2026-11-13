@@ -208,3 +208,35 @@ body[data-tema="claro"] .ficha-error { color: #d70015; }
   body[data-tema="claro"] h1 { padding: 6px 12px; font-size: 0.92rem; } body[data-tema="claro"] h1 small { display: inline; font-size: 0.8rem; }
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { body[data-tema="claro"] { --vidrio: rgba(255, 255, 255, 0.92); --vidrio-fuerte: rgba(255, 255, 255, 0.97); } }
+
+/* ===== 3.7.5 · Cristal espacial (estilo visionOS) y movimiento tipo muelle — solo tema "claro" ===== */
+body[data-tema="claro"] {
+  --muelle: cubic-bezier(0.34, 1.56, 0.64, 1);      /* llega pasándose un poco y se asienta: el "rebote" de los muelles de Apple */
+  --suave-sal: cubic-bezier(0.32, 0.72, 0, 1);       /* frenado largo y limpio, para entradas sin rebote */
+  --brillo: inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 0 0 0.5px rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+  --cristal-grad: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.08) 42%, rgba(255, 255, 255, 0) 100%);
+}
+body[data-tema="claro"] .barra, body[data-tema="claro"] h1 { box-shadow: var(--brillo), var(--sombra); background-image: var(--cristal-grad); }
+body[data-tema="claro"] .ficha { box-shadow: var(--brillo), 0 -10px 40px rgba(0, 0, 0, 0.14); background-image: var(--cristal-grad); }
+@media (min-width: 760px) { body[data-tema="claro"] .ficha { box-shadow: var(--brillo), 0 20px 60px rgba(0, 0, 0, 0.2); } }
+body[data-tema="claro"] button, body[data-tema="claro"] select { transition: transform 0.35s var(--muelle), background-color 0.2s ease, opacity 0.2s ease; }
+@media (hover: hover) { body[data-tema="claro"] button:hover:not(:disabled) { transform: scale(1.04); } }
+body[data-tema="claro"] button:active:not(:disabled) { transform: scale(0.94); transition-duration: 0.12s; }
+body[data-tema="claro"] .barra, body[data-tema="claro"] h1 { animation: aparece-cristal 0.7s var(--suave-sal) both; }
+body[data-tema="claro"] .barra { animation-delay: 0.08s; }
+body[data-tema="claro"] .ficha-cantidad strong { display: inline-block; transition: transform 0.35s var(--muelle); }
+/* Ficha: sube con muelle y sale en 220 ms (FichaUI.cerrar espera ese tiempo antes de ocultarla) */
+body[data-tema="claro"] .ficha { animation: ficha-entra 0.5s var(--muelle) both; }
+body[data-tema="claro"] .ficha.saliendo { animation: ficha-sale 0.22s var(--suave-sal) both; pointer-events: none; }
+body[data-tema="claro"] .ficha-fondo { animation: fondo-entra 0.35s ease both; }
+body[data-tema="claro"] .ficha-fondo.saliendo { animation: fondo-sale 0.22s ease both; pointer-events: none; }
+@keyframes ficha-entra { from { opacity: 0; transform: translateY(28px) scale(0.97); } to { opacity: 1; transform: none; } }
+@keyframes ficha-sale { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(18px) scale(0.98); } }
+@keyframes fondo-entra { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fondo-sale { from { opacity: 1; } to { opacity: 0; } }
+@keyframes aparece-cristal { from { opacity: 0; transform: translateY(-8px) scale(0.96); } to { opacity: 1; transform: none; } }
+@media (min-width: 760px) { body[data-tema="claro"] .barra { animation-name: aparece-barra-centrada; } }
+@keyframes aparece-barra-centrada { from { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.96); } to { opacity: 1; transform: translateX(-50%); } }
+@media (orientation: landscape) and (max-height: 520px) { body[data-tema="claro"] .barra { animation-name: aparece-barra-lateral; } }
+@keyframes aparece-barra-lateral { from { opacity: 0; transform: translateY(-50%) translateX(12px); } to { opacity: 1; transform: translateY(-50%); } }
+@media (prefers-reduced-motion: reduce) { body[data-tema="claro"] * { transition: none !important; animation: none !important; } }

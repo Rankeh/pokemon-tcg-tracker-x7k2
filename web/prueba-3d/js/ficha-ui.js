@@ -1,4 +1,5 @@
 // Ficha de carta (DOM): panel inferior en móvil y tarjeta lateral en escritorio. Solo muestra datos y avisa de los botones; no guarda nada.
+export const SALIDA_MS = 220;
 export class FichaUI {
   constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', alCerrar, alAnadir, alRetirar }) {
     this.el = el; this.manifiesto = manifiesto; this.rutaBase = rutaBase;
@@ -36,6 +37,7 @@ export class FichaUI {
     this._imagen(d);
     this.actualizar(d);
     this.el.error.textContent = '';
+    this._cancelarSalida();
     this.el.raiz.hidden = false; this.el.fondo.hidden = false;
     document.body.classList.add('ficha-abierta');
     this.el.anadir.focus({ preventScroll: true });
@@ -56,9 +58,23 @@ export class FichaUI {
   error(msg) { this.el.error.textContent = msg; }
   guardando(b) { this.el.raiz.classList.toggle('guardando', b); }
 
+  /** ¿Hay una animación CSS en la ficha? (con "reducir movimiento" o sin estilos no la hay y se oculta al instante). */
+  _animada() {
+    try { return typeof getComputedStyle === 'function' && !!this.el.raiz.isConnected && getComputedStyle(this.el.raiz).animationName !== 'none'; } catch { return false; }
+  }
+
+  _cancelarSalida() {
+    if (this._salida) { clearTimeout(this._salida); this._salida = null; }
+    this.el.raiz.classList.remove('saliendo'); this.el.fondo.classList.remove('saliendo');
+  }
+
+  /** 3.7.5: la ficha sale con una animación corta (SALIDA_MS) y solo entonces se oculta. El estado lógico (ficha-abierta, datos) cambia ya. */
   cerrar() {
-    this.el.raiz.hidden = true; this.el.fondo.hidden = true;
     document.body.classList.remove('ficha-abierta');
     this.datos = null;
+    this._cancelarSalida();
+    if (this.el.raiz.hidden || !this._animada()) { this.el.raiz.hidden = true; this.el.fondo.hidden = true; return; }
+    this.el.raiz.classList.add('saliendo'); this.el.fondo.classList.add('saliendo');
+    this._salida = setTimeout(() => { this._salida = null; this.el.raiz.hidden = true; this.el.fondo.hidden = true; this.el.raiz.classList.remove('saliendo'); this.el.fondo.classList.remove('saliendo'); }, SALIDA_MS);
   }
 }

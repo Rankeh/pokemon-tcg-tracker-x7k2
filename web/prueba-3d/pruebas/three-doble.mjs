@@ -45,6 +45,7 @@ export class MeshBasicMaterial {
 }
 export class PlaneGeometry { constructor(w, h) { this.w = w; this.h = h; this.disposed = false; } dispose() { this.disposed = true; } }
 export class Float32BufferAttribute { constructor(a, n) { this.array = a; this.itemSize = n; this.count = a.length / n; } }
+export class BufferGeometry { constructor() { this.attributes = {}; this.index = null; this.disposed = false; } setAttribute(n, a) { this.attributes[n] = a; return this; } setIndex(i) { this.index = { count: i.length }; return this; } dispose() { this.disposed = true; } }
 class Luz extends Object3D { constructor(...a) { super(); this.args = a; this.color = {}; } }
 export class HemisphereLight extends Luz {}
 export class DirectionalLight extends Luz {}

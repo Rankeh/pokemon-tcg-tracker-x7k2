@@ -209,6 +209,7 @@ for (const vp of [{ width: 390, height: 844 }, { width: 430, height: 932 }]) {
 // ------------------------------------------------------------------ 3.7.3: tema de interfaz aplicado de verdad (estilos calculados por Chromium real; el 3D es simulado)
 for (const [consulta, esperado] of [['', 'claro'], ['&tema=claro', 'claro'], ['&tema=acogedor', 'acogedor'], ['&tema=noche', 'noche']]) {
   await sesion({ width: 390, height: 844 }, async (pag) => {
+    await pag.waitForTimeout(900);                                  // 3.7.5: las animaciones de entrada (0,7 s) y las transiciones de color deben haber terminado
     const r = await pag.evaluate(() => { const css = (sel, p) => getComputedStyle(document.querySelector(sel))[p];
       return { tema: document.body.dataset.tema, boton: css('#b-sig', 'backgroundColor'), principal: css('#b-abrir', 'backgroundColor'), h1: css('h1', 'backgroundColor'), fuente: css('body', 'fontFamily'), escenario: !!window.__album3d.scene.children.find((o) => o.name === 'Alfombra'), suelo: !!window.__album3d.scene.children.find((o) => o.name === 'Suelo'), aro: window.__album3d.resaltado.mat.color.v, ancho: document.documentElement.scrollWidth <= innerWidth }; });
     ok(r.tema === esperado, `tema «${esperado}»${consulta ? ' (' + consulta.slice(1) + ')' : ' por defecto'}`);

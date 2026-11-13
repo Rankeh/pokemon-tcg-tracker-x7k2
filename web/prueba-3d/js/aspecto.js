@@ -22,6 +22,17 @@ export const MATERIALES = {
   funda: { rugosidad: 0.45, opacidad: 1 },         // la transparencia sale del mapa de reflejo (alfa ≤ 0,06): jamás tapa ni lava la ilustración
   mesa: { rugosidad: 0.95 },
 };
+// 3.7.5 · Acabados de tapa (?tapa=). `grafito` = tal cual el tema (sin cambios). Los otros cambian color, rugosidad, relieve y escala de la textura de tapas y lomo.
+// Inspirados en materiales táctiles (fieltro, cuero, denim, acolchado); colores sobrios para no recargar la interfaz.
+export const ACABADOS = {
+  grafito: null,
+  fieltro: { tipo: 'fieltro', color: 0x8b9098, lomo: 0x7a7f87, rugosidad: 1.0, relieve: 0.45, fuerza: 1.6, uv: 0.05, sheen: 0xe9edf3 },
+  cuero: { tipo: 'cuero', color: 0x6a4936, lomo: 0x5a3d2d, rugosidad: 0.52, relieve: 0.9, fuerza: 2.6, uv: 0.045, sheen: 0xd9b99c },
+  tejido: { tipo: 'tejido', color: 0x40597a, lomo: 0x36495f, rugosidad: 0.86, relieve: 0.8, fuerza: 2.2, uv: 0.03, sheen: 0xa9c0de },
+  acolchado: { tipo: 'acolchado', color: 0x30353d, lomo: 0x292d34, rugosidad: 0.5, relieve: 1.1, fuerza: 3.2, uv: 0.09, sheen: 0xaab2c0 },
+};
+export const elegirAcabado = (p) => (Object.prototype.hasOwnProperty.call(ACABADOS, (p || '').toLowerCase()) ? (p || '').toLowerCase() : 'grafito');
+
 // Cantos: se pintan en los VÉRTICES (sin UV ni texturas ni mallas nuevas) según la normal: cara plana = 1, canto/bisel = multiplicador.
 export const CANTOS = {
   cubierta: { canto: [1.55, 1.55, 1.6] },          // el bisel «atrapa» la luz: la tapa se separa del fondo y de las hojas
@@ -73,9 +84,24 @@ function ruidoPeriodico(x, y, periodo, semilla) {
   const a = hash(m(x0), m(y0), semilla), b = hash(m(x0 + 1), m(y0), semilla), c = hash(m(x0), m(y0 + 1), semilla), d = hash(m(x0 + 1), m(y0 + 1), semilla);
   return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
 }
+/** 3.7.5 · Relieves de los acabados táctiles (periódicos, altura en [0,1]): fieltro = fibras finas; cuero = grano en «guijarros»; tejido = sarga diagonal (denim); acolchado = rombos hinchados. */
+export function alturaAcabado(tam, semilla, tipo) {
+  const h = new Float32Array(tam * tam), TAU = 2 * Math.PI;
+  for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
+    let v;
+    if (tipo === 'fieltro') v = 0.5 * ruidoPeriodico(i * 48 / tam, j * 48 / tam, 48, semilla) + 0.3 * ruidoPeriodico(i * 96 / tam, j * 96 / tam, 96, semilla + 3) + 0.2 * ruidoPeriodico(i * 12 / tam, j * 12 / tam, 12, semilla + 5);
+    else if (tipo === 'cuero') { const n = ruidoPeriodico(i * 14 / tam, j * 14 / tam, 14, semilla), r = 1 - Math.abs(2 * n - 1); v = 0.7 * r * r + 0.3 * ruidoPeriodico(i * 40 / tam, j * 40 / tam, 40, semilla + 2); }
+    else if (tipo === 'tejido') { const d = 0.5 + 0.5 * Math.sin(TAU * (i + j) * 24 / tam), t = 0.5 + 0.5 * Math.sin(TAU * i * 48 / tam) * Math.sin(TAU * j * 48 / tam); v = 0.55 * d + 0.25 * t + 0.2 * ruidoPeriodico(i * 32 / tam, j * 32 / tam, 32, semilla); }
+    else if (tipo === 'acolchado') { const a = Math.sin(Math.PI * (i + j) * 4 / tam), b = Math.sin(Math.PI * (i - j) * 4 / tam); v = Math.pow(Math.abs(a * b), 0.6) * 0.9 + 0.1 * ruidoPeriodico(i * 40 / tam, j * 40 / tam, 40, semilla); }
+    else v = 0.5;
+    h[j * tam + i] = Math.min(1, Math.max(0, v));
+  }
+  return h;
+}
 /** Altura en [0,1] de una celda (tam×tam, periódica): grano de cuero + trama fina de tejido. */
-export function alturaRelieve(tam, semilla = 7) {
+export function alturaRelieve(tam, semilla = 7, tipo = 'grano') {
   const h = new Float32Array(tam * tam), paso = tam / 16;
+  if (tipo !== 'grano') return alturaAcabado(tam, semilla, tipo);
   for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
     const g1 = ruidoPeriodico(i * 6 / tam, j * 6 / tam, 6, semilla), g2 = ruidoPeriodico(i * 24 / tam, j * 24 / tam, 24, semilla + 1), g3 = ruidoPeriodico(i * 12 / tam, j * 12 / tam, 12, semilla + 2);
     const trama = 0.5 + 0.25 * Math.sin(2 * Math.PI * i / paso) * Math.sin(2 * Math.PI * j / paso);
@@ -84,8 +110,8 @@ export function alturaRelieve(tam, semilla = 7) {
   return h;
 }
 /** Mapa de normales RGBA8 (tam×tam) a partir de la altura. `fuerza` pequeña: el relieve debe leerse con la luz, no como ruido. */
-export function generarNormales(tam, fuerza = 2.2, semilla = 7) {
-  const h = alturaRelieve(tam, semilla), out = new Uint8Array(tam * tam * 4), m = (i) => (i + tam) % tam;
+export function generarNormales(tam, fuerza = 2.2, semilla = 7, tipo = 'grano') {
+  const h = alturaRelieve(tam, semilla, tipo), out = new Uint8Array(tam * tam * 4), m = (i) => (i + tam) % tam;
   for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
     const dx = (h[j * tam + m(i + 1)] - h[j * tam + m(i - 1)]) * fuerza, dy = (h[m(j + 1) * tam + i] - h[m(j - 1) * tam + i]) * fuerza;
     const l = Math.hypot(dx, dy, 1), k = (j * tam + i) * 4;
@@ -260,7 +286,8 @@ export function generarAlfombra(tam = 512, p = TEMAS.acogedor.escenario.alfombra
 }
 
 export class Aspecto {
-  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche' }) {
+  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito' }) {
+    this.tapa = elegirAcabado(tapa); this.acabado = ACABADOS[this.tapa];
     this.tema = TEMAS[tema] ? tema : 'noche'; this.t = TEMAS[this.tema];
     this.renderer = renderer; this.scene = scene; this.nivel = nivel; this.origen = origen;
     this.config = NIVELES[nivel] || null;                    // null = legado
@@ -339,7 +366,8 @@ export class Aspecto {
       if (o.name === 'Lomo') grupos.lomo.push(o);
       else { const g = { Cubierta: 'cubierta', Hoja: 'hoja', Soldadura: 'soldadura', Funda: 'funda' }[o.material.name]; if (g) grupos[g].push(o); }
     });
-    const normal = cfg.relieve ? this._textura(generarNormales(cfg.relieve), cfg.relieve) : null;
+    const ac = this.acabado;
+    const normal = cfg.relieve ? this._textura(generarNormales(cfg.relieve, ac ? ac.fuerza : 2.2, 7, ac ? ac.tipo : 'grano'), cfg.relieve) : null;
     const rugo = cfg.mapaRugosidad && cfg.relieve ? this._textura(generarRugosidad(cfg.relieve), cfg.relieve) : null;
 
     // un material por grupo (nunca por bolsillo); las mallas que lo comparten (p. ej. Tapa y Contratapa) siguen compartiéndolo
@@ -348,13 +376,13 @@ export class Aspecto {
       let m = viejo;
       if (cfg.fisico && relieve) {                                // alta: tejido técnico con «sheen» (brillo suave en rasante); solo tapas y lomo
         m = this._recurso(new THREE.MeshPhysicalMaterial({ roughness: p.rugosidad, metalness: 0 }));
-        m.sheen = 0.55; m.sheenRoughness = 0.55; m.sheenColor.set(this.t.sheen);
+        m.sheen = ac ? 0.8 : 0.55; m.sheenRoughness = 0.55; m.sheenColor.set(ac ? ac.sheen : this.t.sheen);
       } else if (grupo === 'lomo') m = this._recurso(viejo.clone());
       m.name = { cubierta: 'Cubierta', lomo: 'Lomo', hoja: 'Hoja', soldadura: 'Soldadura' }[grupo];
-      m.color.set(hex); m.roughness = p.rugosidad; m.metalness = 0;
+      m.color.set(ac && relieve ? (grupo === 'lomo' ? ac.lomo : ac.color) : hex); m.roughness = ac && relieve ? ac.rugosidad : p.rugosidad; m.metalness = 0;
       m.vertexColors = grupo === 'cubierta' || grupo === 'lomo' || grupo === 'hoja';          // SOLO los grupos cuyas geometrías reciben color de vértice: sin atributo, Three pinta negro (era el marco negro de los bolsillos)
       if (grupo === 'lomo') { m.polygonOffset = true; m.polygonOffsetFactor = 1; m.polygonOffsetUnits = 4; }     // la cara superior del lomo (y=0,0435) coincide con la de la tapa cerrada (0,0405+0,003): se empuja atrás para que no haya z-fighting
-      if (relieve && normal && p.relieve) { m.normalMap = normal; m.normalScale.set(p.relieve, p.relieve); if (rugo) m.roughnessMap = rugo; }
+      if (relieve && normal && p.relieve) { m.normalMap = normal; { const k = ac ? ac.relieve * (grupo === 'lomo' ? 0.6 : 1) : p.relieve; m.normalScale.set(k, k); } if (rugo) m.roughnessMap = rugo; }
       m.needsUpdate = true;
       for (const o of grupos[grupo]) o.material = m;
       if (m !== viejo && grupo !== 'lomo') viejo.dispose?.();
@@ -385,7 +413,7 @@ export class Aspecto {
       f.needsUpdate = true;
     }
     if (normal) {
-      for (const o of [...grupos.cubierta, ...grupos.lomo]) if (!this.uvHechas.has(o.geometry)) { rellenarUV(o.geometry); this.uvHechas.add(o.geometry); }
+      for (const o of [...grupos.cubierta, ...grupos.lomo]) if (!this.uvHechas.has(o.geometry)) { rellenarUV(o.geometry, ac ? ac.uv : ESCALA_UV); this.uvHechas.add(o.geometry); }
     }
     this.sincronizar(album);
   }
@@ -413,7 +441,7 @@ export class Aspecto {
 
   resumen() {
     return { nivel: this.nivel, origen: this.origen, luces: Object.keys(this.luces), relieve: this.config ? this.config.relieve : 0, mapaRugosidad: !!(this.config && this.config.mapaRugosidad),
-      tema: this.tema, escenario: !!this.alfombra, sombraContacto: !!this.sombra, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
+      tema: this.tema, tapa: this.tapa, escenario: !!this.alfombra, sombraContacto: !!this.sombra, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
   }
 
   liberar() {

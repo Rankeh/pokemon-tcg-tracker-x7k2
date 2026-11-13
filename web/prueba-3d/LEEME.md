@@ -226,3 +226,15 @@ Tras probar 3.7.3 en iPhone: el álbum «clipea» y la paleta era demasiado colo
 - **Alfombra del tema acogedor:** bordes antialias a 512 px (escalones al ampliar).
 - **Tema `claro` (por defecto):** grafito + blanco roto, un solo acento azul del sistema, suelo gris perla que se funde con el fondo (sin alfombra), sombra de contacto suave, luces neutras. Interfaz: cabecera y barra en cápsulas de vidrio esmerilado con borde fino (`backdrop-filter` solo en cabecera, barra y ficha de este tema: superficies pequeñas), tipografía SF del sistema, botones circulares/píldora, ficha de vidrio. `?tema=acogedor` y `?tema=noche` siguen disponibles.
 - **A vigilar en iPhone:** el vidrio desenfocado se recompone cada frame mientras el 3D se anima; si notas caídas de FPS, avísame y lo cambio por un panel translúcido sin desenfoque (una línea de CSS).
+
+## 3.7.5 · Cristal espacial (estilo visionOS), movimiento tipo muelle y acabados de tapa
+
+Inspirado en las referencias del usuario (interfaz de cristal flotante tipo visionOS y carpetas con materiales táctiles). Solo afecta al tema `claro`.
+
+- **Cristal**: barra, título y ficha llevan un brillo especular en el borde (`--brillo`) y un degradado de luz arriba (`--cristal-grad`) sobre el desenfoque que ya tenían.
+- **Movimiento**: curva de muelle `cubic-bezier(0.34, 1.56, 0.64, 1)` (se pasa un poco y se asienta). Botones (hover solo con ratón, para evitar el «hover pegado» del móvil), barra y título aparecen con animación; la **ficha sube con muelle y sale en 220 ms** (`FichaUI.cerrar()` espera `SALIDA_MS` antes de poner `hidden`; si no hay animación —p. ej. «reducir movimiento»— se oculta al instante; reabrir cancela la salida).
+- **Aro de selección**: entra con escala 1,22 → 1 (ease-out-back, 0,32 s) y opacidad. No se mueve ninguna carta ni hoja.
+- **Acabados de tapa** `?tapa=grafito` (por defecto) `| fieltro | cuero | tejido | acolchado`: cambian color, rugosidad, relieve (mapa de normales procedural distinto para cada uno) y escala de la textura de tapas y lomo. Las hojas, cartas y fundas no se tocan. En calidad `baja` solo cambia el color/rugosidad (no hay mapas).
+- Ejemplos: `?tapa=cuero`, `?tapa=acolchado&calidad=alta`.
+
+**Qué está verificado y qué no**: lógica, cableado, CSS (reglas presentes) y temporización con Three.js simulado y Chromium. **No** está verificado cómo se ven los materiales ni la fluidez (FPS con desenfoque + animaciones) en el iPhone: eso requiere tus capturas/pruebas reales. Si el desenfoque penaliza los FPS, basta con quitar `backdrop-filter` del bloque 3.7.5/claro.
