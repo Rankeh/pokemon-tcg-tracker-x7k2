@@ -7,10 +7,10 @@ import math, os, sys
 import numpy as np
 from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from teselia import config as CFG, geometria as G, escena
+from teselia import config as CFG, geometria as G, escena, prueba
 
 COLOR = {"cubierta": "#2C3A55", "hilo": "#C8B08A", "hoja": "#2B2D30", "hoja_b": "#3A3D42", "soldadura": "#55595F",
-         "suelo": "#3A3D42", "carta": "#FFFFFF"}
+         "suelo": "#3A3D42", "carta": "#FFFFFF", "carta_holo": "#FFFFFF"}
 
 
 def renderizar(cfg, vista, ancho=1280):
@@ -20,7 +20,7 @@ def renderizar(cfg, vista, ancho=1280):
     pos, obj, _ = G.ajustar_camara(cfg, vista)
     sh = (v["desplazamiento_x"], v["desplazamiento_y"])
     sensor = cfg["camara"]["sensor_mm"]
-    piezas, _ = escena.construir(cfg)
+    piezas, _ = (prueba if vista == "prueba" else escena).construir(cfg)
     img = np.zeros((H, W, 3), np.float32)
     img[:] = np.array([0.10, 0.10, 0.11])
     zbuf = np.zeros((H, W), np.float32)   # guarda 1/z: mayor = más cerca
@@ -31,11 +31,11 @@ def renderizar(cfg, vista, ancho=1280):
             continue   # láminas casi invisibles: no se dibujan en la vista geométrica
         base = np.array(G.hex_a_rgb(COLOR[p["mat"]]), np.float32)
         tex = None
-        if p["mat"] == "carta":
+        if p["mat"] in ("carta", "carta_holo"):
             n = p["carta"]
             if n not in texturas:
-                px = np.array(G.carta_pixeles(252, 352, n), np.float32).reshape(352, 252, 4)[:, :, :3]
-                texturas[n] = px[::-1]     # fila 0 = arriba
+                from teselia import arte
+                texturas[n] = arte.carta(n, p["mat"] == "carta_holo")[::-1, :, :3]      # fila 0 = arriba
             tex = texturas[n]
         bucle = 0
         for cara in p["caras"]:
@@ -104,7 +104,7 @@ def _tri(img, zbuf, tri, uv, color, tex, W, H, lam):
         iz = zs
         u = (l0 * uv[0][0] * iz[0] + l1 * uv[1][0] * iz[1] + l2 * uv[2][0] * iz[2]) / z
         vv = (l0 * uv[0][1] * iz[0] + l1 * uv[1][1] * iz[1] + l2 * uv[2][1] * iz[2]) / z
-        tx = np.clip((u * 252).astype(int), 0, 251); ty = np.clip(((1 - vv) * 352).astype(int), 0, 351)
+        th, tw = tex.shape[:2]; tx = np.clip((u * tw).astype(int), 0, tw - 1); ty = np.clip(((1 - vv) * th).astype(int), 0, th - 1)
         img[y0:y1 + 1, x0:x1 + 1][ok] = tex[ty, tx][ok] * (0.55 + 0.45 * lam)
 
 

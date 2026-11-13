@@ -39,7 +39,7 @@
       "alto": 0.088,
       "grosor": 0.0004,
       "radio_esquina": 0.003,
-      "holgura": 0.0008
+      "holgura": 0.0007
     },
     "cartas_derecha": 9,
     "cartas_izquierda": 5,
@@ -49,9 +49,9 @@
     "cubierta": "#1E2838",
     "cubierta_b": "#2A3850",
     "hilo": "#C8B08A",
-    "hoja": "#24262A",
+    "hoja": "#1D1F22",
     "hoja_b": "#33363B",
-    "suelo": "#34373C",
+    "suelo": "#2A2E35",
     "luz_principal": "#FFE1C0",
     "luz_relleno": "#9DB8E6",
     "luz_borde_a": "#FFD9B0",
@@ -99,6 +99,20 @@
       "desplazamiento_x": 0.0,
       "desplazamiento_y": 0.0,
       "objetivo": "bolsillo"
+    },
+    "prueba": {
+      "resolucion": [
+        1600,
+        900
+      ],
+      "lente_mm": 85,
+      "elevacion_grados": 34,
+      "azimut_grados": -14,
+      "ocupacion_ancho": 0.84,
+      "eje": "u",
+      "desplazamiento_x": 0.0,
+      "desplazamiento_y": -0.02,
+      "objetivo": "prueba"
     }
   },
   "calidad": {
@@ -119,9 +133,9 @@
     }
   },
   "luces": {
-    "principal_w": 260,
-    "relleno_w": 50,
-    "borde_w": 120,
+    "principal_w": 28,
+    "relleno_w": 6,
+    "borde_w": 12,
     "exposicion": 0.0
   },
   "camara": {
@@ -131,5 +145,12 @@
   "entorno": {
     "semilla": 7,
     "suelo": 4.0
+  },
+  "prueba": {
+    "margen_x": 0.016,
+    "margen_y": 0.016,
+    "margen_funda": 0.004,
+    "grosor_carta": 0.0005,
+    "exposicion_objetivo": 0.34
   }
 }

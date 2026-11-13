@@ -78,6 +78,8 @@ def main():
     render.configurar(cfg, a.vista, a.modo)
     salida = os.path.join(AQUI, "salida")
     os.makedirs(salida, exist_ok=True)
+    if a.exposicion is None:
+        render.autoexposicion(cfg, a.vista, 0.30, os.path.join(salida, "_calibracion.png"))
     exportar_camara(cfg, a.vista, pos, obj, dist, os.path.join(salida, "camara_%s.json" % a.vista))
     if a.guardar_blend:
         bpy.ops.wm.save_as_mainfile(filepath=os.path.join(salida, "teselia_poc.blend"))

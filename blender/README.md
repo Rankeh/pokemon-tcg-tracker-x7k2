@@ -4,6 +4,24 @@ Escena independiente (no toca la app, la base de datos ni el catálogo). **Estos
 todavía** (mi entorno no lo tiene): lo que sí está comprobado sin Blender es la geometría, el encuadre y que el flujo de
 Python no tiene errores (`python blender/pruebas_sin_blender.py`). El aspecto real del render hay que verlo en tu PC.
 
+## v4 (Fase 3.4.4): prueba de materiales de carta y funda
+Ejecuta `blender\ejecutar_materiales_windows.bat previa` (salida: `salida\materiales_prueba_previa.png`, `.blend` y registro).
+Escena `crear_prueba_materiales.py`: 3 bolsillos en fila — vacío · carta normal · carta holográfica — sobre una hoja negro grafito.
+
+**Por qué las fundas salían como baldosas blancas (diagnóstico):**
+1. *Exposición:* las luces eran ~8–10 veces demasiado fuertes (en Cycles una luz de área de 260 W a ~1,2 m da un píxel
+   ≈7,7 para un papel blanco; el correcto es ≈0,7). Todo saturaba a blanco, incluida la cubierta azul noche.
+2. *Funda con color difuso blanco:* el Principled con alfa 0,07 aún aportaba difuso blanco sobreexpuesto (7,7 × 0,07 ≈ 0,5
+   de blanco puro encima de la carta, que además también saturaba). Ahora la funda es solo Transparent + Glossy.
+3. *Nodo Mix de 4.x:* tiene varios sockets llamados «A»/«B»/«Result» (flotante, vector, color) y `inputs["A"]` devuelve el de
+   flotante; el color de la cubierta no llegaba al shader. Se sustituye por `ShaderNodeMixRGB` (sin ambigüedad).
+
+**Correcciones:** luces calibradas (28/6/12 W) + **autoexposición** (3 renders de 160 px que ajustan el EV hasta una luminancia
+media objetivo; se desactiva con `--exposicion X`); funda = Transparent+Glossy mezclados por una máscara pequeña (velo 3 %,
+dos bandas diagonales suaves, algo de Fresnel), sin transmisión ni refracción; soldadura gris translúcida abierta por arriba;
+carta satinada (rugosidad .40, barniz .10, fibra en relieve); holográfica = banda arcoíris SOFT_LIGHT enmascarada por el alfa
+de la imagen (solo la ilustración), rugosidad .40→.20 y metal .22 localizados.
+
 ## v3 (Fase 3.4.3): álbum encuadernado sin anillas
 Modelo nuevo (se ha eliminado todo lo metálico): cubiertas acolchadas azul noche con canto redondeado y costura, **lomo
 continuo** redondeado y hojas **unidas al lomo**: cada hoja es una rejilla que desciende hacia el lomo (curvatura de la

@@ -23,15 +23,17 @@ def luz_area(nombre, col, pos, objetivo, w, color_hex, tam, forma="RECTANGLE", t
     return ob
 
 
-def crear_luces(cfg, col, objetivo, exposicion):
+def crear_luces(cfg, col, objetivo, exposicion, escala=1.0, distancia=None):
     """Esquema estilizado: principal cálida grande y suave (sombras suaves pero definidas), secundaria fría y tenue,
     dos luces de borde alargadas (cálida y fría) detrás para marcar los cantos acolchados y separar del fondo."""
     L, C = cfg["luces"], cfg["colores"]
     t = objetivo
-    luz_area("Principal", col, (t[0] - 0.70, t[1] - 0.55, t[2] + 0.85), t, L["principal_w"], C["luz_principal"], 0.55)
-    luz_area("Secundaria", col, (t[0] + 0.95, t[1] - 0.70, t[2] + 0.45), t, L["relleno_w"], C["luz_relleno"], 0.9)
-    luz_area("BordeCalido", col, (t[0] - 0.55, t[1] + 0.65, t[2] + 0.35), t, L["borde_w"], C["luz_borde_a"], 0.18, "RECTANGLE", 0.7)
-    luz_area("BordeFrio", col, (t[0] + 0.60, t[1] + 0.60, t[2] + 0.40), t, L["borde_w"], C["luz_borde_b"], 0.18, "RECTANGLE", 0.7)
+    k = escala   # escala geométrica de las luces (la prueba de 3 bolsillos es más pequeña que el álbum completo)
+    w = k * k    # la irradiancia cae con 1/d²: al acercar las luces k veces, los vatios bajan k² para mantener el brillo
+    luz_area("Principal", col, (t[0] - 0.70 * k, t[1] - 0.55 * k, t[2] + 0.85 * k), t, L["principal_w"] * w, C["luz_principal"], 0.55 * k)
+    luz_area("Secundaria", col, (t[0] + 0.95 * k, t[1] - 0.70 * k, t[2] + 0.45 * k), t, L["relleno_w"] * w, C["luz_relleno"], 0.9 * k)
+    luz_area("BordeCalido", col, (t[0] - 0.55 * k, t[1] + 0.65 * k, t[2] + 0.35 * k), t, L["borde_w"] * w, C["luz_borde_a"], 0.18 * k, "RECTANGLE", 0.7 * k)
+    luz_area("BordeFrio", col, (t[0] + 0.60 * k, t[1] + 0.60 * k, t[2] + 0.40 * k), t, L["borde_w"] * w, C["luz_borde_b"], 0.18 * k, "RECTANGLE", 0.7 * k)
     # mundo: degradado neutro de estudio (suelo cálido oscuro, cielo gris azulado) para que el metal tenga
     # algo que reflejar y haya relleno ambiental suave sin dominante de color
     mundo = bpy.data.worlds.new("Mundo")

@@ -13,8 +13,9 @@ def instanciar(piezas, col, mats):
         ob.location = o
         if p["uv"]:
             poner_uv(ob, p["uv"])
-        if p["mat"] == "carta":
-            asignar(ob, M.carta("MatCarta%02d" % p["carta"], M.imagen_carta(p["carta"])))
+        if p["mat"] in ("carta", "carta_holo"):
+            holo = p["mat"] == "carta_holo"
+            asignar(ob, M.carta_satinada("MatCarta%02d" % p["carta"], M.imagen_arte(p["carta"], holo), holo))
         else:
             asignar(ob, mats[p["mat"]])
         objs[p["nombre"]] = ob

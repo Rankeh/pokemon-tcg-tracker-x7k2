@@ -262,6 +262,9 @@ def esquinas_archivador(cfg, lado):
     cw, ch, gz = a["cubierta"]["ancho"], a["cubierta"]["alto"], a["cubierta"]["grosor"]
     sw = _sw(cfg)
     pts = []
+    if lado == "prueba":
+        from . import prueba as _pr
+        return _pr.esquinas(cfg)
     if lado == "bolsillo":
         px, py = posiciones_bolsillos(cfg, 1)[4]
         b = a["bolsillo"]
@@ -280,6 +283,8 @@ def esquinas_archivador(cfg, lado):
 def objetivo_vista(cfg, lado):
     a = cfg["archivador"]
     sw, cw = _sw(cfg), a["cubierta"]["ancho"]
+    if lado == "prueba":
+        return (0.0, 0.0, 0.002)
     if lado == "bolsillo":
         px, py = posiciones_bolsillos(cfg, 1)[4]
         return a_mundo((px, py, a["cubierta"]["grosor"] + 0.012), cfg)

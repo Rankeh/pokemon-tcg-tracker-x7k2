@@ -57,14 +57,14 @@ def madera(nombre="Madera", oscuro=(0.050, 0.034, 0.024, 1), claro=(0.27, 0.17, 
     tono = nodo(nt, "ShaderNodeMath", -360, 300, operation="MULTIPLY_ADD")   # 0.75 + 0.5*azar
     tono.inputs[1].default_value = 0.5; tono.inputs[2].default_value = 0.75
     enlazar(nt, azar, "Value", tono, 0)
-    mult = nodo(nt, "ShaderNodeMix", -140, 0, data_type="RGBA", blend_type="MULTIPLY")
-    fijar(mult, "Factor", 1.0)
-    enlazar(nt, rampa, "Color", mult, "A")
-    enlazar(nt, tono, "Value", mult, "B")
-    oscurece = nodo(nt, "ShaderNodeMix", 60, 0, data_type="RGBA", blend_type="MIX")
-    fijar(oscurece, "B", (0.012, 0.008, 0.006, 1))
-    enlazar(nt, junta, "Value", oscurece, "Factor")
-    enlazar(nt, mult, "Result", oscurece, "A")
+    mult = nodo(nt, "ShaderNodeMixRGB", -140, 0, blend_type="MULTIPLY")
+    fijar(mult, "Fac", 1.0)
+    enlazar(nt, rampa, "Color", mult, "Color1")
+    enlazar(nt, tono, "Value", mult, "Color2")
+    oscurece = nodo(nt, "ShaderNodeMixRGB", 60, 0, blend_type="MIX")
+    fijar(oscurece, "Color2", (0.012, 0.008, 0.006, 1))
+    enlazar(nt, junta, "Value", oscurece, "Fac")
+    enlazar(nt, mult, "Color", oscurece, "Color1")
     rug = nodo(nt, "ShaderNodeMapRange", -360, -420)
     fijar(rug, "To Min", 0.42); fijar(rug, "To Max", 0.72)
     bump = nodo(nt, "ShaderNodeBump", -140, -300)
@@ -74,7 +74,7 @@ def madera(nombre="Madera", oscuro=(0.050, 0.034, 0.024, 1), claro=(0.27, 0.17, 
     enlazar(nt, mezcla, "Value", rampa, "Fac")
     enlazar(nt, grano, "Fac", rug, "Value")
     enlazar(nt, grano, "Fac", bump, "Height")
-    enlazar(nt, oscurece, "Result", bsdf, "Base Color")
+    enlazar(nt, oscurece, "Color", bsdf, "Base Color")
     enlazar(nt, rug, "Result", bsdf, "Roughness")
     enlazar(nt, bump, "Normal", bsdf, "Normal")
     _salida(nt, bsdf, 560, 0)
@@ -88,8 +88,8 @@ def cubierta(color_a, color_b):
     coord = nodo(nt, "ShaderNodeTexCoord", -900, 0)
     var = nodo(nt, "ShaderNodeTexNoise", -650, 200)
     fijar(var, "Scale", 9.0); fijar(var, "Detail", 3.0); fijar(var, "Roughness", 0.55)
-    mezcla = nodo(nt, "ShaderNodeMix", -420, 200, data_type="RGBA", blend_type="MIX")
-    fijar(mezcla, "A", lineal4(color_a)); fijar(mezcla, "B", lineal4(color_b))
+    mezcla = nodo(nt, "ShaderNodeMixRGB", -420, 200, blend_type="MIX")
+    fijar(mezcla, "Color1", lineal4(color_a)); fijar(mezcla, "Color2", lineal4(color_b))
     grano = nodo(nt, "ShaderNodeTexNoise", -650, -150)
     fijar(grano, "Scale", 700.0); fijar(grano, "Detail", 5.0)
     bump = nodo(nt, "ShaderNodeBump", -400, -150)
@@ -101,8 +101,8 @@ def cubierta(color_a, color_b):
     fijar(bsdf, ["Coat Roughness", "Clearcoat Roughness"], 0.30)
     fijar(bsdf, ["Sheen Weight", "Sheen"], 0.35)
     enlazar(nt, coord, "Object", var, "Vector"); enlazar(nt, coord, "Object", grano, "Vector")
-    enlazar(nt, var, "Fac", mezcla, "Factor")
-    enlazar(nt, mezcla, "Result", bsdf, "Base Color")
+    enlazar(nt, var, "Fac", mezcla, "Fac")
+    enlazar(nt, mezcla, "Color", bsdf, "Base Color")
     enlazar(nt, grano, "Fac", bump, "Height"); enlazar(nt, bump, "Normal", bsdf, "Normal")
     _salida(nt, bsdf)
     return mat
@@ -191,5 +191,146 @@ def imagen_carta(indice):
     img = bpy.data.images.new("Carta_%02d" % indice, w, h, alpha=False)
     img.pixels.foreach_set(G.carta_pixeles(w, h, indice))
     img.colorspace_settings.name = "sRGB"
+    img.pack()
+    return img
+
+
+# ================================================================== Fase 3.4.4: conjunto de materiales de carta y funda
+def _mix_rgb(nt, tipo, x, y):
+    return nodo(nt, "ShaderNodeMixRGB", x, y, blend_type=tipo)
+
+
+def hoja_grafito():
+    """Página: negro grafito mate con textura sutil (ruido fino + fibra más grande), sin brillo."""
+    mat, nt = nuevo_material("HojaGrafito")
+    coord = nodo(nt, "ShaderNodeTexCoord", -900, 0)
+    fino = nodo(nt, "ShaderNodeTexNoise", -650, 100); fijar(fino, "Scale", 420.0); fijar(fino, "Detail", 8.0); fijar(fino, "Roughness", 0.6)
+    gran = nodo(nt, "ShaderNodeTexNoise", -650, -150); fijar(gran, "Scale", 28.0); fijar(gran, "Detail", 3.0)
+    suma = nodo(nt, "ShaderNodeMath", -430, 0, operation="MULTIPLY_ADD"); suma.inputs[1].default_value = 0.35
+    enlazar(nt, coord, "Object", fino, "Vector"); enlazar(nt, coord, "Object", gran, "Vector")
+    enlazar(nt, fino, "Fac", suma, 0); enlazar(nt, gran, "Fac", suma, 2)
+    bump = nodo(nt, "ShaderNodeBump", -220, 0); fijar(bump, "Strength", 0.18); fijar(bump, "Distance", 0.0003)
+    tono = _mix_rgb(nt, "MIX", -220, 250)
+    fijar(tono, "Color1", lineal4("#17191C")); fijar(tono, "Color2", lineal4("#2A2D31"))
+    enlazar(nt, gran, "Fac", tono, "Fac")
+    bsdf = _principled(nt)
+    fijar(bsdf, "Roughness", 0.78)
+    fijar(bsdf, ["Specular IOR Level", "Specular"], 0.18)
+    enlazar(nt, suma, "Value", bump, "Height"); enlazar(nt, bump, "Normal", bsdf, "Normal")
+    enlazar(nt, tono, "Color", bsdf, "Base Color")
+    _salida(nt, bsdf)
+    return mat
+
+
+def carta_satinada(nombre, imagen, holo=False):
+    """Cartón fino satinado (rugosidad media + barniz muy suave + fibra en relieve). Si 'holo', el alfa de la imagen es la
+    máscara de la ilustración: ahí se superpone una banda arcoíris (SOFT_LIGHT, sutil) que depende del ángulo de vista
+    y de la posición, y se baja la rugosidad. Sin emisión, sin transmisión, sin refracción."""
+    mat, nt = nuevo_material(nombre)
+    coord = nodo(nt, "ShaderNodeTexCoord", -1200, 0)
+    tex = nodo(nt, "ShaderNodeTexImage", -900, 200)
+    tex.image = imagen; tex.interpolation = "Linear"; tex.extension = "EXTEND"
+    fibra = nodo(nt, "ShaderNodeTexNoise", -900, -250); fijar(fibra, "Scale", 700.0); fijar(fibra, "Detail", 6.0)
+    bump = nodo(nt, "ShaderNodeBump", -650, -250); fijar(bump, "Strength", 0.05); fijar(bump, "Distance", 0.0002)
+    bsdf = _principled(nt, 300, 0)
+    fijar(bsdf, "Roughness", 0.40)
+    fijar(bsdf, ["Specular IOR Level", "Specular"], 0.30)
+    fijar(bsdf, ["Coat Weight", "Clearcoat"], 0.10)
+    fijar(bsdf, ["Coat Roughness", "Clearcoat Roughness"], 0.30)
+    enlazar(nt, coord, "UV", tex, "Vector")
+    enlazar(nt, coord, "Object", fibra, "Vector"); enlazar(nt, fibra, "Fac", bump, "Height"); enlazar(nt, bump, "Normal", bsdf, "Normal")
+    if not holo:
+        enlazar(nt, tex, "Color", bsdf, "Base Color")
+    else:
+        sep = nodo(nt, "ShaderNodeSeparateXYZ", -1000, 500)
+        enlazar(nt, coord, "Generated", sep, "Vector")
+        uv = nodo(nt, "ShaderNodeMath", -820, 500, operation="ADD")
+        enlazar(nt, sep, "X", uv, 0); enlazar(nt, sep, "Y", uv, 1)
+        cara = nodo(nt, "ShaderNodeLayerWeight", -820, 700); fijar(cara, "Blend", 0.5)
+        fase = nodo(nt, "ShaderNodeMath", -620, 560, operation="MULTIPLY_ADD"); fase.inputs[1].default_value = 0.9
+        enlazar(nt, uv, "Value", fase, 0)
+        enlazar(nt, cara, "Facing", fase, 2)
+        rep = nodo(nt, "ShaderNodeMath", -440, 560, operation="FRACT")
+        enlazar(nt, fase, "Value", rep, 0)
+        arco = nodo(nt, "ShaderNodeValToRGB", -260, 560)
+        r = arco.color_ramp
+        r.elements[0].position, r.elements[0].color = 0.0, (1.0, 0.35, 0.55, 1)
+        r.elements[1].position, r.elements[1].color = 1.0, (1.0, 0.35, 0.55, 1)
+        for pos, col in ((0.2, (1.0, 0.85, 0.35, 1)), (0.4, (0.4, 1.0, 0.65, 1)), (0.6, (0.35, 0.75, 1.0, 1)), (0.8, (0.8, 0.45, 1.0, 1))):
+            r.elements.new(pos).color = col
+        mezcla = _mix_rgb(nt, "SOFT_LIGHT", 0, 260)
+        mascara = nodo(nt, "ShaderNodeMath", -120, 460, operation="MULTIPLY"); mascara.inputs[1].default_value = 0.55
+        enlazar(nt, tex, "Alpha", mascara, 0)
+        enlazar(nt, mascara, "Value", mezcla, "Fac")
+        enlazar(nt, tex, "Color", mezcla, "Color1")
+        enlazar(nt, arco, "Color", mezcla, "Color2")
+        enlazar(nt, mezcla, "Color", bsdf, "Base Color")
+        rug = nodo(nt, "ShaderNodeMapRange", 0, -80)
+        fijar(rug, "To Min", 0.40); fijar(rug, "To Max", 0.20)
+        enlazar(nt, tex, "Alpha", rug, "Value"); enlazar(nt, rug, "Result", bsdf, "Roughness")
+        met = nodo(nt, "ShaderNodeMath", 0, -280, operation="MULTIPLY"); met.inputs[1].default_value = 0.22
+        enlazar(nt, tex, "Alpha", met, 0); enlazar(nt, met, "Value", bsdf, "Metallic")
+    _salida(nt, bsdf, 620, 0)
+    return mat
+
+
+def funda_pelicula():
+    """Lámina de plástico: Transparent + Glossy mezclados por una máscara PEQUEÑA (velo 3 % + dos bandas de reflejo
+    diagonales suaves + algo de Fresnel). No hay color difuso (antes la base blanca + exceso de luz = baldosa blanca),
+    ni transmisión ni refracción: nada que dependa de la API de transmisión de 4.2."""
+    mat, nt = nuevo_material("FundaPelicula")
+    coord = nodo(nt, "ShaderNodeTexCoord", -1100, 0)
+    sep = nodo(nt, "ShaderNodeSeparateXYZ", -900, 100)
+    suma = nodo(nt, "ShaderNodeMath", -720, 100, operation="ADD")
+    enlazar(nt, coord, "Generated", sep, "Vector")
+    enlazar(nt, sep, "X", suma, 0); enlazar(nt, sep, "Y", suma, 1)
+    rampa = nodo(nt, "ShaderNodeValToRGB", -540, 100)
+    r = rampa.color_ramp
+    r.elements[0].position, r.elements[0].color = 0.30, (0, 0, 0, 1)
+    r.elements[1].position, r.elements[1].color = 0.99, (0, 0, 0, 1)
+    for pos, v in ((0.42, 0.16), (0.56, 0.0), (0.84, 0.0), (0.90, 0.09)):
+        r.elements.new(pos).color = (v, v, v, 1)
+    rojo = nodo(nt, "ShaderNodeSeparateColor", -330, 100)
+    enlazar(nt, rampa, "Color", rojo, "Color")
+    fres = nodo(nt, "ShaderNodeFresnel", -540, -150); fijar(fres, "IOR", 1.45)
+    fres2 = nodo(nt, "ShaderNodeMath", -330, -150, operation="MULTIPLY"); fres2.inputs[1].default_value = 0.5
+    enlazar(nt, fres, "Fac", fres2, 0)
+    s1 = nodo(nt, "ShaderNodeMath", -120, 0, operation="ADD")
+    enlazar(nt, rojo, "Red", s1, 0); enlazar(nt, fres2, "Value", s1, 1)
+    s2 = nodo(nt, "ShaderNodeMath", 60, 0, operation="ADD", use_clamp=True); s2.inputs[1].default_value = 0.03
+    enlazar(nt, s1, "Value", s2, 0)
+    transp = nodo(nt, "ShaderNodeBsdfTransparent", 60, 220)
+    brillo = nodo(nt, "ShaderNodeBsdfGlossy", 60, -120)
+    fijar(brillo, "Roughness", 0.16); fijar(brillo, "Color", (1, 1, 1, 1))
+    mezcla = nodo(nt, "ShaderNodeMixShader", 300, 60)
+    enlazar(nt, s2, "Value", mezcla, "Fac")
+    enlazar(nt, transp, "BSDF", mezcla, 1); enlazar(nt, brillo, "BSDF", mezcla, 2)
+    sal = nodo(nt, "ShaderNodeOutputMaterial", 540, 60)
+    enlazar(nt, mezcla, "Shader", sal, "Surface")
+    return mat
+
+
+def soldadura_discreta():
+    """Termosellado: línea gris translúcida (alfa 0,45), nunca un marco blanco."""
+    mat, nt = nuevo_material("SoldaduraDiscreta")
+    bsdf = _principled(nt)
+    fijar(bsdf, "Base Color", lineal4("#4A4E55"))
+    fijar(bsdf, "Roughness", 0.5)
+    fijar(bsdf, ["Specular IOR Level", "Specular"], 0.15)
+    fijar(bsdf, "Alpha", 0.45)
+    _salida(nt, bsdf)
+    return mat
+
+
+def imagen_arte(indice, holo=False):
+    from . import arte
+    a = arte.carta(indice, holo)
+    img = bpy.data.images.new("Arte_%02d%s" % (indice, "_holo" if holo else ""), a.shape[1], a.shape[0], alpha=True)
+    img.pixels.foreach_set(a.ravel())
+    img.colorspace_settings.name = "sRGB"
+    try:
+        img.alpha_mode = "CHANNEL_PACKED"
+    except (TypeError, AttributeError):
+        pass
     img.pack()
     return img

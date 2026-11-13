@@ -96,6 +96,37 @@ cub = [p for p in piezas if p["nombre"].startswith("Cubierta")]
 ok(all(G.volumen_con_signo(p["verts"], p["caras"]) > 0 for p in cub), "cubiertas acolchadas: normales hacia fuera")
 ok(all(p["padre"] for p in piezas if p["nombre"].startswith(("Carta", "Funda", "Soldadura"))), "bolsillos cuelgan de su hoja (animables con ella)")
 
+print("Prueba de materiales (3 bolsillos)")
+import re
+from teselia import prueba, arte
+pp, pinfo = prueba.construir(cfg)
+cartas_p = [p for p in pp if p["mat"] in ("carta", "carta_holo")]
+ok(len(cartas_p) == 2 and sorted(p["mat"] for p in cartas_p) == ["carta", "carta_holo"], "3 bolsillos: 1 vacío + 1 carta normal + 1 holográfica")
+ok(sum(1 for p in pp if p["nombre"].startswith("Soldadura")) == 3, "3 soldaduras (una por bolsillo)")
+fp = [p for p in pp if p["mat"] == "funda"]
+ok(len(fp) == 1 and len(fp[0]["caras"]) == 1, "una sola lámina de funda plana para toda la página")
+ok(all(sum(f[1] for f in [p["verts"][i] for i in c]) / len(c) < 1e9 for p in pp for c in p["caras"][:1]), "mallas válidas")
+for p in pp:
+    if p["nombre"].startswith("Soldadura"):
+        cy = {round(sum(p["verts"][i][1] for i in c) / len(c), 6) for c in p["caras"]}
+        top = a["bolsillo"]["alto"] / 2 - 0.0004
+        ok(max(cy) < top, "%s abierta por arriba (boca del bolsillo)" % p["nombre"])
+i0 = pinfo[0]
+ok(i0["z_sold"] > i0["z_hoja"] and i0["z_carta0"] - i0["z_sold"] >= 0.0001 and i0["z_funda"] - i0["z_carta1"] >= 0.0005, "capas: hoja<soldadura<carta<funda (separación ≥0,1 mm / ≥0,5 mm a la funda)")
+ok(all(G.volumen_con_signo(p["verts"], p["caras"]) > 0 for p in cartas_p), "cartas de prueba: normales hacia fuera")
+for holo in (False, True):
+    im = arte.carta(3, holo)
+    ok(im.shape == (714, 512, 4) and abs(512 / 714 - 63 / 88) < 0.003, "ilustración %s: 512x714 (proporción 63:88)" % ("holo" if holo else "normal"))
+im_n, im_h = arte.carta(3, False), arte.carta(3, True)
+ok(float(im_n[..., 3].min()) == 1.0, "carta normal: alfa 1 en toda la imagen")
+cob = float(im_h[..., 3].mean())
+ok(0.2 < cob < 0.5, "holo: máscara cubre solo la ilustración (%.0f%% de la carta)" % (100 * cob))
+ok(float(im_n[..., :3].std()) > 0.15, "ilustración con contraste suficiente (legible)")
+src = open(os.path.join(AQUI, "teselia", "materiales.py"), encoding="utf-8").read()
+ok(re.search(r'"ShaderNodeMix"', src) is None, "ningún nodo Mix 4.x con sockets homónimos (se usa MixRGB)")
+ok(not re.search(r'Transmission|"IOR"\]|refrac', src.replace("Fresnel", "")) or "Transmission" not in src, "sin transmisión/refracción en los materiales")
+ok(cfg["luces"]["principal_w"] <= 60, "vatios de las luces calibrados (≤60 W; antes 260 W quemaban la imagen)")
+
 print("Cámara y composición")
 for vista, v_cfg in cfg["vistas"].items():
     pos, obj, d = G.ajustar_camara(cfg, vista)
@@ -115,6 +146,7 @@ for vista, v_cfg in cfg["vistas"].items():
     ok(all(abs(f[i] - dd[i] / L) < 1e-6 for i in range(3)), "%s: euler de la cámara apunta al objetivo" % vista)
 
 print("Ensayo en seco con bpy simulado")
+bpy_mock = True
 bpy = mock.MagicMock(name="bpy")
 bpy.context.scene.collection = mock.MagicMock()
 bpy.data.materials.new.return_value.node_tree.nodes.new.return_value.inputs.__contains__.return_value = True
@@ -130,6 +162,16 @@ try:
 except Exception as ex:  # noqa
     import traceback; traceback.print_exc()
     ok(False, "crear_escena.py con bpy simulado: %r" % ex)
+
+try:
+    sys.argv = ["blender", "--", "--modo", "previa", "--sin-render"]
+    for m in [k for k in sys.modules if k.startswith("teselia")]:
+        del sys.modules[m]
+    runpy.run_path(os.path.join(AQUI, "crear_prueba_materiales.py"), run_name="__main__")
+    ok(True, "crear_prueba_materiales.py recorre todo el flujo")
+except Exception as ex:  # noqa
+    import traceback; traceback.print_exc()
+    ok(False, "crear_prueba_materiales.py con bpy simulado: %r" % ex)
 
 print("\n%d pruebas, %d fallos" % (total, len(fallos)))
 sys.exit(1 if fallos else 0)
