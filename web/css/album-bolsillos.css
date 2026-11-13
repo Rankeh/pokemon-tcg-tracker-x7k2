@@ -2,20 +2,29 @@
 .bolsillo { position: relative; transform-style: preserve-3d; cursor: pointer; border-radius: 2% / 1.5%; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
 .bolsillo[aria-hidden="true"] { cursor: default; }
 .bolsillo > span { position: absolute; display: block; }
-.bolsillo-fondo { inset: 0; border-radius: inherit; background: linear-gradient(180deg, #08080b, #131318); box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); }
+.bolsillo-fondo { inset: 0; border-radius: inherit; background: linear-gradient(180deg, #1b1d25, #262a34); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1), inset 0 6px 14px rgba(0,0,0,.35); }
 
 /* Interior: recorta a la funda (aquí "desaparece" la parte metida). */
 .bolsillo-interior { inset: 0; overflow: hidden; transform: translateZ(3px); }
+/* Sombra que proyecta el plástico sobre la carta: separa visualmente carta y funda */
+.bolsillo-interior::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background: linear-gradient(180deg, rgba(0,0,0,.34), transparent 9%), linear-gradient(90deg, rgba(0,0,0,.2), transparent 4%, transparent 96%, rgba(0,0,0,.2)); }
 
 /* Plástico: borde, labio de la boca arriba, costuras laterales/inferior y reflejos. */
 .bolsillo-plastico { inset: 0; transform: translateZ(8px); pointer-events: none; border-radius: inherit;
-  border: 1px solid rgba(255,255,255,.2); border-top: 2px solid rgba(255,255,255,.42);
+  border: 1px solid rgba(255,255,255,.42); border-top: 2px solid rgba(255,255,255,.7);
   background:
-    linear-gradient(180deg, rgba(255,255,255,.2) 0, rgba(255,255,255,.04) 3.2%, transparent 7%),
-    linear-gradient(128deg, rgba(255,255,255,.2) 0%, rgba(255,255,255,.04) 24%, transparent 46%, rgba(255,255,255,.07) 78%, rgba(255,255,255,.03) 100%);
-  box-shadow: inset 0 0 10px rgba(255,255,255,.07), 0 1px 0 rgba(0,0,0,.7), 0 3px 6px rgba(0,0,0,.35); }
-.bolsillo-plastico::after { content: ""; position: absolute; inset: 1.6% 1.8% 1.4%; border: 1px dashed rgba(255,255,255,.13); border-top: 0; border-radius: 0 0 2% 2%; }
-.bolsillo[data-id]:hover .bolsillo-plastico { border-color: rgba(255,255,255,.34); }
+    linear-gradient(180deg, rgba(255,255,255,.3) 0, rgba(255,255,255,.07) 3.2%, transparent 8%),
+    linear-gradient(128deg, rgba(255,255,255,.26) 0%, rgba(255,255,255,.07) 22%, rgba(190,210,245,.05) 44%, rgba(255,255,255,.1) 76%, rgba(255,255,255,.04) 100%);
+  box-shadow: inset 0 0 12px rgba(255,255,255,.1), 0 0 0 1px rgba(0,0,0,.55), 0 4px 9px rgba(0,0,0,.5); }
+/* Soldaduras laterales e inferior del plástico y costura de puntos */
+.bolsillo-plastico::before { content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.2), transparent) left / 2.6% 100% no-repeat,
+    linear-gradient(270deg, rgba(255,255,255,.2), transparent) right / 2.6% 100% no-repeat,
+    linear-gradient(0deg, rgba(255,255,255,.2), transparent) bottom / 100% 1.9% no-repeat; }
+.bolsillo-plastico::after { content: ""; position: absolute; inset: 1.6% 1.9% 1.5%; border: 1px dashed rgba(255,255,255,.38); border-top: 0; border-radius: 0 0 2% 2%; }
+.bolsillo[data-id]:hover .bolsillo-plastico { border-color: rgba(255,255,255,.7); box-shadow: inset 0 0 14px rgba(255,255,255,.18), 0 0 0 1px rgba(0,0,0,.55), 0 4px 9px rgba(0,0,0,.5); }
 .bolsillo:focus-visible { outline: none; }
 .bolsillo:focus-visible .bolsillo-plastico { outline: 2px solid var(--oro); outline-offset: 2px; }
 
@@ -37,13 +46,13 @@
 .carta-sustituto em { border: 1px solid rgba(216,179,106,.55); color: #f6e7c1; font-size: .75em; padding: .15em .7em; }
 
 /* Pendiente: funda vacía con una referencia discreta */
-.fantasma { inset: var(--my) var(--mx); border-radius: 4.6% / 3.3%; overflow: hidden; border: 1px dashed rgba(255,255,255,.14); }
-.fantasma .carta-imagen { width: 100%; height: 100%; aspect-ratio: auto; border: 0; border-radius: 0; background: transparent; filter: grayscale(1) contrast(.75); opacity: .17; }
+.fantasma { inset: var(--my) var(--mx); border-radius: 4.6% / 3.3%; overflow: hidden; border: 1px dashed rgba(255,255,255,.4); background: rgba(255,255,255,.045); }
+.fantasma .carta-imagen { width: 100%; height: 100%; aspect-ratio: auto; border: 0; border-radius: 0; background: transparent; filter: grayscale(1) contrast(.85) brightness(1.05); opacity: .4; }
 .fantasma .carta-sustituto { display: none; }
-.bolsillo > .bolsillo-etiqueta { left: 5%; right: 5%; bottom: 8%; text-align: center; transform: translateZ(9px); pointer-events: none; font-size: calc(var(--w) * .024); line-height: 1.2; color: #d8d9e4;
+.bolsillo > .bolsillo-etiqueta { left: 5%; right: 5%; bottom: 8%; text-align: center; transform: translateZ(9px); pointer-events: none; font-size: calc(var(--w) * .03); line-height: 1.2; color: #f0f1f7;
   text-shadow: 0 1px 2px rgba(0,0,0,.9); display: flex; flex-direction: column; align-items: center; gap: .15em; }
-.bolsillo-etiqueta strong { font-weight: 600; background: rgba(8,8,12,.62); padding: .15em .5em; border-radius: 6px; }
-.bolsillo-etiqueta span { color: #a9aabb; font-variant-numeric: tabular-nums; }
+.bolsillo-etiqueta strong { font-weight: 650; color: #fff; background: rgba(6,7,10,.84); padding: .18em .55em; border-radius: 7px; box-shadow: 0 0 0 1px rgba(255,255,255,.18); }
+.bolsillo-etiqueta span { color: #e6e7f2; font-size: .92em; font-variant-numeric: tabular-nums; background: rgba(6,7,10,.7); padding: .05em .45em; border-radius: 6px; }
 .bolsillo:not([data-estado="pendiente"]) .bolsillo-etiqueta { display: none; }
 
 .bolsillo-cantidad { right: 6%; bottom: 4.5%; transform: translateZ(12px); padding: .05em .55em; border-radius: 999px; font-size: calc(var(--w) * .03); font-weight: 650;
@@ -51,9 +60,9 @@
 .bolsillo > .bolsillo-cantidad[hidden] { display: none; }
 
 /* Hueco sin asignar: decorativo, nunca cuenta como carta pendiente */
-.bolsillo[data-estado="libre"] .bolsillo-fondo { opacity: .4; }
+.bolsillo[data-estado="libre"] .bolsillo-fondo { opacity: .55; }
 .bolsillo[data-estado="libre"] .bolsillo-plastico { opacity: .45; }
-.bolsillo-libre-marca { left: 50%; top: 50%; width: 22%; aspect-ratio: 1; transform: translate(-50%, -50%) rotate(45deg); border: 1px solid rgba(255,255,255,.09); }
+.bolsillo-libre-marca { left: 50%; top: 50%; width: 22%; aspect-ratio: 1; transform: translate(-50%, -50%) rotate(45deg); border: 1px solid rgba(255,255,255,.18); }
 
 /* Recuadro situado JUSTO ENCIMA de la boca de la funda: aquí asoma la parte de la carta que aún no ha entrado */
 .bolsillo-exterior { left: 0; right: 0; bottom: 100%; height: 112%; overflow: hidden; transform: translateZ(10px); pointer-events: none; }
@@ -67,3 +76,6 @@
 .vuelo { border-radius: 4.6% / 3.3%; will-change: transform; transform-style: flat; }
 .vuelo .carta { inset: 0; position: absolute; box-shadow: 0 0 0 1px rgba(0,0,0,.4); }
 .vuelo-sombra { border-radius: 4%; box-shadow: 0 0 26px 14px rgba(0,0,0,.6); opacity: 0; }
+
+/* Resaltado por filtro: oscurece lo que no coincide, sin tocar el orden ni la estructura 3D del bolsillo */
+.bolsillo.atenuado .bolsillo-interior, .bolsillo.atenuado .bolsillo-etiqueta { filter: brightness(.38) saturate(.5); }

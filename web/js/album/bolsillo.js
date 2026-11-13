@@ -42,7 +42,8 @@ export class Bolsillo {
     raiz.tabIndex = 0;
 
     this.etiqueta = el(doc, "span", "bolsillo-etiqueta");
-    this.etiqueta.append(el(doc, "strong", "", carta.nombre), el(doc, "span", "", `${carta.numero}`));
+    const dex = Array.isArray(carta.dexId) ? carta.dexId[0] : null;
+    this.etiqueta.append(el(doc, "strong", "", carta.nombre), el(doc, "span", "", dex ? `#${dex} · ${carta.numero}` : `${carta.numero}`));
     this.cantidad = el(doc, "span", "bolsillo-cantidad");
     this.exterior = el(doc, "span", "bolsillo-exterior");
     raiz.append(this.etiqueta, this.cantidad, this.exterior);
@@ -89,7 +90,8 @@ export class Bolsillo {
 
   descripcion(n) {
     const c = this.carta;
-    return `${c.nombre}, número ${c.numero}, ${c.nombreExpansion ?? c.expansion}. ` +
+    const dex = Array.isArray(c.dexId) && c.dexId[0] ? `Pokédex ${c.dexId[0]}, ` : "";
+    return `${c.nombre}, ${dex}número ${c.numero}, ${c.nombreExpansion ?? c.expansion}. ` +
       (n >= 1 ? `Conseguida, ${n} ${n === 1 ? "copia" : "copias"}.` : "Pendiente.");
   }
 

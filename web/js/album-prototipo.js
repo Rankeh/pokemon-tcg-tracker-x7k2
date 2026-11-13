@@ -1,8 +1,8 @@
-// Prototipo 3.1: une las piezas (catálogo, IndexedDB de la Fase 2, distribución, escena 3D, ficha, animaciones).
+// Prototipo 3.1.1 (orden Pokédex): une las piezas (catálogo, IndexedDB de la Fase 2, distribución, escena 3D, ficha, animaciones).
 // Regla de oro: primero se guarda en IndexedDB y SOLO si se confirma se anima y se cambia lo que se ve.
 import { Almacen, solicitarPersistencia } from "./almacen.js";
 import { validarCatalogo } from "./coleccion.js";
-import { distribuir, SECCIONES } from "./album/distribucion.js";
+import { distribuir, numeroPokedex, esEntrenador } from "./album/distribucion.js";
 import { ModeloColeccion } from "./album/modelo.js";
 import { crearEscena } from "./album/escena.js";
 import { Pagina } from "./album/pagina.js";
@@ -13,7 +13,7 @@ const $ = (id) => document.getElementById(id);
 const URL_CATALOGO = "../datos/catalogo/coleccion-teselia.json";
 const PREFERENCIA_MOVIMIENTO = "album-reducir-movimiento";
 
-let modelo, escena, pagina, ficha, distribucion, seccionActual;
+let modelo, escena, pagina, ficha, distribucion, paginaActual = 1, filtro = "todas";
 let bloqueado = false; // true durante un guardado + animación: nadie puede abrir o pulsar nada
 
 function avisar(texto) {
@@ -27,15 +27,40 @@ function pintarProgreso() {
   $("barra").style.width = `${p.porcentaje}%`;
 }
 
-function mostrarSeccion(id) {
-  const datos = distribucion.paginas.find((p) => p.seccion.id === id) ?? distribucion.paginas[0];
-  seccionActual = datos.seccion.id;
-  pagina = new Pagina(escena.bolsillos, datos);
-  pagina.sincronizar(modelo);
-  document.querySelectorAll("[data-seccion]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.seccion === seccionActual)));
-  const ocupados = datos.bolsillos.filter(Boolean).length;
-  $("pagina-info").textContent = `${datos.seccion.nombre} · página ${datos.numero} de ${distribucion.paginas.length} (${ocupados} cartas, ${9 - ocupados} huecos)`;
+const etiquetaCarta = (c) => (esEntrenador(c) ? c.nombre : `#${numeroPokedex(c)} ${c.nombre}`);
+
+function coincideFiltro(carta) {
+  if (!carta) return true;
+  if (filtro === "todas") return true;
+  if (filtro === "pendientes") return modelo.cantidad(carta.id) === 0;
+  return carta.expansion === filtro;
 }
+
+/** El filtro solo resalta: nunca cambia qué carta está en cada bolsillo. */
+function aplicarFiltro() {
+  for (const b of pagina.bolsillos) b.elemento.classList.toggle("atenuado", Boolean(b.carta) && !coincideFiltro(b.carta));
+}
+
+/** Vuelve a pintar la página desde lo guardado (sin animar) y reaplica el resaltado. */
+function refrescarPagina() {
+  pagina.sincronizar(modelo);
+  aplicarFiltro();
+}
+
+function mostrarPagina(n) {
+  const total = distribucion.paginas.length;
+  paginaActual = Math.min(total, Math.max(1, n));
+  const datos = distribucion.paginas[paginaActual - 1];
+  pagina = new Pagina(escena.bolsillos, datos);
+  refrescarPagina();
+  const cartas = datos.bolsillos.filter(Boolean);
+  $("pagina-numero").textContent = `Página ${paginaActual} de ${total}`;
+  $("pagina-rango").textContent = cartas.length === 1 ? etiquetaCarta(cartas[0]) : `${etiquetaCarta(cartas[0])} – ${etiquetaCarta(cartas.at(-1))}`;
+  $("anterior").disabled = paginaActual === 1;
+  $("siguiente").disabled = paginaActual === total;
+}
+
+const puedeNavegar = () => !bloqueado && !ficha.abierta;
 
 async function guardar(id, delta) {
   try {
@@ -64,7 +89,7 @@ async function alAnadir(carta) {
   } catch (error) {
     avisar(`Error al mostrar la animación: ${error?.message ?? error}`);
   } finally {
-    pagina.sincronizar(modelo); // lo que se ve vuelve a derivarse siempre de lo guardado
+    refrescarPagina(); // lo que se ve vuelve a derivarse siempre de lo guardado
     bloqueado = false;
   }
 }
@@ -86,7 +111,7 @@ async function alRetirar(carta) {
   } catch (error) {
     avisar(`Error al mostrar la animación: ${error?.message ?? error}`);
   } finally {
-    pagina.sincronizar(modelo);
+    refrescarPagina();
     bloqueado = false;
   }
 }
@@ -140,8 +165,20 @@ async function iniciar() {
     if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); abrirFicha(b); }
   });
 
-  document.querySelectorAll("[data-seccion]").forEach((b) =>
-    b.addEventListener("click", () => { if (!bloqueado && !ficha.abierta) mostrarSeccion(b.dataset.seccion); }));
+  $("anterior").addEventListener("click", () => { if (puedeNavegar()) mostrarPagina(paginaActual - 1); });
+  $("siguiente").addEventListener("click", () => { if (puedeNavegar()) mostrarPagina(paginaActual + 1); });
+  document.addEventListener("keydown", (e) => {
+    if (!puedeNavegar() || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === "ArrowLeft") mostrarPagina(paginaActual - 1);
+    else if (e.key === "ArrowRight") mostrarPagina(paginaActual + 1);
+  });
+  document.querySelectorAll("[data-filtro]").forEach((b) =>
+    b.addEventListener("click", () => {
+      if (!puedeNavegar()) return;
+      filtro = b.dataset.filtro;
+      document.querySelectorAll("[data-filtro]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      aplicarFiltro();
+    }));
 
   ajustes.reducirMovimiento = preferenciaMovimiento();
   const botonMov = $("movimiento");
@@ -152,8 +189,8 @@ async function iniciar() {
     try { localStorage.setItem(PREFERENCIA_MOVIMIENTO, ajustes.reducirMovimiento ? "1" : "0"); } catch { /* sin almacenamiento: se usa solo en esta sesión */ }
   });
 
-  const secUrl = new URLSearchParams(location.search).get("seccion");
-  mostrarSeccion(SECCIONES.some((s) => s.id === secUrl) ? secUrl : "fn");
+  const inicial = parseInt(new URLSearchParams(location.search).get("pagina"), 10);
+  mostrarPagina(Number.isInteger(inicial) ? inicial : 1);
   pintarProgreso();
   solicitarPersistencia();
 }

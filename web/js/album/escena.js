@@ -18,7 +18,7 @@ export function crearEscena(contenedor, doc = document) {
 
   // Hojas apiladas por detrás: dan grosor visible en el borde inferior y derecho.
   const grosor = el(doc, "album-grosor");
-  for (let i = 0; i < 6; i++) grosor.append(el(doc, "hoja-trasera"));
+  for (let i = 0; i < 8; i++) grosor.append(el(doc, "hoja-trasera"));
 
   const hoja = el(doc, "hoja");
   const perforaciones = el(doc, "perforaciones");
@@ -27,8 +27,7 @@ export function crearEscena(contenedor, doc = document) {
   const reflejo = el(doc, "hoja-reflejo");
   hoja.append(perforaciones, bolsillos, reflejo);
 
-  const canto = el(doc, "album-canto");
-  album.append(sombra, cubierta, lomo, grosor, canto, hoja);
+  album.append(sombra, cubierta, lomo, grosor, hoja);
   mesa.append(album);
   contenedor.replaceChildren(mesa);
   return { mesa, album, hoja, bolsillos };

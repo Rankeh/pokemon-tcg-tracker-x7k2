@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0a09">
-  <title>Álbum Teselia — prototipo 3.1</title>
+  <title>Álbum Teselia — prototipo 3.1.1</title>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/album-escena.css">
   <link rel="stylesheet" href="css/album-bolsillos.css">
@@ -13,21 +13,32 @@
 <body>
 <div class="app">
   <header class="cabecera">
-    <h1>Álbum Teselia <small style="font-weight:400;color:#9a9aa8">prototipo 3.1</small></h1>
+    <h1>Álbum Teselia</h1>
     <p class="progreso" id="progreso" aria-live="polite">Cargando…</p>
     <div class="barra-progreso" aria-hidden="true"><i id="barra"></i></div>
-    <p class="info" id="pagina-info"></p>
   </header>
   <p class="aviso" id="aviso" role="alert" hidden></p>
   <main class="escena" id="escena" aria-label="Página del álbum con nueve bolsillos"></main>
   <footer class="pie">
-    <span role="group" aria-label="Página de prueba">
-      <button type="button" class="boton" data-seccion="fn" aria-pressed="false">Fulgor Negro</button>
-      <button type="button" class="boton" data-seccion="lw" aria-pressed="false">Llama Blanca</button>
-      <button type="button" class="boton" data-seccion="promo" aria-pressed="false">Promociones</button>
-    </span>
-    <button type="button" class="boton" id="movimiento" aria-pressed="false">Reducir movimiento</button>
-    <small><a href="prueba-almacenamiento.html">Copias de seguridad</a></small>
+    <nav class="paginador" aria-label="Páginas del álbum">
+      <button type="button" class="boton boton-flecha" id="anterior" aria-label="Página anterior">‹</button>
+      <div class="pagina-info" aria-live="polite">
+        <strong id="pagina-numero">Página –</strong>
+        <small id="pagina-rango"></small>
+      </div>
+      <button type="button" class="boton boton-flecha" id="siguiente" aria-label="Página siguiente">›</button>
+    </nav>
+    <div class="filtros" role="group" aria-label="Resaltar cartas (no cambia el orden)">
+      <button type="button" class="boton chip" data-filtro="todas" aria-pressed="true">Todas</button>
+      <button type="button" class="boton chip" data-filtro="sv10.5b" aria-pressed="false">Fulgor Negro</button>
+      <button type="button" class="boton chip" data-filtro="sv10.5w" aria-pressed="false">Llama Blanca</button>
+      <button type="button" class="boton chip" data-filtro="svp" aria-pressed="false">Promos</button>
+      <button type="button" class="boton chip" data-filtro="pendientes" aria-pressed="false">Pendientes</button>
+    </div>
+    <div class="extras">
+      <button type="button" class="boton chip" id="movimiento" aria-pressed="false">Reducir movimiento</button>
+      <a class="enlace-copias" href="prueba-almacenamiento.html">Copias de seguridad</a>
+    </div>
   </footer>
 </div>
 <div class="ficha" id="ficha" hidden></div>

@@ -113,6 +113,11 @@ public final class PromocionesFase1 {
         o.put("producto", c.path("producto").asText());
         o.put("tipoIlustracion", c.path("tipoIlustracion").asText());
         o.put("verificacion", "confirmada (número, producto e ilustración contrastados en varias fuentes; ver promociones.json)");
+        // TCGdex no da dexId para las promociones svp: se toma de la decisión confirmada (nunca se deduce del número de carta).
+        if (c.path("dexId").isArray()) {
+            o.set("dexId", c.path("dexId").deepCopy());
+            o.put("origenDexId", "datos/decisiones/promociones.json (campo pokemon, contrastado en WikiDex); TCGdex no da dexId para svp");
+        }
 
         String esperado = c.path("ilustradorEsperado").asText("");
         if (!esperado.isEmpty() && !elegida.ilustrador().toLowerCase().contains(esperado.toLowerCase())) {
