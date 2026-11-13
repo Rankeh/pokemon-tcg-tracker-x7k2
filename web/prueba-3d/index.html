@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14171d">
+  <title>Prueba 3D — Álbum Teselia (Fase 3.5)</title>
+  <link rel="stylesheet" href="css/prueba-3d.css">
+</head>
+<body>
+<main class="app">
+  <canvas id="lienzo" aria-label="Álbum 3D de cartas. Arrastra para girar la vista ligeramente; toca una carta para ver su ficha."></canvas>
+
+  <header class="cabecera">
+    <h1>Álbum 3D <small>prueba de integración 3.5</small></h1>
+    <p id="estado" role="status" aria-live="polite">Cargando…</p>
+  </header>
+
+  <p id="cargando" class="cargando">Cargando modelo 3D…</p>
+  <p id="aviso" class="aviso" role="alert" hidden></p>
+
+  <pre id="panel" class="panel" aria-label="Métricas de rendimiento" hidden></pre>
+  <textarea id="informe" class="informe" rows="8" readonly hidden aria-label="Informe de métricas (copia este texto)"></textarea>
+
+  <section id="ficha" class="ficha" hidden aria-label="Ficha de la carta seleccionada">
+    <img id="f-img" alt="Imagen de la carta seleccionada" width="128" height="179">
+    <div class="ficha-texto">
+      <h2 id="f-titulo"></h2>
+      <p id="f-detalle"></p>
+      <div class="fila">
+        <button type="button" id="f-cambiar">Cambiar imagen</button>
+        <button type="button" id="f-quitar">Quitar carta</button>
+        <button type="button" id="f-volver" class="principal">Volver al álbum</button>
+      </div>
+    </div>
+  </section>
+
+  <nav class="barra" aria-label="Controles del álbum">
+    <button type="button" id="b-abrir">Abrir álbum</button>
+    <button type="button" id="b-ant" aria-label="Hoja anterior">‹ Hoja</button>
+    <button type="button" id="b-sig" aria-label="Hoja siguiente">Hoja ›</button>
+    <button type="button" id="b-rellenar">Rellenar vacíos</button>
+    <button type="button" id="b-metricas">Métricas</button>
+    <button type="button" id="b-medir">Medir</button>
+    <button type="button" id="b-informe">Copiar informe</button>
+  </nav>
+</main>
+
+<script>
+// Arranque: Three.js se toma de web/vendor/three/ si está (funciona sin internet) y, si no, de jsDelivr con versión fija.
+(async () => {
+  const VERSION = '0.160.0';
+  const cdn = 'https://cdn.jsdelivr.net/npm/three@' + VERSION + '/';
+  let base = cdn, origen = 'CDN jsDelivr';
+  try {
+    const r = await fetch('../vendor/three/build/three.module.js', { method: 'HEAD' });
+    if (r.ok) { base = new URL('../vendor/three/', location.href).href; origen = 'copia local web/vendor/three'; }
+  } catch (e) { /* sin copia local: se usa el CDN */ }
+  const mapa = document.createElement('script');
+  mapa.type = 'importmap';
+  mapa.textContent = JSON.stringify({ imports: { 'three': base + 'build/three.module.js', 'three/addons/': base + 'examples/jsm/' } });
+  document.head.appendChild(mapa);
+  window.__origenThree = origen;
+  try { await import('./js/main.js'); }
+  catch (e) {
+    console.error(e);
+    const c = document.getElementById('cargando');
+    c.hidden = false;
+    c.textContent = 'No se pudo cargar Three.js (' + origen + '). Sin internet, copia Three.js en web/vendor/three/ (ver web/vendor/LEEME.md). ' + e.message;
+  }
+})();
+</script>
+</body>
+</html>

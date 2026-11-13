@@ -1,0 +1,25 @@
+{
+ "modelo": {
+  "nodos": 233,
+  "mallas_distintas": 9,
+  "nodos_con_malla": 105,
+  "triangulos_instanciados": 2776,
+  "triangulos_unicos": 420
+ },
+ "parametros": {
+  "n_hojas": 6,
+  "paso": 0.0035,
+  "grosor_tapa": 0.006,
+  "ancho_hoja": 0.232,
+  "alto_hoja": 0.3,
+  "ancho_tapa": 0.258,
+  "alto_tapa": 0.322,
+  "y_base": 0.0,
+  "grosor_hoja": 0.0012,
+  "ancho_carta": 0.063,
+  "alto_carta": 0.088,
+  "ocupados": 72,
+  "bolsillos": 108
+ },
+ "bytes_glb": 51252
+}
