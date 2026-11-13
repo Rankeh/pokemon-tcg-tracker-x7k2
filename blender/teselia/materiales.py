@@ -322,9 +322,28 @@ def soldadura_discreta():
     return mat
 
 
-def imagen_arte(indice, holo=False):
+def imagen_arte(indice, holo=False, carpeta=None):
+    """Imagen de la carta. Con 'carpeta' se guarda un PNG real en disco y se carga como archivo (fuente FILE), lo más
+    robusto para Cycles y permite abrir la textura para inspeccionarla."""
+    import os
     from . import arte
     a = arte.carta(indice, holo)
+    if carpeta:
+        os.makedirs(carpeta, exist_ok=True)
+        ruta = os.path.join(carpeta, "Arte_%02d%s.png" % (indice, "_holo" if holo else ""))
+        tmp = bpy.data.images.new("tmp_" + os.path.basename(ruta), a.shape[1], a.shape[0], alpha=True)
+        tmp.pixels.foreach_set(a.ravel())
+        tmp.filepath_raw = ruta
+        tmp.file_format = "PNG"
+        tmp.save()
+        bpy.data.images.remove(tmp)
+        img = bpy.data.images.load(ruta)
+        img.colorspace_settings.name = "sRGB"
+        try:
+            img.alpha_mode = "CHANNEL_PACKED"
+        except (TypeError, AttributeError):
+            pass
+        return img
     img = bpy.data.images.new("Arte_%02d%s" % (indice, "_holo" if holo else ""), a.shape[1], a.shape[0], alpha=True)
     img.pixels.foreach_set(a.ravel())
     img.colorspace_settings.name = "sRGB"

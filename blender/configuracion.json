@@ -113,6 +113,20 @@
       "desplazamiento_x": 0.0,
       "desplazamiento_y": -0.02,
       "objetivo": "prueba"
+    },
+    "depuracion": {
+      "resolucion": [
+        1200,
+        900
+      ],
+      "lente_mm": 85,
+      "elevacion_grados": 88,
+      "azimut_grados": 0,
+      "ocupacion_ancho": 0.82,
+      "eje": "v",
+      "desplazamiento_x": 0.0,
+      "desplazamiento_y": 0.0,
+      "objetivo": "depuracion"
     }
   },
   "calidad": {
@@ -152,5 +166,13 @@
     "margen_funda": 0.004,
     "grosor_carta": 0.0005,
     "exposicion_objetivo": 0.34
+  },
+  "depuracion": {
+    "pagina": [
+      0.092,
+      0.118
+    ],
+    "muestras": 64,
+    "exposicion_objetivo": 0.3
   }
 }

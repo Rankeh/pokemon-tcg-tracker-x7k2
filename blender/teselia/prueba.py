@@ -54,3 +54,23 @@ def esquinas(cfg):
     w = 3 * paso - a["bolsillo"]["separacion"] + 2 * pr["margen_x"]
     h = a["bolsillo"]["alto"] + 2 * pr["margen_y"]
     return [(sx * w / 2, sy * h / 2, z) for sx in (-1, 1) for sy in (-1, 1) for z in (0.0, 0.004)]
+
+
+def construir_depuracion(cfg, paso):
+    """Banco de depuración: UNA carta sobre una hoja pequeña. paso 1 = sin funda, 2 = con funda, 3 = carta holográfica con funda."""
+    a, d = cfg["archivador"], cfg["depuracion"]
+    car = a["carta"]
+    pw, ph = d["pagina"]
+    gp = 0.0015
+    holo = paso == 3
+    piezas = [_p("Hoja", G.losa_biselada(pw, ph, 0.008, 0, gp, 0.0005, 4, 6), "hoja", True)]
+    z0 = gp + 0.0004
+    v, c = G.losa(G.rect_redondeado(car["ancho"], car["alto"], car["radio_esquina"], 5), z0, z0 + cfg["prueba"]["grosor_carta"])
+    uv = G.uv_planas(v, c, car["ancho"], car["alto"])
+    piezas.append(_p("Carta", (v, c), "carta_holo" if holo else "carta", uv=uv, carta=1 if not holo else 2, padre="Hoja"))
+    z_funda = z0 + cfg["prueba"]["grosor_carta"] + car["holgura"]
+    if paso >= 2:
+        piezas.append(_p("Funda", G.plano(G.rect_redondeado(pw - 0.008, ph - 0.008, 0.008, 5), z_funda), "funda", padre="Hoja"))
+    s = cfg["entorno"]["suelo"]
+    piezas.append(_p("Suelo", G.losa(G.rect_redondeado(s, s, 0.01, 1, 0, 0.0), -0.05, 0.0), "suelo"))
+    return piezas, [{"z_carta0": z0, "z_carta1": z0 + cfg["prueba"]["grosor_carta"], "z_funda": z_funda}]

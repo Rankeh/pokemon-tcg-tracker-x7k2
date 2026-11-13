@@ -4,6 +4,18 @@ Escena independiente (no toca la app, la base de datos ni el catálogo). **Estos
 todavía** (mi entorno no lo tiene): lo que sí está comprobado sin Blender es la geometría, el encuadre y que el flujo de
 Python no tiene errores (`python blender/pruebas_sin_blender.py`). El aspecto real del render hay que verlo en tu PC.
 
+## v5 (Fase 3.4.5): depuración de la carta ilustrada
+`blender\ejecutar_depuracion_windows.bat [todos|1|2|3]` → tres PNG independientes en `salida\`:
+`depuracion_1_carta_sin_funda.png`, `depuracion_2_carta_con_funda.png`, `depuracion_3_holografica.png`
+(+ `depuracion_paso*.json`, `depuracion_resumen.json`, `registro_depuracion.txt`, `texturas\Arte_*.png`).
+Misma cámara cenital y misma luz blanca neutra en los tres; la exposición se calibra en el paso 1 y se reutiliza.
+Cada paso registra `[verif]`: existencia, visibilidad (hide_render, visible_camera…), slots y nodos del material, enlaces
+(imagen→Base Color), datos de la imagen (fuente, tamaño, estadísticas de píxeles), UV (rango, área con signo), normales
+(orientación a cámara), oclusión (ray_cast desde la cámara) y **correlación textura↔render** sobre una rejilla de 24×34 puntos.
+Criterio: la ilustración es visible solo si correlación ≥0,85 (sin funda) / ≥0,75 (con funda) / ≥0,70 (holo), contraste ≥0,35
+y <5 % de píxeles saturados. Si el paso 2 falla se renderizan `depuracion_2b_*` (funda transparente pura) y `2c_*` (velo
+constante) para aislar si la causa es la geometría o el material de la funda. El paso 3 solo corre si 1 y 2 pasan.
+
 ## v4 (Fase 3.4.4): prueba de materiales de carta y funda
 Ejecuta `blender\ejecutar_materiales_windows.bat previa` (salida: `salida\materiales_prueba_previa.png`, `.blend` y registro).
 Escena `crear_prueba_materiales.py`: 3 bolsillos en fila — vacío · carta normal · carta holográfica — sobre una hoja negro grafito.

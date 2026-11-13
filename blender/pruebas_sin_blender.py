@@ -127,6 +127,34 @@ ok(re.search(r'"ShaderNodeMix"', src) is None, "ningún nodo Mix 4.x con sockets
 ok(not re.search(r'Transmission|"IOR"\]|refrac', src.replace("Fresnel", "")) or "Transmission" not in src, "sin transmisión/refracción en los materiales")
 ok(cfg["luces"]["principal_w"] <= 60, "vatios de las luces calibrados (≤60 W; antes 260 W quemaban la imagen)")
 
+print("Depuración de la carta (lógica pura de verificación)")
+from teselia import verificacion as V
+x = [0.1, 0.4, 0.2, 0.9, 0.5, 0.7]
+ok(abs(V.correlacion(x, [2 * t + 0.05 for t in x]) - 1) < 1e-9, "correlación: relación lineal = 1")
+ok(V.correlacion(x, [0.5] * 6) == 0.0, "correlación: imagen plana (ilustración invisible) = 0")
+ok(V.correlacion(x, [-t for t in x]) < -0.99, "correlación: textura invertida = -1")
+ok(V.area_poligono([(0, 0), (1, 0), (1, 1), (0, 1)]) == 1.0 and V.area_poligono([(0, 0), (0, 1), (1, 1), (1, 0)]) == -1.0, "área UV con signo (detecta espejo)")
+en = [{"de": "Tex", "de_tipo": "TEX_IMAGE", "de_socket": "Color", "a": "BSDF", "a_socket": "Base Color"}]
+ok(V.traza_imagen(en, "BSDF", "Base Color") == ["Tex", "BSDF"], "traza: imagen → Base Color")
+en2 = [{"de": "Tex", "de_tipo": "TEX_IMAGE", "de_socket": "Color", "a": "Mix", "a_socket": "Color1"}, {"de": "Mix", "de_tipo": "MIX_RGB", "de_socket": "Color", "a": "BSDF", "a_socket": "Base Color"}]
+ok(V.traza_imagen(en2, "BSDF", "Base Color") == ["Tex", "Mix", "BSDF"], "traza: imagen → Mix → Base Color (holo)")
+ok(V.traza_imagen([{"de": "Tex", "de_tipo": "TEX_IMAGE", "de_socket": "Color", "a": "BSDF", "a_socket": "Roughness"}], "BSDF", "Base Color") is None, "traza: imagen en otro socket = sin conexión")
+# comparación textura↔render con un render simulado: la carta correcta correlaciona; una funda opaca/blanca no
+tex = arte.carta(1, False)
+pts = V.puntos_uv(20, 28)
+esp = [float(V.luminancia(V.muestrear_textura(tex, u, v))) for u, v in pts]
+ok(V.evaluar(V.correlacion(esp, [0.8 * e + 0.05 for e in esp]), 0.8, 0.85), "ilustración visible: render fiel → ACEPTA")
+ok(not V.evaluar(V.correlacion(esp, [0.93] * len(esp)), 0.0, 0.75), "funda opaca blanca: render plano → RECHAZA")
+ok(not V.evaluar(V.correlacion(esp, [0.4 * e + 0.55 + (0.02 if i % 2 else 0) for i, e in enumerate(esp)]), 0.1, 0.75), "velo blanco que borra contraste → RECHAZA por contraste")
+for paso in (1, 2, 3):
+    pd, _ = prueba.construir_depuracion(cfg, paso)
+    nombres = [p["nombre"] for p in pd]
+    ok(("Funda" in nombres) == (paso >= 2) and nombres.count("Carta") == 1, "paso %d: %s" % (paso, ", ".join(nombres)))
+pd2, id2 = prueba.construir_depuracion(cfg, 2)
+cp = next(p for p in pd2 if p["nombre"] == "Carta")
+ok(max(abs(u) for u in cp["uv"]) <= 1 + 1e-9 and min(cp["uv"]) >= -1e-9, "depuración: UV de la carta en [0,1]")
+ok(id2[0]["z_funda"] - id2[0]["z_carta1"] >= 0.0005, "depuración: funda separada ≥0,5 mm de la carta")
+
 print("Cámara y composición")
 for vista, v_cfg in cfg["vistas"].items():
     pos, obj, d = G.ajustar_camara(cfg, vista)
@@ -172,6 +200,16 @@ try:
 except Exception as ex:  # noqa
     import traceback; traceback.print_exc()
     ok(False, "crear_prueba_materiales.py con bpy simulado: %r" % ex)
+
+try:
+    sys.argv = ["blender", "--", "--paso", "todos"]
+    for m in [k for k in sys.modules if k.startswith("teselia")]:
+        del sys.modules[m]
+    runpy.run_path(os.path.join(AQUI, "crear_depuracion_carta.py"), run_name="__main__")
+    ok(True, "crear_depuracion_carta.py recorre todo el flujo (verificaciones protegidas contra errores)")
+except Exception as ex:  # noqa
+    import traceback; traceback.print_exc()
+    ok(False, "crear_depuracion_carta.py con bpy simulado: %r" % ex)
 
 print("\n%d pruebas, %d fallos" % (total, len(fallos)))
 sys.exit(1 if fallos else 0)

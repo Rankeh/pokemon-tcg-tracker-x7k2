@@ -20,7 +20,7 @@ def renderizar(cfg, vista, ancho=1280):
     pos, obj, _ = G.ajustar_camara(cfg, vista)
     sh = (v["desplazamiento_x"], v["desplazamiento_y"])
     sensor = cfg["camara"]["sensor_mm"]
-    piezas, _ = (prueba if vista == "prueba" else escena).construir(cfg)
+    piezas, _ = prueba.construir_depuracion(cfg, 2) if vista == "depuracion" else (prueba if vista == "prueba" else escena).construir(cfg)
     img = np.zeros((H, W, 3), np.float32)
     img[:] = np.array([0.10, 0.10, 0.11])
     zbuf = np.zeros((H, W), np.float32)   # guarda 1/z: mayor = más cerca
