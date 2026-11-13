@@ -1,0 +1,6 @@
+{
+  "name": "coleccion-teselia-web",
+  "private": true,
+  "type": "module",
+  "description": "Marca los .js de esta carpeta como módulos ES para poder probarlos también con Node (npm no hace falta)."
+}

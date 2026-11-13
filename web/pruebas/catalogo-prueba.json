@@ -1,0 +1,153 @@
+{
+  "generado": "prueba",
+  "fuente": "DATOS INVENTADOS para probar el almacenamiento",
+  "totales": {
+    "total": 12
+  },
+  "cartas": [
+    {
+      "id": "sv10.5b-101",
+      "categoriaColeccion": "ir",
+      "nombre": "Carta de prueba 1",
+      "numero": "101",
+      "expansion": "sv10.5b",
+      "nombreExpansion": "(prueba)",
+      "rareza": "Rara Ilustración",
+      "ilustrador": "",
+      "imagen": "",
+      "estadoImagen": "sin-imagen"
+    },
+    {
+      "id": "sv10.5b-102",
+      "categoriaColeccion": "ir",
+      "nombre": "Carta de prueba 2",
+      "numero": "102",
+      "expansion": "sv10.5b",
+      "nombreExpansion": "(prueba)",
+      "rareza": "Rara Ilustración",
+      "ilustrador": "",
+      "imagen": "https://assets.tcgdex.net/es/sv/sv10.5b/001/high.webp",
+      "estadoImagen": "espanol-verificada"
+    },
+    {
+      "id": "sv10.5b-103",
+      "categoriaColeccion": "ir",
+      "nombre": "Carta de prueba 3",
+      "numero": "103",
+      "expansion": "sv10.5b",
+      "nombreExpansion": "(prueba)",
+      "rareza": "Rara Ilustración",
+      "ilustrador": "",
+      "imagen": "",
+      "estadoImagen": "sin-imagen"
+    },
+    {
+      "id": "sv10.5b-104",
+      "categoriaColeccion": "ir",
+      "nombre": "Carta de prueba 4",
+      "numero": "104",
+      "expansion": "sv10.5b",
+      "nombreExpansion": "(prueba)",
+      "rareza": "Rara Ilustración",
+      "ilustrador": "",
+      "imagen": "https://assets.tcgdex.net/es/sv/sv10.5b/001/high.webp",
+      "estadoImagen": "espanol-verificada"
+    },
+    {
+      "id": "sv10.5w-105",
+      "categoriaColeccion": "sir",
+      "nombre": "Carta de prueba 5",
+      "numero": "105",
+      "expansion": "sv10.5w",
+      "nombreExpansion": "(prueba)",
+      "rareza": "Rara Ilustración Especial",
+      "ilustrador": "",
+      "imagen": "",
+      "estadoImagen": "sin-imagen"
+    },
+    {
+      "id": "sv10.5w-106",
+      "categoriaColeccion": "sir",
+      "nombre": "Carta de prueba 6",
+      "numero": "106",
+      "expansion": "sv10.5w",
+      "nombreExpansion": "(prueba)",
+      "rareza": "Rara Ilustración Especial",
+      "ilustrador": "",
+      "imagen": "https://assets.tcgdex.net/es/sv/sv10.5b/001/high.webp",
+      "estadoImagen": "espanol-verificada"
+    },
+    {
+      "id": "sv10.5w-107",
+      "categoriaColeccion": "partidario",
+      "nombre": "Carta de prueba 7",
+      "numero": "107",
+      "expansion": "sv10.5w",
+      "nombreExpansion": "(prueba)",
+      "rareza": "Rara Ilustración Especial",
+      "ilustrador": "",
+      "imagen": "",
+      "estadoImagen": "sin-imagen"
+    },
+    {
+      "id": "svp-208",
+      "categoriaColeccion": "promo",
+      "nombre": "Promo de prueba 208",
+      "numero": "208",
+      "expansion": "svp",
+      "nombreExpansion": "(prueba)",
+      "rareza": "",
+      "ilustrador": "",
+      "imagen": "",
+      "estadoImagen": "sin-imagen"
+    },
+    {
+      "id": "svp-209",
+      "categoriaColeccion": "promo",
+      "nombre": "Promo de prueba 209",
+      "numero": "209",
+      "expansion": "svp",
+      "nombreExpansion": "(prueba)",
+      "rareza": "",
+      "ilustrador": "",
+      "imagen": "",
+      "estadoImagen": "sin-imagen"
+    },
+    {
+      "id": "svp-210",
+      "categoriaColeccion": "promo",
+      "nombre": "Promo de prueba 210",
+      "numero": "210",
+      "expansion": "svp",
+      "nombreExpansion": "(prueba)",
+      "rareza": "",
+      "ilustrador": "",
+      "imagen": "",
+      "estadoImagen": "sin-imagen"
+    },
+    {
+      "id": "svp-211",
+      "categoriaColeccion": "promo",
+      "nombre": "Promo de prueba 211",
+      "numero": "211",
+      "expansion": "svp",
+      "nombreExpansion": "(prueba)",
+      "rareza": "",
+      "ilustrador": "",
+      "imagen": "",
+      "estadoImagen": "sin-imagen"
+    },
+    {
+      "id": "svp-212",
+      "categoriaColeccion": "promo",
+      "nombre": "Promo de prueba 212",
+      "numero": "212",
+      "expansion": "svp",
+      "nombreExpansion": "(prueba)",
+      "rareza": "",
+      "ilustrador": "",
+      "imagen": "",
+      "estadoImagen": "sin-imagen"
+    }
+  ]
+}

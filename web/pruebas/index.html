@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pruebas — Fase 2</title>
+<style>body{font:15px/1.5 ui-monospace,monospace;padding:1rem}.OK{color:#1e8e3e}.FALLO{color:#c0392b;font-weight:bold}.SALTADA{color:#888}.RESUMEN{font-weight:bold;margin-top:1rem}</style></head>
+<body><h1>Pruebas de la Fase 2</h1><pre id="salida"></pre>
+<script type="module">
+  import { ejecutar } from "./pruebas.js";
+  const salida = document.getElementById("salida");
+  const ok = await ejecutar((estado, texto) => {
+    const l = document.createElement("div"); l.className = estado; l.textContent = `${estado.padEnd(8)} ${texto}`; salida.append(l);
+  });
+  document.title = (ok ? "TODO OK" : "HAY FALLOS") + " — Pruebas Fase 2";
+</script></body></html>

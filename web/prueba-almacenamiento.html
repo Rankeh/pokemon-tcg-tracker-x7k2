@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prueba de almacenamiento — Fase 2</title>
+  <link rel="stylesheet" href="css/base.css">
+  <style>
+    main { max-width: 760px; margin: 0 auto; padding: 1rem; }
+    .barra { display:flex; flex-wrap:wrap; gap:.5rem; margin:.75rem 0; }
+    button { font:inherit; padding:.45rem .8rem; border:1px solid var(--borde); background:var(--tarjeta); color:var(--texto); border-radius:8px; }
+    button.peligro { border-color:var(--acento); }
+    .fila { display:grid; grid-template-columns:56px 1fr auto; gap:.75rem; align-items:center; padding:.5rem 0; border-bottom:1px solid var(--borde); }
+    .fila .ctl { display:flex; align-items:center; gap:.5rem; }
+    .fila .cant { min-width:2ch; text-align:center; font-variant-numeric:tabular-nums; }
+    .ok { color:#1e8e3e; } .pend { color:var(--suave); }
+    small { color:var(--suave); }
+    #mensaje { padding:.5rem .75rem; border-radius:8px; background:var(--tarjeta); border:1px solid var(--borde); white-space:pre-line; }
+    dialog { border:1px solid var(--borde); border-radius:12px; background:var(--tarjeta); color:var(--texto); max-width:92vw; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Prueba de almacenamiento <small>(Fase 2, no es la interfaz final)</small></h1>
+  <p id="progreso">Cargando…</p>
+  <div class="barra">
+    <button id="exportar">Exportar copia</button>
+    <button id="importar">Importar copia…</button>
+    <button id="deshacer">Deshacer última importación</button>
+    <input id="archivo" type="file" accept="application/json,.json" hidden>
+  </div>
+  <p id="mensaje" hidden></p>
+  <div id="lista"></div>
+
+  <dialog id="dialogo">
+    <form method="dialog">
+      <p id="dialogo-texto" style="white-space:pre-line"></p>
+      <p><small>Se guarda una foto de tu colección actual y podrás deshacerlo.</small></p>
+      <div class="barra">
+        <button value="reemplazar" class="peligro">Reemplazar mi colección</button>
+        <button value="combinar">Combinar (la cantidad mayor)</button>
+        <button value="cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+</main>
+<script type="module" src="js/prueba-almacenamiento.js"></script>
+</body>
+</html>
