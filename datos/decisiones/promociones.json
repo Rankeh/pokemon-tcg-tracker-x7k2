@@ -1,5 +1,5 @@
 {
-  "comentario": "Promociones candidatas de la categoría D. Solo cuentan en el progreso las que tengan 'estado' = 'confirmada' y 'tcgdex' (id exacto, p. ej. svp-123). 'busqueda' es el nombre con el que el programa pide a TCGdex las cartas de la serie svp que coinciden, para que puedas elegir la correcta mirando la imagen. Las fuentes son las páginas consultadas; ninguna da el número de carta. Si TCGdex solo tiene la imagen en inglés, la promoción queda pendiente hasta que pongas 'aprobarImagenIngles': true.",
+  "comentario": "Promociones candidatas de la categoría D. Solo cuentan en el progreso las que tengan 'estado' = 'confirmada' y 'tcgdex' (id exacto, p. ej. svp-123). 'busqueda' es el nombre con el que el programa pide a TCGdex las cartas de la serie svp que coinciden, para que puedas elegir la correcta mirando la imagen. Las fuentes son las páginas consultadas; ninguna da el número de carta. Las confirmadas siempre se conservan. Su imagen se prueba cargándola de verdad: primero TCGdex (español), luego inglés; si nada carga queda \"sin-imagen\". Si encuentras una imagen fiable y legal, añade a la candidata \"imagenAlternativa\": {\"url\": \"...\", \"idioma\": \"es\", \"fuente\": \"...\"} y el programa comprobará que carga.",
   "candidatas": [
     {
       "clave": "victini-coleccion-ilustracion",
