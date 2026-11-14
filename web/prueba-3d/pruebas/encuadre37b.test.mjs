@@ -246,7 +246,7 @@ test('las 18 páginas ↔ 9 hojas físicas: cada página protagonista usa la hoj
 
 test('lado de la vista del lomo: el eje del lomo está donde se espera en cada estado (cerrado, abierto, final)', () => {
   const x = (v) => { const c = enEstado(v); return (c.lomo.x[0] + c.lomo.x[1]) / 2; };
-  // 3.7.10: la caja real del lomo es x ∈ [-10,+6] mm respecto al eje, es decir, su centro queda 2 mm a su izquierda
-  assert.ok(Math.abs(x(0) + 0.002 + dim.a / 2) < 1e-6 && Math.abs(x(3) + 0.002) < 1e-6 && Math.abs(x(10) + 0.002 - dim.a / 2) < 1e-6);
+  // 3.7.10: la caja real del lomo es x ∈ [-10,+0,5] mm respecto al eje, es decir, su centro queda 4,75 mm a su izquierda
+  assert.ok(Math.abs(x(0) + 0.00475 + dim.a / 2) < 1e-6 && Math.abs(x(3) + 0.00475) < 1e-6 && Math.abs(x(10) + 0.00475 - dim.a / 2) < 1e-6);
   for (const v of [1, 5, 10]) assert.ok(puntosVista({ vueltas: v, dim }).length === 8);
 });

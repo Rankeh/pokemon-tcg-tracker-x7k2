@@ -297,7 +297,7 @@ def construir(cfg, n_hojas=N_HOJAS_DEFECTO, semilla=5, relleno=0.0):
     mallas["tapa"] = losa_biselada_xz(_poli(rect_esquinas(cub["ancho"], cub["alto"], 0.0016, cub["radio_esquina"], 14, cub["ancho"] / 2, 0)),
                                       -GROSOR_TAPA / 2, GROSOR_TAPA / 2, 0.0016, 6, "Cubierta", f_tapa)
     f_lomo = lambda x, z: min(1.0, max(0.0, (0.001 - x) / 0.007))
-    mallas["lomo"] = losa_biselada_xz(_poli(rect_esquinas(0.016, cub["alto"], 0.0045, 0.0016, 8, -0.002, 0)), 0.0, GROSOR_TAPA * 2 + n_hojas * PASO, 0.0040, 6, "Cubierta", f_lomo)   # x ∈ [-10, +6] mm
+    mallas["lomo"] = losa_biselada_xz(_poli(rect_esquinas(0.0105, cub["alto"], 0.0045, 0.0016, 8, -0.00475, 0)), 0.0, GROSOR_TAPA * 2 + n_hojas * PASO, 0.0040, 6, "Cubierta", f_lomo)   # x ∈ [-10, +0,5] mm: no se mete bajo las hojas (que empiezan en x=0)
     poli_carta = _poli(G.rect_redondeado(car["ancho"], car["alto"], car["radio_esquina"], 7))
     cw, ch = car["ancho"], car["alto"]
     mallas["bisagra"] = cilindro_z(0.0017, H - 0.004, 14, "Hoja")

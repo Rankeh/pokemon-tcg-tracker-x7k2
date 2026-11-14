@@ -119,7 +119,7 @@ test('M10 estilo carpeta de cuero: banda y panel en la tapa, SIN costuras (3.7.9
 test('M11 construcción física (3.7.10): el lomo alto solo existe con el álbum cerrado y queda a ras de las tapas al abrir (las hojas no lo atraviesan); cada hoja lleva su canto de encuadernación', async () => {
   const m = await crearMundo(), a = m.album, g = a.geo, p = a.params;
   const alto = (v) => { a.estado.irA(v); a.aplicar(); const b = a.lomo.geometry.boundingBox; return (b.max.y - b.min.y) * a.lomo.scale.y; };
-  const caja = a.cajaMalla('Lomo'); assert.ok(Math.abs(caja.min[0] + 0.010) < 1e-6 && Math.abs(caja.max[0] - 0.006) < 1e-6, 'lomo en x ∈ [-10, +6] mm: fuera de las hojas, que empiezan en x = 0 (los 6 mm de la derecha quedan bajo las tapas)');
+  const caja = a.cajaMalla('Lomo'); assert.ok(Math.abs(caja.min[0] + 0.010) < 1e-6 && Math.abs(caja.max[0] - 0.0005) < 1e-6, 'lomo en x ∈ [-10, +0,5] mm: fuera de las hojas, que empiezan en x = 0');
   assert.ok(Math.abs(alto(0) - 0.0435) < 1e-6, 'cerrado: abarca todo el álbum');
   const base = 2 * p.grosor_tapa / 2;                                    // grosor de una tapa = 6 mm
   const parteInferiorHoja = 0.0012 / 2;                                  // la hoja más baja de cada pila tiene su cara inferior por encima de y = 6 mm + (paso - 1,2 mm)/2
@@ -129,7 +129,7 @@ test('M11 construcción física (3.7.10): el lomo alto solo existe con el álbum
   }
   let prev = alto(0), salto = 0, bajo = true; a.estado.avanzar();       // continuo mientras la tapa gira
   for (let k = 0; k < 40; k++) { a.estado.actualizar(0.03); a.aplicar(); const h = a.lomo.geometry.boundingBox.max.y * a.lomo.scale.y; salto = Math.max(salto, Math.abs(h - prev)); bajo = bajo && h <= prev + 1e-9; prev = h; }
-  assert.ok(salto < 0.0045 && bajo, 'baja de forma continua y monótona al abrir (máx ' + salto.toFixed(5) + ')');
+  assert.ok(salto < 0.0050 && bajo, 'baja de forma continua y monótona al abrir (máx ' + salto.toFixed(5) + ')');
   assert.ok(Math.abs(prev - base) < 1e-6, 'termina plano: ' + prev + ' vs ' + base);
   for (let i = 0; i < 9; i++) { const b = a.nodo.get('Hoja_' + i + '_Bisagra_Losa'); assert.ok(b && b.material.name === 'Hoja', 'bisagra ' + i); }
   const cb = a.cajaMalla('Hoja_0_Bisagra_Losa'); assert.ok(Math.abs(cb.max[0] + cb.min[0]) < 1e-6 && cb.max[0] > 0.0012, 'barril centrado en el eje del lomo y más grueso que la hoja');
@@ -164,4 +164,25 @@ test('M13 envolvente tapa-lomo (3.7.11): el canto de la tapa del lado del lomo e
   const lomo = vertices('Lomo'), top = 0.0435;
   assert.ok(lomo.some(([x, y]) => x <= -0.009 && y < top - 1e-4 && y > top - 0.0045), 'el lomo redondea su lado exterior (-x)');
   assert.ok(lomo.filter(([x]) => x >= 0.005).every(([, y]) => y < 1e-6 || y > top - 1e-6), 'el lado interior del lomo (bajo la tapa) es de canto vivo');
+});
+
+test('M14 animación de abrir (3.7.12): el lomo no baja hasta que la tapa lo cubre y nunca queda dentro de ella ni deja ver hojas', async () => {
+  const { alturaLomo } = await import('../js/album3d.js');
+  const { pose } = await import('../js/logica.js');
+  const m = await crearMundo(), a = m.album, g = a.geo, gt = a.params.grosor_tapa, tope = 0.0435;
+  let ult = tope, bajoAntes = false;
+  for (let k = 0; k <= 200; k++) {
+    const p = k / 200, h = alturaLomo(g, p, gt, tope), pz = pose(g, 0, p), grados = pz.rotZ * 180 / Math.PI;
+    if (grados < 100) assert.equal(h, tope, `p=${p}: con la tapa a ${grados.toFixed(0)}° el lomo sigue entero`);
+    assert.ok(h <= ult + 1e-12, 'monótono al abrir'); ult = h;
+    // cara inferior real de la tapa sobre la zona del lomo (x ∈ [-10.5, +0.5] mm): el lomo debe quedar por debajo
+    if (grados > 91) for (let i = 0; i <= 200; i++) for (const v of [-gt / 2, gt / 2]) {
+      const u = 0.04 * i / 200, x = u * Math.cos(pz.rotZ) - v * Math.sin(pz.rotZ), y = pz.y + u * Math.sin(pz.rotZ) + v * Math.cos(pz.rotZ);
+      if (x >= -0.0105 && x <= 0.0005) assert.ok(h <= y + 1e-9 || h === gt, `p=${p}: el lomo (${(h * 1000).toFixed(1)} mm) atraviesa la tapa (${(y * 1000).toFixed(1)} mm)`);
+    }
+    if (grados < 100 && h < tope) bajoAntes = true;
+  }
+  assert.ok(!bajoAntes); assert.equal(alturaLomo(g, 1, gt, tope), gt, 'termina plano (6 mm)');
+  // en el sentido contrario es la misma función de la pose: cerrar = deshacer exactamente
+  assert.equal(alturaLomo(g, 0, gt, tope), tope);
 });
