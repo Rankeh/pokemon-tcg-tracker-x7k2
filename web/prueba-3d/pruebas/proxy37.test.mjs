@@ -32,9 +32,21 @@ test('P3: el catálogo no se ha tocado (158 cartas, imagen vacía en las 5)', ()
 test('P4: sin copia oficial, el productor mini carga el proxy; con copia oficial usa la oficial; sin ninguna, rechaza', async () => {
   const { crearProductores } = await import('../js/texturas3d.js');
   const prod = crearProductores({ manifiesto: { cartas: { 'svp-1': { mini: 'x/svp-1.webp' } } }, crearLienzo: () => ({}) });
+  const T = (await import('./mundo.mjs')).T; T.TextureLoader.falla = (u) => /arte\//.test(u);   // sin arte descargado
   const r = await prod.mini({ id: 'svp-208' })();
+  T.TextureLoader.falla = null;
   assert.match(String(r.textura.url || r.textura.image?.src || ''), /proxies\/svp-208\.png/);
   const o = await prod.mini({ id: 'svp-1' })();
   assert.match(String(o.textura.url || ''), /x\/svp-1\.webp/);
   await assert.rejects(prod.mini({ id: 'zzz-1' })());
+});
+
+test('P5: con arte descargado el productor lo prefiere al proxy; sin él cae al proxy', async () => {
+  const { crearProductores } = await import('../js/texturas3d.js');
+  const T = (await import('./mundo.mjs')).T;
+  const prod = crearProductores({ manifiesto: { cartas: {} }, crearLienzo: () => ({}) });
+  T.TextureLoader.falla = (u) => /arte\//.test(u);
+  assert.match((await prod.mini({ id: 'svp-209' })()).textura.url, /proxies\/svp-209\.png/);
+  T.TextureLoader.falla = null;
+  assert.match((await prod.mini({ id: 'svp-209' })()).textura.url, /arte\/svp-209\.webp/);
 });

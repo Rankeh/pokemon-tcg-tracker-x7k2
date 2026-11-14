@@ -297,3 +297,6 @@ TCGdex no tiene imagen de svp-208 a 212 (Victini, Thundurus, Tornadus, Gothitell
 - Uso: `js/proxies.js` (mapa id → PNG) y el productor `mini` de `texturas3d.js`. Prioridad: copia oficial del manifiesto → proxy → marcador.
 - No se toca el catálogo (158 cartas, `imagen` vacía en esas 5), ni `promociones.json`, ni el builder Java. Cuando aparezca una imagen oficial, desaparece sola el proxy (la oficial tiene prioridad).
 - Pendiente: verlo en tu iPhone (no he podido comprobar la textura con WebGL real).
+
+### 3.7.14 — Arte real opcional para esas 5 promos
+Desde aquí no puedo descargar imágenes (sin red). En tu PC ejecuta `python herramientas/proxies/descargar_arte.py`: guarda `assets/proxies/arte/svp-20x.webp` y la app lo usa en lugar del proxy (si falta, sigue el proxy). Solo la URL de svp-208 está comprobada; las otras 4 siguen el mismo patrón sin verificar. Hay que hacer commit de los .webp para que salgan en GitHub Pages.
