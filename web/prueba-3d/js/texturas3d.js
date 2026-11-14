@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { dibujarMarcador, dibujarEtiquetaPendiente } from './marcadores.js';
 import { memoriaTexturaBytes } from './logica.js';
+import { rutaProxy } from './proxies.js';
 
 export const TAM_MINI = { w: 256, h: 358 };
 export const TAM_ETIQUETA = { w: 128, h: 179 };
@@ -18,7 +19,11 @@ export function crearProductores({ manifiesto, rutaBase = 'assets/cartas/', anis
     /** Imagen local de la carta. Rechaza si no hay copia local (el llamante cae al marcador). */
     mini: (carta) => async () => {
       const e = manifiesto && manifiesto.cartas && manifiesto.cartas[carta.id];
-      if (!e) throw new Error('sin imagen local para ' + carta.id);
+      if (!e) {                                                  // sin copia oficial: ¿hay carta proxy propia?
+        const rp = rutaProxy(carta.id);
+        if (!rp) throw new Error('sin imagen local para ' + carta.id);
+        return { textura: preparar(await new THREE.TextureLoader().loadAsync(rp)), bytes: memoriaTexturaBytes(TAM_MINI.w, TAM_MINI.h) };
+      }
       const t = await new THREE.TextureLoader().loadAsync(rutaBase + e.mini);
       return { textura: preparar(t), bytes: memoriaTexturaBytes(e.anchoMini || TAM_MINI.w, e.altoMini || TAM_MINI.h) };
     },

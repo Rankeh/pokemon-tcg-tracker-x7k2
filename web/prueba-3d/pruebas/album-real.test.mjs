@@ -1,6 +1,7 @@
 // Pruebas 1-24 de la fase 3.6.2 (Node, Three.js SIMULADO + GLB real + catálogo real + almacén en memoria con las reglas reales).
 // No sustituyen a Safari: validan nuestra lógica (datos, colección, picking, vista, caché, navegación).
 import test from 'node:test';
+import { rutaProxy } from '../js/proxies.js';
 import assert from 'node:assert/strict';
 import { crearMundo, catalogo, esperar, manifiestoCon, T, lienzoFalso } from './mundo.mjs';
 import { elegirBolsillo, candidatosTocables } from '../js/picking.js';
@@ -190,7 +191,7 @@ test('23b selección bloqueada durante giro, con ficha abierta y justo tras cerr
   ctl.cerrar(); m.t = 10; assert.equal(ctl.seleccionar(nombreBolsillo(3, 2)), false); m.t = 400; assert.equal(ctl.seleccionar(nombreBolsillo(3, 2)), true);
 });
 test('24 marcadores: sin manifiesto o imagen fallida, la carta usa marcador con nombre, expansión, número e id', async () => {
-  const c = catalogo.cartas.find((x) => x.id === 'svp-208') || catalogo.cartas[0];
+  const c = catalogo.cartas.find((x) => !rutaProxy(x.id) && x.id !== 'svp-208') || catalogo.cartas[0]   // 3.7.13: svp-208 ya tiene proxy;
   const l = lienzoFalso(256, 358); dibujarMarcador(l, 256, 358, c);
   for (const t of ['SIN IMAGEN', 'Nº ' + c.numero, c.id]) assert.ok(l.textos.includes(t), t);
   assert.ok(l.textos.some((t) => t.startsWith(c.nombre.slice(0, 3))));

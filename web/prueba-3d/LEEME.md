@@ -288,3 +288,12 @@ Síntoma: al abrir, primero bajaba el lomo (dejando ver el canto de las hojas «
 - `alturaLomo(geo, p0, gt, tope)` (`album3d.js`, pura): calcula la altura **geométricamente** con la pose real de la tapa en cada fotograma: el lomo conserva sus 43,5 mm mientras la tapa no ha pasado de la vertical y después baja **justo lo necesario para quedar siempre por debajo de la tapa** que cruza su zona (x ∈ [-10,+0,5] mm). Perfil medido: 43,5 mm hasta ≈ 117° de la tapa; 38 mm a 129°; 21 mm a 161°; 6 mm a 179° (se «aplasta» al aterrizar la tapa). Mismo cálculo al cerrar, en sentido contrario.
 - Lomo más estrecho (x ∈ [-10,+0,5] mm, antes hasta +6): ya no se mete bajo las hojas, así que no hay nada que «aparezca» al bajar. Las esquinas del lado de las hojas son casi cuadradas, sin muescas con la tapa.
 - Tests: M14 recorre 200 fotogramas de la apertura y comprueba que el lomo no baja con la tapa a < 100°, es monótono, nunca atraviesa la tapa y termina plano.
+
+## 3.7.13 — Cartas proxy para las 5 promos sin imagen
+
+TCGdex no tiene imagen de svp-208 a 212 (Victini, Thundurus, Tornadus, Gothitelle, Reuniclus). Antes caían en el marcador «SIN IMAGEN». Ahora tienen una **carta proxy propia**: nombre, número, expansión e ilustrador del catálogo, un motivo abstracto «?» (no es arte oficial) y una banda roja «PROXY · SIN IMAGEN OFICIAL».
+
+- Generación: `python3 herramientas/proxies/generar_proxies.py` (Pillow) → `web/prueba-3d/assets/proxies/<id>.png` (256×358).
+- Uso: `js/proxies.js` (mapa id → PNG) y el productor `mini` de `texturas3d.js`. Prioridad: copia oficial del manifiesto → proxy → marcador.
+- No se toca el catálogo (158 cartas, `imagen` vacía en esas 5), ni `promociones.json`, ni el builder Java. Cuando aparezca una imagen oficial, desaparece sola el proxy (la oficial tiene prioridad).
+- Pendiente: verlo en tu iPhone (no he podido comprobar la textura con WebGL real).

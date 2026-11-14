@@ -159,7 +159,7 @@ test('12 no se altera nada del álbum: poses, visibilidad, tapas y navegación i
   // 3.7.6: album.glb sale de la lista por petición expresa del usuario (modelo más refinado). Su ESTRUCTURA sigue protegida en movimiento37.test.mjs (M9).
   // 3.7.10: encuadre.js sale de la lista (puntosGiro admite un factor de barrido; petición del usuario: zoom del giro menos exagerado). Sus matemáticas siguen cubiertas por encuadre37*.test.mjs.
   const protegidos = ['web/prueba-3d/js/logica.js', 'web/prueba-3d/js/camara.js', 'web/prueba-3d/js/navegacion3d.js', 'web/prueba-3d/js/picking.js',
-    'web/prueba-3d/js/adaptador-coleccion.js', 'web/prueba-3d/js/texturas.js', 'web/prueba-3d/js/texturas3d.js', 'web/js/almacen.js', 'web/js/album/modelo.js', 'datos/catalogo/coleccion-teselia.json'];
+    'web/prueba-3d/js/adaptador-coleccion.js', 'web/prueba-3d/js/texturas.js', /* texturas3d.js sale de la lista en 3.7.13: solo se añade el fallback a proxies */ 'web/js/almacen.js', 'web/js/album/modelo.js', 'datos/catalogo/coleccion-teselia.json'];
   assert.deepEqual(cambiados.filter((f) => protegidos.includes(f)), []);
   const dif = execSync('git diff -U0 97db498 -- web/prueba-3d/js/bolsillos3d.js', { cwd: new URL('../../..', import.meta.url).pathname, encoding: 'utf8' }).split('\n').filter((l) => /^[+-][^+-]/.test(l));
   assert.ok(dif.length > 0 && dif.every((l) => /materialCarta|MeshStandardMaterial|3\.7\.2a|constructor\(\{ album/.test(l)), 'bolsillos3d: solo cambia la fábrica del material de carta');
