@@ -32,9 +32,12 @@ export function valorColeccion(precios, ids, cantidadDe) {
   return { total, valoradas, sinPrecio };
 }
 
-/** Línea de precio para la ficha: «≈ 3,20 € · Cardmarket 2026-11-16». '' si esa carta no tiene precio. */
+/** Línea de precio para la ficha: «≈ 3,20 € · mín. 1,50 € · Cardmarket 2026-11-16». Enseña lo que haya (tendencia y/o mínimo); '' si no hay nada. */
 export function lineaPrecio(precios, id) {
   const p = precioDe(precios, id);
-  if (!p || p.tendencia == null) return '';
-  return `≈ ${eur(p.tendencia)} · Cardmarket${precios.fecha ? ' ' + precios.fecha : ''}`;
+  if (!p || (p.tendencia == null && p.bajo == null)) return '';
+  const partes = [];
+  if (p.tendencia != null) partes.push(`≈ ${eur(p.tendencia)}`);
+  if (p.bajo != null) partes.push(`mín. ${eur(p.bajo)}`);
+  return `${partes.join(' · ')} · Cardmarket${precios.fecha ? ' ' + precios.fecha : ''}`;
 }

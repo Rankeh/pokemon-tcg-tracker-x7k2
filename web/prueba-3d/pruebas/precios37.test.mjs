@@ -17,8 +17,9 @@ test('PR1 valorColeccion: suma tendencia × copias solo de las conseguidas, y cu
 
 test('PR2 formato español: coma decimal y símbolo €; el total de cabecera va sin céntimos', () => {
   assert.match(eur(3.2), /3,20\s*€/); assert.match(eurEntero(85.43), /85\s*€/);
-  assert.equal(lineaPrecio(P, 'a-1'), `≈ ${eur(2.5)} · Cardmarket 2026-11-16`);
-  assert.equal(lineaPrecio(P, 'a-2'), '', 'sin tendencia no se enseña un precio a medias');
+  assert.equal(lineaPrecio(P, 'a-1'), `≈ ${eur(2.5)} · mín. ${eur(1)} · Cardmarket 2026-11-16`);
+  assert.equal(lineaPrecio(P, 'a-2'), `mín. ${eur(0.3)} · Cardmarket 2026-11-16`, 'solo mínimo: se enseña el mínimo');
+  assert.equal(lineaPrecio(P, 'a-3'), `≈ ${eur(10)} · Cardmarket 2026-11-16`, 'solo tendencia: sin mínimo');
   assert.equal(lineaPrecio(null, 'a-1'), '');
 });
 
