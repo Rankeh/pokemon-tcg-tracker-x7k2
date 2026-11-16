@@ -21,6 +21,7 @@ import { FichaUI } from './ficha-ui.js';
 import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoLectura } from './navegacion3d.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
+export const FASE = '3.7.28';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -481,7 +482,8 @@ async function arrancar() {
     pedirFrame(1800);
   }
   setInterval(() => { if (!$('panel').hidden) metricas.pintar(); }, 500);
-  window.__album3d = { medirEscenas, aspecto, dim, resaltado, diagCam, reservado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
+  console.info('Álbum 3D · fase ' + FASE + ' · emblema: ' + (aspecto.resumen().emblema ? 'montado' : 'NO (nivel baja/legado o ?emblema=0)'));
+  window.__album3d = { FASE, medirEscenas, aspecto, dim, resaltado, diagCam, reservado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
   requestAnimationFrame(bucle);
   if (params.get('auto') === 'medir') setTimeout(medir, 800);
   if (params.get('auto') === 'escenas') setTimeout(() => medirEscenas(), 1500);
