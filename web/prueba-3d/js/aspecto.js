@@ -50,9 +50,15 @@ export const LUCES = {
 };
 // Niveles: se comparte todo el código; cambian solo estos números.
 export const NIVELES = {
-  baja: { luces: ['hemi', 'principal'], relieve: 0, mapaRugosidad: false, reflejoFunda: false, fisico: false, sombra: true, anisotropia: 1 },
-  media: { luces: ['hemi', 'principal', 'relleno', 'contorno'], relieve: 128, mapaRugosidad: true, reflejoFunda: true, fisico: false, sombra: true, anisotropia: 2 },
-  alta: { luces: ['hemi', 'principal', 'relleno', 'contorno'], relieve: 256, mapaRugosidad: true, reflejoFunda: true, fisico: true, sombra: true, anisotropia: 4 },       // fisico: MeshPhysicalMaterial con «sheen» de tejido en tapas y lomo
+  baja: { luces: ['hemi', 'principal'], relieve: 0, mapaRugosidad: false, reflejoFunda: false, fisico: false, sombra: true, anisotropia: 1, entorno: false },
+  media: { luces: ['hemi', 'principal', 'relleno', 'contorno'], relieve: 128, mapaRugosidad: true, reflejoFunda: true, fisico: false, sombra: true, anisotropia: 2, entorno: true },
+  alta: { luces: ['hemi', 'principal', 'relleno', 'contorno'], relieve: 256, mapaRugosidad: true, reflejoFunda: true, fisico: true, sombra: true, anisotropia: 4, entorno: true },       // fisico: MeshPhysicalMaterial con «sheen» de tejido en tapas y lomo
+};
+// 3.7.19 · Entorno de estudio (IBL): un panorama pequeño en scene.environment da reflejos reales (fundas, marcos, tapa). Sin él, los materiales
+// estándar solo ven 4 luces puntuales y quedan «de plástico plano». `intensidad` gradúa el reflejo por material: alto en lo pulido, bajo en lo textil.
+export const ENTORNO = {
+  tam: 64, compensacionHemi: 0.6,                  // el entorno ya aporta luz ambiente: la hemisférica baja para no lavar el volumen
+  intensidad: { cubierta: 0.5, lomo: 0.55, hoja: 0.3, soldadura: 1.1, funda: 1.5, suelo: 0.25 },
 };
 export const SOMBRA = { fraccion: 0.84, opacidad: 0.6, desplazamiento: [0.004, -0.004], y: -0.0002, tam: 96 };
 export const ESCALA_UV = 0.036;          // metros de álbum por repetición de la textura (grano fino)
@@ -238,8 +244,10 @@ export const TEMAS = {
     cantos: { cubierta: { canto: [1.5, 1.5, 1.5] }, pagina: { canto: [0.9, 0.88, 0.82] }, lomo: { curvatura: 0.62 } },
     exposicion: 1.12, sheen: 0xcfd6e2, aro: 0x0a84ff, sombraOpacidad: 0.32,
     escenario: { suelo: [0xe6e6ea], tablones: false, alfombra: null, ladoSuelo: 3 },
+    entorno: { arriba: 0xf5f7fb, horizonte: 0xe3e6ed, abajo: 0xb6bbc6, ventana: 0xfff3e0, ganancia: 1.5, aro: 0xdfe9ff, ganancia2: 0.7 },
   },
-  noche: { paleta: PALETA, luces: LUCES, cantos: CANTOS, exposicion: EXPOSICION, sheen: 0x7f93b8, aro: 0xe8b25a, sombraOpacidad: SOMBRA.opacidad, escenario: null },
+  noche: { paleta: PALETA, luces: LUCES, cantos: CANTOS, exposicion: EXPOSICION, sheen: 0x7f93b8, aro: 0xe8b25a, sombraOpacidad: SOMBRA.opacidad, escenario: null,
+    entorno: { arriba: 0x2d3545, horizonte: 0x1b212d, abajo: 0x0d1117, ventana: 0xffdfae, ganancia: 1.8, aro: 0x9db4e8, ganancia2: 0.9 } },
   acogedor: {
     paleta: { cubierta: 0x3a7f92, pagina: 0xeadfc8, lomo: 0xb9733f, soldadura: 0xb48a58, funda: 0xffffff, mesa: 0xc9a47c },
     luces: {
@@ -250,6 +258,7 @@ export const TEMAS = {
     },
     cantos: { cubierta: { canto: [1.3, 1.3, 1.25] }, pagina: { canto: [0.95, 0.8, 0.55] }, lomo: { curvatura: 0.62 } },      // cantos de hoja dorados
     exposicion: 1.08, sheen: 0xffe6c4, aro: 0xf0701e, sombraOpacidad: 0.4,
+    entorno: { arriba: 0xffeeda, horizonte: 0xf4d6ae, abajo: 0x7f654a, ventana: 0xfff3da, ganancia: 1.5, aro: 0xffc9a0, ganancia2: 0.7 },
     escenario: { suelo: [0xc9a47c], alfombra: { centro: 0xf3e3c8, anillo: 0xe9a39a, borde: 0xd98a82, costura: 0xfff4e0 }, radioAlfombra: 0.42, ladoSuelo: 3 },
   },
 };
@@ -286,14 +295,37 @@ export function generarAlfombra(tam = 512, p = TEMAS.acogedor.escenario.alfombra
   return out;
 }
 
+/** Panorama equirectangular LDR (tam × tam/2) para scene.environment: gradiente cielo→horizonte→suelo, una «ventana» cálida (softbox,
+ *  del lado de la luz principal) y una tira fría detrás (contorno). Es pequeño a propósito: Three lo convierte a PMREM una sola vez. RGBA8 sRGB. */
+export function generarEntorno(tam = ENTORNO.tam, p = TEMAS.claro.entorno) {
+  const alto = tam >> 1, out = new Uint8Array(tam * alto * 4);
+  const A = rgb(p.arriba), H = rgb(p.horizonte), B = rgb(p.abajo), V = rgb(p.ventana), R = rgb(p.aro);
+  const mezcla = (a, b, t) => a.map((x, i) => x + (b[i] - x) * t);
+  // mancha gaussiana elíptica; en u se mide con envoltura (el panorama es cíclico en horizontal)
+  const mancha = (u, v, u0, v0, ru, rv) => { let du = Math.abs(u - u0); du = Math.min(du, 1 - du); const dv = v - v0; return Math.exp(-(du * du / (ru * ru) + dv * dv / (rv * rv))); };
+  for (let j = 0; j < alto; j++) for (let i = 0; i < tam; i++) {
+    const u = (i + 0.5) / tam, v = (j + 0.5) / alto;
+    const col = mezcla(mezcla(A, H, suavizar(0.08, 0.52, v)), B, suavizar(0.52, 0.96, v));
+    const fv = p.ganancia * mancha(u, v, 0.3, 0.3, 0.11, 0.17);       // softbox cálido, arriba-izquierda (como la luz principal)
+    const fa = p.ganancia2 * mancha(u, v, 0.78, 0.38, 0.055, 0.3);    // tira vertical fría al lado contrario (contorno)
+    const k = (j * tam + i) * 4;
+    out[k] = Math.min(255, col[0] + V[0] * fv + R[0] * fa);
+    out[k + 1] = Math.min(255, col[1] + V[1] * fv + R[1] * fa);
+    out[k + 2] = Math.min(255, col[2] + V[2] * fv + R[2] * fa);
+    out[k + 3] = 255;
+  }
+  return out;
+}
+
 export class Aspecto {
-  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito' }) {
+  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito', entorno = true }) {
     this.tapa = elegirAcabado(tapa); this.acabado = ACABADOS[this.tapa];
     this.tema = TEMAS[tema] ? tema : 'noche'; this.t = TEMAS[this.tema];
     this.renderer = renderer; this.scene = scene; this.nivel = nivel; this.origen = origen;
     this.config = NIVELES[nivel] || null;                    // null = legado
     this.luces = {}; this.recursos = []; this.mallasPropias = []; this.sombra = null; this.mesa = null; this.materiales = new Map(); this.uvHechas = new WeakSet();
     this._montarLuces();
+    this._montarEntorno(entorno);
     this._montarMesa();
     if (this.config && this.config.sombra) this._montarSombra();
     if (this.config) { renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = this.t.exposicion; }
@@ -319,11 +351,24 @@ export class Aspecto {
     for (const l of Object.values(L)) this._anadir(l);
   }
 
+  /** 3.7.19 · Entorno de estudio (IBL): panorama procedural como scene.environment. Three lo convierte a PMREM internamente una sola vez.
+   *  Da los reflejos que las luces analíticas no pueden dar: brillo real en fundas y marcos, volumen en la tapa. ?ibl=0 lo apaga para comparar. */
+  _montarEntorno(activo) {
+    if (!activo || !this.config || !this.config.entorno || !this.t.entorno) return;
+    const tam = ENTORNO.tam;
+    const t = this._recurso(new THREE.DataTexture(generarEntorno(tam, this.t.entorno), tam, tam / 2, THREE.RGBAFormat));
+    t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
+    t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
+    this.scene.environment = t; this.entorno = t;
+    this.luces.hemi.intensity = this.t.luces.hemi.intensidad * ENTORNO.compensacionHemi;
+  }
+
   _montarMesa() {
     const esc = this.config && this.t.escenario;
     if (esc) { this._montarEscenario(esc); return; }
     const g = this._recurso(new THREE.PlaneGeometry(2, 1.4));
     const m = this._recurso(new THREE.MeshStandardMaterial(this.config ? { color: this.t.paleta.mesa, roughness: MATERIALES.mesa.rugosidad } : { color: 0x2a2e35, roughness: 0.92 }));
+    m.envMapIntensity = this.entorno ? ENTORNO.intensidad.suelo : 1;
     this.mesa = new THREE.Mesh(g, m); this.mesa.rotation.x = -Math.PI / 2; this.mesa.position.y = -0.0005; this.mesa.name = 'Mesa';
     this._anadir(this.mesa);
   }
@@ -334,6 +379,7 @@ export class Aspecto {
       const t = this._recurso(new THREE.DataTexture(tex.datos, tex.tam, tex.tam, THREE.RGBAFormat));
       t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
       const m = this._recurso(new THREE.MeshStandardMaterial({ map: t, roughness: 0.95, metalness: 0, transparent: true, depthWrite: false }));
+      m.envMapIntensity = this.entorno ? ENTORNO.intensidad.suelo : 1;
       const o = new THREE.Mesh(this._recurso(new THREE.PlaneGeometry(lado, lado)), m);
       o.rotation.x = -Math.PI / 2; o.position.y = y; o.renderOrder = orden; o.name = nombre; this._anadir(o); return o;
     };
@@ -381,6 +427,7 @@ export class Aspecto {
       } else if (grupo === 'lomo') m = this._recurso(viejo.clone());
       m.name = { cubierta: 'Cubierta', lomo: 'Lomo', hoja: 'Hoja', soldadura: 'Soldadura' }[grupo];
       m.color.set(ac && relieve ? (grupo === 'lomo' ? ac.lomo : ac.color) : hex); m.roughness = ac && relieve ? ac.rugosidad : p.rugosidad; m.metalness = 0;
+      m.envMapIntensity = this.entorno ? ENTORNO.intensidad[grupo] : 1;         // reflejo del entorno graduado: textil mate, plástico pulido
       m.vertexColors = grupo === 'cubierta' || grupo === 'lomo' || grupo === 'hoja';          // SOLO los grupos cuyas geometrías reciben color de vértice: sin atributo, Three pinta negro (era el marco negro de los bolsillos)
       if (grupo === 'lomo') { m.polygonOffset = true; m.polygonOffsetFactor = 1; m.polygonOffsetUnits = 4; }     // la cara superior del lomo (y=0,0435) coincide con la de la tapa cerrada (0,0405+0,003): se empuja atrás para que no haya z-fighting
       if (relieve && normal && p.relieve) { m.normalMap = normal; { const k = ac ? ac.relieve * (grupo === 'lomo' ? 0.6 : 1) : p.relieve; m.normalScale.set(k, k); } if (rugo) m.roughnessMap = rugo; }
@@ -405,6 +452,7 @@ export class Aspecto {
     if (grupos.funda.length) {
       const f = grupos.funda[0].material;
       f.color.set(this.t.paleta.funda); f.roughness = MATERIALES.funda.rugosidad; f.metalness = 0; f.transparent = true; f.depthWrite = false;
+      f.envMapIntensity = this.entorno ? ENTORNO.intensidad.funda : 1;          // la película de la funda refleja la «ventana» del estudio, como una funda real
       if (cfg.reflejoFunda) {
         const t = this._recurso(new THREE.DataTexture(generarReflejoFunda(), FUNDA_REFLEJO.tam, FUNDA_REFLEJO.tam, THREE.RGBAFormat));
         t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.magFilter = t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
@@ -442,12 +490,13 @@ export class Aspecto {
 
   resumen() {
     return { nivel: this.nivel, origen: this.origen, luces: Object.keys(this.luces), relieve: this.config ? this.config.relieve : 0, mapaRugosidad: !!(this.config && this.config.mapaRugosidad),
-      tema: this.tema, tapa: this.tapa, escenario: !!this.alfombra, sombraContacto: !!this.sombra, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
+      tema: this.tema, tapa: this.tapa, escenario: !!this.alfombra, sombraContacto: !!this.sombra, entorno: !!this.entorno, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
   }
 
   liberar() {
     for (const o of this.mallasPropias) this.scene.remove(o);
     for (const r of this.recursos) r.dispose?.();
-    this.mallasPropias = []; this.recursos = []; this.luces = {}; this.sombra = null; this.mesa = null; this.alfombra = null;
+    if (this.entorno && this.scene.environment === this.entorno) this.scene.environment = null;
+    this.mallasPropias = []; this.recursos = []; this.luces = {}; this.sombra = null; this.mesa = null; this.alfombra = null; this.entorno = null;
   }
 }

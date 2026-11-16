@@ -308,3 +308,13 @@ Las 5 imágenes (`svp-208.png` a `svp-212.png`, 736×1024, español) están desc
 
 ### 3.7.18 — La ficha de detalle también usa el arte/proxy
 La carta grande del álbum ya usaba el arte real/proxy, pero el panel de detalle (ficha) solo miraba el manifiesto de imágenes oficiales, así que seguía diciendo «Sin imagen» para las 5 promos. Ahora la ficha sigue la misma cadena: oficial → arte real descargado → proxy → marcador.
+
+## 3.7.19 — Entorno de estudio (IBL procedural)
+
+El salto clásico de «render plano» a «render de producto»: hasta ahora los materiales solo veían 4 luces puntuales, y los materiales estándar sin mapa de entorno se ven planos y plásticos. Ahora cada tema genera un panorama equirectangular pequeño (64×32, procedural: gradiente cielo→suelo + softbox cálido + tira fría de contorno) y lo pone en `scene.environment`; Three lo convierte a PMREM una sola vez.
+
+- Reflejo graduado por material (`ENTORNO.intensidad`): fundas 1.5 y marcos 1.1 (pulidos, reflejan la «ventana» como una funda real), tapa/lomo ~0.5 (textil), hojas 0.3, suelo 0.25. Las cartas no cambian: siguen con material básico sin iluminación (colores exactos).
+- La luz hemisférica baja a ×0.6 cuando hay entorno (si no, se lavaría el volumen).
+- Niveles: `media` y `alta` lo activan; `baja` y `legado` no. `?ibl=0` lo apaga para comparar A/B en el iPhone.
+- Coste: una textura 64×32 y el PMREM inicial (una vez); el muestreo del entorno es lo normal en PBR. Si en el iPhone bajara el FPS, dilo y lo dejamos solo en `alta`.
+- Pendiente: la comprobación visual real (reflejos, exposición) solo puede hacerse en navegador; en Node solo validamos panorama y cableado (`estudio37.test.mjs`).

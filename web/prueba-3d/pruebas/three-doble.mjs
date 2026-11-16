@@ -49,7 +49,7 @@ export class BufferGeometry { constructor() { this.attributes = {}; this.index =
 class Luz extends Object3D { constructor(...a) { super(); this.args = a; this.color = {}; } }
 export class HemisphereLight extends Luz {}
 export class DirectionalLight extends Luz {}
-export const ACESFilmicToneMapping = 4, DoubleSide = 2, RGBAFormat = 1023, LinearFilter = 1006, LinearMipmapLinearFilter = 1008, RepeatWrapping = 1000, ClampToEdgeWrapping = 1001;
+export const ACESFilmicToneMapping = 4, DoubleSide = 2, RGBAFormat = 1023, LinearFilter = 1006, LinearMipmapLinearFilter = 1008, RepeatWrapping = 1000, ClampToEdgeWrapping = 1001, EquirectangularReflectionMapping = 303;
 export class Texture { constructor(tag) { this.tag = tag; this.disposed = false; stats.texturasCreadas++; } dispose() { if (!this.disposed) { this.disposed = true; stats.texturasLiberadas++; } } }
 export class DataTexture extends Texture { constructor(datos, w, h) { super('datos'); this.datos = datos; this.ancho = w; this.alto = h; this.isDataTexture = true; } }
 export class CanvasTexture extends Texture { constructor(lienzo) { super('canvas'); this.lienzo = lienzo; this.isCanvasTexture = true; } }

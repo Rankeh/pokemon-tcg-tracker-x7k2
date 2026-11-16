@@ -68,7 +68,7 @@ test('4 niveles de calidad: relieve 0/128/256, rugosidad variable desde media, s
   assert.equal(r.baja.normal, false); assert.equal(r.media.normal, true); assert.equal(r.media.tam, 128); assert.equal(r.alta.tam, 256);
   assert.equal(r.baja.rug, false); assert.equal(r.media.rug, true); assert.equal(r.alta.rug, true);
   assert.ok(r.baja.recursos < r.media.recursos && r.media.recursos < r.alta.recursos, 'más calidad = más recursos');
-  assert.ok(r.alta.texturas <= 4, 'alta: normal + rugosidad + reflejo de funda + sombra (no más)');
+  assert.ok(r.alta.texturas <= 5, 'alta: normal + rugosidad + reflejo de funda + sombra + panorama del entorno (3.7.19), no más');
   const { a, asp } = await nuevo('media'); const n0 = asp.recursos.length; asp.aplicarAlbum(a); assert.equal(asp.recursos.length, n0, 'aplicarAlbum es idempotente');
   assert.equal(mat(a, 'Tapa_Malla').normalMap, mat(a, 'Lomo').normalMap, 'una sola textura de relieve compartida');
 });

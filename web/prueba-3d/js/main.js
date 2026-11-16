@@ -42,7 +42,7 @@ const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchM
 const tema = elegirTema(params.get('tema'));                 // ?tema=claro (por defecto, estilo Apple) | acogedor (videojuego cálido) | noche (grafito de 3.7.2)
 document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
 const tapa = elegirAcabado(params.get('tapa'));               // ?tapa=grafito (por defecto) | fieltro | cuero | tejido | acolchado
-const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa });
+const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0' });   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone
 
 const orbita = new OrbitaLigera();
 let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl = null, adaptador = null, ficha = null;
