@@ -89,3 +89,16 @@ test('E6 (3.7.20) tejido anisótropo: a los tamaños reales del mapa (128 media,
     assert.ok(dx > dy * minimo, `anisotropía a ${tam}: ratio=${(dx / dy).toFixed(3)}`);
   }
 });
+
+test('E7 (3.7.21) OrbitaLigera: el arrastre y el zoom del usuario cancelan la transición en curso y respetan los límites', async () => {
+  const { OrbitaLigera } = await import('../js/camara.js');
+  const o = new OrbitaLigera();
+  o.llevarA({ radio: 0.9 }, 0.6);
+  assert.ok(o.tween, 'transición en marcha');
+  o.arrastrar(40, 0, 400);
+  assert.equal(o.tween, null, 'el arrastre toma el control');
+  const az1 = o.az; o.actualizar(0.1); assert.equal(o.az, az1, 'sin tween no hay movimiento programado');
+  o.llevarA({ radio: 0.9 }, 0.6); o.zoom(0.5);
+  assert.equal(o.tween, null, 'el zoom también cancela');
+  o.zoom(1e-6); assert.ok(o.radio >= o.limites.radio[0], 'límite inferior'); o.zoom(1e6); assert.ok(o.radio <= o.limites.radio[1], 'límite superior');
+});

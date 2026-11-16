@@ -131,7 +131,9 @@ test('cámara: el arrastre queda limitado (giro ligero) y la transición llega e
   assert.ok(Math.abs(o.az) <= 14 * Math.PI / 180 + 1e-9);
   assert.ok(o.el >= 38 * Math.PI / 180 - 1e-9 && o.el <= 78 * Math.PI / 180 + 1e-9);
   o.llevarA({ az: 0, el: 1.2, radio: 0.2, objetivo: [0.1, 0, 0] }, 0.5);
-  o.arrastrar(100, 100, 400);        // ignorado durante la transición
+  o.arrastrar(10, 0, 400);           // 3.7.21: el arrastre CANCELA la transición (antes se ignoraba y la cámara parecía con lag)
+  assert.equal(o.tween, null);
+  o.llevarA({ az: 0, el: 1.2, radio: 0.2, objetivo: [0.1, 0, 0] }, 0.5);
   o.actualizar(0.25); assert.ok(o.tween);
   o.actualizar(0.3);
   assert.equal(o.tween, null); cerca(o.el, 1.2); cerca(o.radio, 0.2); cerca(o.objetivo[0], 0.1);

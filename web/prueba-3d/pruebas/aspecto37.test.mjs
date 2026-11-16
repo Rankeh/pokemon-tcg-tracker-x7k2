@@ -158,7 +158,7 @@ test('12 no se altera nada del álbum: poses, visibilidad, tapas y navegación i
   // 3.7.9: album3d.js sale de la lista (el lomo sigue el grosor de las pilas, petición del usuario); sus poses/visibilidad siguen vigiladas arriba y en M11.
   // 3.7.6: album.glb sale de la lista por petición expresa del usuario (modelo más refinado). Su ESTRUCTURA sigue protegida en movimiento37.test.mjs (M9).
   // 3.7.10: encuadre.js sale de la lista (puntosGiro admite un factor de barrido; petición del usuario: zoom del giro menos exagerado). Sus matemáticas siguen cubiertas por encuadre37*.test.mjs.
-  const protegidos = ['web/prueba-3d/js/logica.js', 'web/prueba-3d/js/camara.js', 'web/prueba-3d/js/navegacion3d.js', 'web/prueba-3d/js/picking.js',
+  const protegidos = ['web/prueba-3d/js/logica.js', /* camara.js sale en 3.7.21: arrastre/zoom cancelan el tween (pinch-zoom) */ 'web/prueba-3d/js/navegacion3d.js', 'web/prueba-3d/js/picking.js',
     'web/prueba-3d/js/adaptador-coleccion.js', 'web/prueba-3d/js/texturas.js', /* texturas3d.js sale de la lista en 3.7.13: solo se añade el fallback a proxies */ 'web/js/almacen.js', 'web/js/album/modelo.js', 'datos/catalogo/coleccion-teselia.json'];
   assert.deepEqual(cambiados.filter((f) => protegidos.includes(f)), []);
   const dif = execSync('git diff -U0 97db498 -- web/prueba-3d/js/bolsillos3d.js', { cwd: new URL('../../..', import.meta.url).pathname, encoding: 'utf8' }).split('\n').filter((l) => /^[+-][^+-]/.test(l));

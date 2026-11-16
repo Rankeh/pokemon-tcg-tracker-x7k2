@@ -13,13 +13,13 @@ export class OrbitaLigera {
   }
 
   arrastrar(dxPx, dyPx, anchoPx) {
-    if (this.tween) return;
+    this.tween = null;                                  // 3.7.21: el gesto del usuario manda; antes el arrastre moría ~0,7 s durante cada transición y la cámara parecía «con lag»
     const k = 2.2 / Math.max(anchoPx, 1);               // un arrastre de ancho completo ≈ 2,2 rad antes de limitar
     this.az = limitar(this.az - dxPx * k, ...this.limites.az);
     this.el = limitar(this.el + dyPx * k, ...this.limites.el);
   }
 
-  zoom(factor) { this.radio = limitar(this.radio * factor, ...this.limites.radio); }
+  zoom(factor) { this.tween = null; this.radio = limitar(this.radio * factor, ...this.limites.radio); }
 
   /** Transición suave a un nuevo estado (az, el, radio, objetivo). Se salta los límites de arrastre mientras dura. */
   llevarA(dest, duracion = 0.6) {

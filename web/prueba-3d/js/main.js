@@ -257,18 +257,37 @@ addEventListener('keydown', (e) => {
 // ------------------------------------------------------------------ selección táctil / ratón (rayo → bolsillo → adaptador)
 const rayo = new THREE.Raycaster();
 const puntero = { activo: false, x0: 0, y0: 0, x: 0, y: 0, arrastre: false, id: null };
+const pellizco = { activo: false, id2: null, x2: 0, y2: 0, d: 0 };            // 3.7.21: pellizco con dos dedos = zoom (antes el segundo dedo se ignoraba y en iPhone no había zoom)
 canvas.addEventListener('pointerdown', (e) => {
-  if (puntero.activo) return;                                    // un solo dedo/puntero cuenta como toque
-  canvas.setPointerCapture(e.pointerId);
-  Object.assign(puntero, { activo: true, id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, arrastre: false });
+  if (!puntero.activo) {
+    canvas.setPointerCapture(e.pointerId);
+    Object.assign(puntero, { activo: true, id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, arrastre: false });
+    return;
+  }
+  if (!pellizco.activo && e.pointerId !== puntero.id) {         // segundo dedo: empieza el pellizco; ya no es un toque ni un deslizamiento
+    canvas.setPointerCapture(e.pointerId);
+    Object.assign(pellizco, { activo: true, id2: e.pointerId, x2: e.clientX, y2: e.clientY, d: Math.hypot(e.clientX - puntero.x, e.clientY - puntero.y) });
+    puntero.arrastre = true;
+  }
 });
 canvas.addEventListener('pointermove', (e) => {
+  if (pellizco.activo && (e.pointerId === puntero.id || e.pointerId === pellizco.id2)) {
+    if (e.pointerId === puntero.id) { puntero.x = e.clientX; puntero.y = e.clientY; } else { pellizco.x2 = e.clientX; pellizco.y2 = e.clientY; }
+    const d = Math.hypot(pellizco.x2 - puntero.x, pellizco.y2 - puntero.y);
+    if (d > 20 && pellizco.d > 20 && !ctrl?.fichaAbierta) { orbita.zoom(pellizco.d / d); pedirFrame(300); }   // separar dedos = acercar (radio menor)
+    pellizco.d = d;
+    return;
+  }
   if (!puntero.activo || e.pointerId !== puntero.id) return;
   if (Math.hypot(e.clientX - puntero.x0, e.clientY - puntero.y0) > 10) puntero.arrastre = true;     // umbral algo mayor en táctil
   if (puntero.arrastre && !ctrl?.fichaAbierta && modoEfectivo() !== 'pagina') { orbita.arrastrar(e.clientX - puntero.x, e.clientY - puntero.y, canvas.clientWidth); pedirFrame(300); }
   puntero.x = e.clientX; puntero.y = e.clientY;
 });
 const soltar = (e, cancelado) => {
+  if (pellizco.activo && (e.pointerId === puntero.id || e.pointerId === pellizco.id2)) {            // al levantar cualquiera de los dos dedos acaba todo el gesto
+    pellizco.activo = false; puntero.activo = false;
+    return;
+  }
   if (!puntero.activo || e.pointerId !== puntero.id) return;
   puntero.activo = false;
   if (cancelado) return;
