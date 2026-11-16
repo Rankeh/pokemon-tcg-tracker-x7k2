@@ -328,3 +328,6 @@ El salto clásico de «render plano» a «render de producto»: hasta ahora los 
 - **3.7.24 A/B del vidrio.** `?vidrio=ligero` quita el `backdrop-filter` (sospechoso n.º 1 de FPS en iOS). Mide con `?auto=escenas` normal y con `&vidrio=ligero`; si la diferencia es grande lo haremos por defecto en táctil.
 - **3.7.25 Emblema de la tapa.** Parche «bordado» en relieve (orla con puntadas + rombo satinado, mapa de normales procedural) como decal hijo de la tapa: visible con el álbum cerrado, boca abajo al abrir, como un álbum real. `?emblema=0` lo quita. Diseño propio: sin logos ni personajes de Pokémon.
 - Pendiente de TU iPhone: FPS (con/sin `?ibl=0`, `?vidrio=ligero`), aspecto real del tejido/emblema, y sensación del hojeo y el pellizco.
+
+### 3.7.26 — Vidrio ligero por defecto
+El modo sin `backdrop-filter` pasa a ser el por defecto en todos los dispositivos (pedido tras 3.7.24). `?vidrio=pleno` recupera el desenfoque visionOS, útil para comparar FPS o si se quiere en escritorio.

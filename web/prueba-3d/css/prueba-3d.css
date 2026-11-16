@@ -241,8 +241,8 @@ body[data-tema="claro"] .ficha-fondo.saliendo { animation: fondo-sale 0.22s ease
 @keyframes aparece-barra-lateral { from { opacity: 0; transform: translateY(-50%) translateX(12px); } to { opacity: 1; transform: translateY(-50%); } }
 @media (prefers-reduced-motion: reduce) { body[data-tema="claro"] * { transition: none !important; animation: none !important; } }
 
-/* ===== 3.7.24 · ?vidrio=ligero: el mismo aspecto SIN backdrop-filter (vidrio opaco translúcido), para medir cuánto FPS cuesta el desenfoque en iPhone
-   con ?auto=escenas. Si la diferencia es grande, este será el modo por defecto en táctil. */
+/* ===== 3.7.24 · vidrio ligero: el mismo aspecto SIN backdrop-filter (vidrio opaco translúcido). 3.7.26: es el MODO POR DEFECTO (petición del usuario);
+   ?vidrio=pleno recupera el desenfoque, p. ej. para medir su coste con ?auto=escenas. */
 body[data-vidrio="ligero"] .barra, body[data-vidrio="ligero"] h1, body[data-vidrio="ligero"] .ficha {
   -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
 }

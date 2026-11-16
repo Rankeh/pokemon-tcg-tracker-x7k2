@@ -223,7 +223,7 @@ for (const [consulta, esperado] of [['', 'claro'], ['&tema=claro', 'claro'], ['&
       return { tema: document.body.dataset.tema, boton: css('#b-sig', 'backgroundColor'), principal: css('#b-abrir', 'backgroundColor'), h1: css('h1', 'backgroundColor'), fuente: css('body', 'fontFamily'), escenario: !!window.__album3d.scene.children.find((o) => o.name === 'Alfombra'), suelo: !!window.__album3d.scene.children.find((o) => o.name === 'Suelo'), aro: window.__album3d.resaltado.mat.color.v, ancho: document.documentElement.scrollWidth <= innerWidth }; });
     ok(r.tema === esperado, `tema «${esperado}»${consulta ? ' (' + consulta.slice(1) + ')' : ' por defecto'}`);
     if (esperado === 'claro') {
-      ok(r.h1.startsWith('rgba(255, 255, 255, 0.72') && r.principal === 'rgb(10, 132, 255)', `claro: cabecera de vidrio blanco y «Abrir» en azul sistema (${r.h1} / ${r.principal})`);
+      ok(r.h1.startsWith('rgba(255, 255, 255, 0.9') && r.principal === 'rgb(10, 132, 255)', `claro: cabecera de vidrio blanco (ligero 3.7.26, alfa 0,92) y «Abrir» en azul sistema (${r.h1} / ${r.principal})`);
       ok(/apple|SF Pro|Segoe|system-ui/i.test(r.fuente), 'claro: tipografía del sistema'); ok(r.escenario === false && r.suelo, 'claro: suelo perla sin alfombra'); ok(r.aro === 0x0a84ff, 'claro: aro de selección azul');
     } else if (esperado === 'acogedor') {
       ok(r.h1 === 'rgb(255, 246, 228)' && r.principal === 'rgb(124, 195, 94)' && r.boton === 'rgb(127, 167, 217)', `acogedor: cabecera crema, «Abrir» verde, flechas azules (${r.h1} / ${r.principal} / ${r.boton})`);

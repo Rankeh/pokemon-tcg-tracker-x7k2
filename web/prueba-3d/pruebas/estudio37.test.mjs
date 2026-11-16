@@ -130,11 +130,11 @@ test('E9 (3.7.23) plano héroe: dentro de los límites de la órbita y clarament
   assert.ok(c.radio > 0.1 && c.radio < 2, 'el encuadre héroe converge (radio razonable): ' + c.radio.toFixed(3));
 });
 
-test('E10 (3.7.24) ?vidrio=ligero: la regla CSS existe, quita el backdrop-filter y solo actúa con ese modo', async () => {
+test('E10 (3.7.24/26) vidrio ligero: la regla CSS existe, quita el backdrop-filter y es el modo por defecto (?vidrio=pleno lo devuelve)', async () => {
   const css = await (await import('node:fs/promises')).readFile(new URL('../css/prueba-3d.css', import.meta.url), 'utf8');
   assert.match(css, /body\[data-vidrio="ligero"\][^{]*\{[^}]*backdrop-filter: none !important/);
   const html = await (await import('node:fs/promises')).readFile(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(html, /vidrio.*ligero.*dataset\.vidrio|dataset\.vidrio = 'ligero'/);
+  assert.match(html, /q\.get\('vidrio'\) !== 'pleno'/, 'ligero por defecto, pleno opcional');
 });
 
 test('E11 (3.7.25) emblema: alfa 1 dentro y 0 fuera del parche, orla y rombo en relieve sobre la tela base', async () => {
