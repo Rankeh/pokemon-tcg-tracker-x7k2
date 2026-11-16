@@ -122,7 +122,8 @@ class Album3D {
       if (!o.isMesh) return;
       if (soloVisibles) { for (let p = o; p; p = p.parent) if (!p.visible) return; }
       const g = o.geometry;
-      tris += (g.index ? g.index.count : g.attributes.position.count) / 3;
+      const vertices = g.index ? g.index.count : g.attributes?.position?.count;   // 3.7.25: el decal del emblema usa PlaneGeometry; en los dobles de prueba no publica atributos
+      if (vertices) tris += vertices / 3;
       mallas++;
     });
     return { triangulos: tris, mallas };

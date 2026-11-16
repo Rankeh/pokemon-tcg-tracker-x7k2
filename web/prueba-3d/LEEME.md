@@ -318,3 +318,13 @@ El salto clásico de «render plano» a «render de producto»: hasta ahora los 
 - Niveles: `media` y `alta` lo activan; `baja` y `legado` no. `?ibl=0` lo apaga para comparar A/B en el iPhone.
 - Coste: una textura 64×32 y el PMREM inicial (una vez); el muestreo del entorno es lo normal en PBR. Si en el iPhone bajara el FPS, dilo y lo dejamos solo en `alta`.
 - Pendiente: la comprobación visual real (reflejos, exposición) solo puede hacerse en navegador; en Node solo validamos panorama y cableado (`estudio37.test.mjs`).
+
+## 3.7.20 – 3.7.25 — Auditoría «álbum prémium» (bloques aprobados)
+
+- **3.7.20 Tejido creíble.** La rugosidad ahora sale de la MISMA altura que el relieve del acabado (antes era siempre el grano genérico: el brillo no seguía la trama). Crestas satinadas, valles mates. El tejido además es anisótropo (urdimbre más marcada que la trama). El selector de página ya no marca «Página 1» con el álbum cerrado. Nota: `media` sigue sin sheen a propósito (test 15); prueba `?calidad=alta` en el iPhone y si va fluido lo promovemos.
+- **3.7.21 Tacto.** Pellizco con dos dedos = zoom (antes en iPhone no había forma de hacer zoom). El arrastre y el zoom cancelan la transición de cámara en curso: la cámara responde al instante.
+- **3.7.22 Hojeo real.** «Cerrar» y los saltos del selector ya no se teletransportan: se encolan los giros y cada uno dura menos cuanto más cola hay (hasta ÷3,6); el último conserva sus 0,9 s y la hoja «se asienta». Cerrar desde la página 18 ≈ 3 s de cascada.
+- **3.7.23 Plano héroe.** Con el álbum cerrado la cámara baja a 40° y se ladea −8° (foto de producto: portada + canto + lomo). Al cargar hay un dolly de entrada de 1,6 s (nunca con `?auto=`, `?pagina=`, automatización ni «reducir movimiento»).
+- **3.7.24 A/B del vidrio.** `?vidrio=ligero` quita el `backdrop-filter` (sospechoso n.º 1 de FPS en iOS). Mide con `?auto=escenas` normal y con `&vidrio=ligero`; si la diferencia es grande lo haremos por defecto en táctil.
+- **3.7.25 Emblema de la tapa.** Parche «bordado» en relieve (orla con puntadas + rombo satinado, mapa de normales procedural) como decal hijo de la tapa: visible con el álbum cerrado, boca abajo al abrir, como un álbum real. `?emblema=0` lo quita. Diseño propio: sin logos ni personajes de Pokémon.
+- Pendiente de TU iPhone: FPS (con/sin `?ibl=0`, `?vidrio=ligero`), aspecto real del tejido/emblema, y sensación del hojeo y el pellizco.

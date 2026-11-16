@@ -42,7 +42,7 @@ const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchM
 const tema = elegirTema(params.get('tema'));                 // ?tema=claro (por defecto, estilo Apple) | acogedor (videojuego cálido) | noche (grafito de 3.7.2)
 document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
 const tapa = elegirAcabado(params.get('tapa'));               // ?tapa=grafito (por defecto) | fieltro | cuero | tejido | acolchado
-const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0' });   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone
+const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0', emblema: params.get('emblema') !== '0' });   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone
 
 const orbita = new OrbitaLigera();
 let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl = null, adaptador = null, ficha = null;
@@ -117,7 +117,10 @@ function encuadreDeseado() {
     return calcularEncuadre({ puntos: puntosPagina({ lado, cajas, hoja: hojaAncho() }), fovGrados: FOV, aspect, el, reservado: res, margen: COMPOSICION.margen, centroVisual: cara(cajas, lado), sesgo: COMPOSICION.sesgoOptico });
   }
   const cerrado = e.vueltas === 0;
-  return calcularEncuadre({ puntos: puntosConjunto(cajasDe(e.vueltas, true)), fovGrados: FOV, aspect, el, reservado: res, margen: cerrado ? COMPOSICION.margen : COMPOSICION.margenDoble });
+  if (cerrado) {                                                 // 3.7.23: plano héroe (portada + canto + lomo, no un cenital)
+    return calcularEncuadre({ puntos: puntosConjunto(cajasDe(e.vueltas, true)), fovGrados: FOV, aspect, az: COMPOSICION.heroe.az * GRAD, el: COMPOSICION.heroe.el * GRAD, reservado: res, margen: COMPOSICION.margen });
+  }
+  return calcularEncuadre({ puntos: puntosConjunto(cajasDe(e.vueltas, true)), fovGrados: FOV, aspect, el, reservado: res, margen: COMPOSICION.margenDoble });
 }
 /** Esquinas de la cara de la página protagonista (para centrarla visualmente). */
 function cara(cajas, l) { const c = l === 'der' ? cajas.der : cajas.izq; return [[c.x[0], c.y[1], c.z[0]], [c.x[1], c.y[1], c.z[0]], [c.x[0], c.y[1], c.z[1]], [c.x[1], c.y[1], c.z[1]]]; }
@@ -468,6 +471,15 @@ async function arrancar() {
   sincronizarTexturas(); pintarProgreso(); actualizarUi();
   ajustarTamano();                                              // primer encuadre (instantáneo) con la interfaz ya montada
   $('cargando').hidden = true;
+  // 3.7.23 · Entrada: un dolly suave hasta el plano héroe. Nunca en automatización (las pruebas capturan a los 500 ms), ni con enlaces profundos ni mediciones.
+  if (!reducirMovimiento && !navigator.webdriver && !params.get('auto') && !(+params.get('pagina') >= 1)) {
+    const destino = orbita.estado();
+    orbita.az = destino.az + 10 * GRAD;
+    orbita.el = Math.min(orbita.limites.el[1], destino.el + 16 * GRAD);
+    orbita.radio = Math.min(orbita.limites.radio[1], destino.radio * 1.45);
+    orbita.llevarA(destino, 1.6);
+    pedirFrame(1800);
+  }
   setInterval(() => { if (!$('panel').hidden) metricas.pintar(); }, 500);
   window.__album3d = { medirEscenas, aspecto, dim, resaltado, diagCam, reservado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
   requestAnimationFrame(bucle);

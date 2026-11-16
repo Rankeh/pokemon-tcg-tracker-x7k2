@@ -240,3 +240,10 @@ body[data-tema="claro"] .ficha-fondo.saliendo { animation: fondo-sale 0.22s ease
 @media (orientation: landscape) and (max-height: 520px) { body[data-tema="claro"] .barra { animation-name: aparece-barra-lateral; } }
 @keyframes aparece-barra-lateral { from { opacity: 0; transform: translateY(-50%) translateX(12px); } to { opacity: 1; transform: translateY(-50%); } }
 @media (prefers-reduced-motion: reduce) { body[data-tema="claro"] * { transition: none !important; animation: none !important; } }
+
+/* ===== 3.7.24 · ?vidrio=ligero: el mismo aspecto SIN backdrop-filter (vidrio opaco translúcido), para medir cuánto FPS cuesta el desenfoque en iPhone
+   con ?auto=escenas. Si la diferencia es grande, este será el modo por defecto en táctil. */
+body[data-vidrio="ligero"] .barra, body[data-vidrio="ligero"] h1, body[data-vidrio="ligero"] .ficha {
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+body[data-tema="claro"][data-vidrio="ligero"] { --vidrio: rgba(255, 255, 255, 0.92); --vidrio-fuerte: rgba(255, 255, 255, 0.97); }

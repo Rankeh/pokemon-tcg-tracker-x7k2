@@ -117,3 +117,45 @@ test('E8 (3.7.22) hojeo acelerado: con cola larga cada giro dura menos (tope ÷3
   assert.equal(e.vueltas, 6, 'llega igual de exacto');
   assert.ok(t < 3, `cerrar/saltar 6 hojas tarda ${t.toFixed(2)} s, no 5,4 s (el último giro conserva sus 0,9 s: la hoja final se asienta)`);
 });
+
+test('E9 (3.7.23) plano héroe: dentro de los límites de la órbita y claramente más bajo que la vista abierta', async () => {
+  const { COMPOSICION, elevacionPara, calcularEncuadre, dimensiones, puntosVista } = await import('../js/encuadre.js');
+  const { OrbitaLigera } = await import('../js/camara.js');
+  const GRAD = Math.PI / 180, o = new OrbitaLigera(), h = COMPOSICION.heroe;
+  assert.ok(h.el * GRAD >= o.limites.el[0] && h.el * GRAD <= o.limites.el[1], 'elevación alcanzable');
+  assert.ok(Math.abs(h.az * GRAD) <= Math.abs(o.limites.az[0]) + 1e-9, 'azimut alcanzable');
+  assert.ok(h.el * GRAD < elevacionPara(0.6) - 8 * GRAD, 'bastante más bajo que la vista normal');
+  const dim = dimensiones({ ancho_tapa: 0.26, alto_tapa: 0.322, y_base: 0.0015, grosor_tapa: 0.003, n_hojas: 9, paso: 0.004, ancho_hoja: 0.24 });
+  const c = calcularEncuadre({ puntos: puntosVista({ vueltas: 0, dim }), aspect: 390 / 663, az: h.az * GRAD, el: h.el * GRAD, reservado: { arriba: 0.1, abajo: 0.12 }, margen: 0.035 });
+  assert.ok(c.radio > 0.1 && c.radio < 2, 'el encuadre héroe converge (radio razonable): ' + c.radio.toFixed(3));
+});
+
+test('E10 (3.7.24) ?vidrio=ligero: la regla CSS existe, quita el backdrop-filter y solo actúa con ese modo', async () => {
+  const css = await (await import('node:fs/promises')).readFile(new URL('../css/prueba-3d.css', import.meta.url), 'utf8');
+  assert.match(css, /body\[data-vidrio="ligero"\][^{]*\{[^}]*backdrop-filter: none !important/);
+  const html = await (await import('node:fs/promises')).readFile(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(html, /vidrio.*ligero.*dataset\.vidrio|dataset\.vidrio = 'ligero'/);
+});
+
+test('E11 (3.7.25) emblema: alfa 1 dentro y 0 fuera del parche, orla y rombo en relieve sobre la tela base', async () => {
+  const t = A.EMBLEMA.tam, { h, alfa } = A.alturaEmblema(t);
+  const en = (x, y) => Math.round(((y + 1) / 2) * t - 0.5) * t + Math.round(((x + 1) / 2) * t - 0.5);
+  assert.equal(alfa[en(0, 0)], 1, 'centro opaco'); assert.equal(alfa[en(0.99, 0.99)], 0, 'esquina transparente');
+  assert.ok(h[en(0, 0)] > 0.5, 'rombo satinado más alto que la tela'); assert.ok(h[en(0.84, 0)] > h[en(0.65, 0.65) ] + 0.2, 'orla en relieve');
+  const n = A.generarEmblemaNormales(t);
+  assert.equal(n.length, t * t * 4); assert.equal(n[(en(0.99, 0.99)) * 4 + 3], 0, 'el alfa viaja en el canal A');
+});
+
+test('E12 (3.7.25) cableado del emblema: decal hijo de Tapa_Malla, transparente, se quita con emblema:false y al liberar', async () => {
+  const { m, scene, asp, a } = await nuevo('media');
+  const d = a.nodo.get('Tapa_Malla').children.find((o) => o.name === 'Tapa_Emblema');
+  assert.ok(d, 'existe como hijo de la tapa (gira con ella)');
+  assert.equal(d.material.transparent, true); assert.ok(d.material.normalMap, 'relieve'); assert.equal(d.material.depthWrite, false);
+  assert.equal(asp.resumen().emblema, true);
+  asp.liberar();
+  assert.ok(!a.nodo.get('Tapa_Malla').children.includes(d), 'liberar lo retira');
+  const sin = await nuevo('media', { emblema: false });
+  assert.ok(!sin.a.nodo.get('Tapa_Malla').children.find((o) => o.name === 'Tapa_Emblema'));
+  assert.equal(sin.asp.resumen().emblema, false);
+  assert.ok(m && scene);
+});

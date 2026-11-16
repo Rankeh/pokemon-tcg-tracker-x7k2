@@ -60,6 +60,15 @@ const deslizar = async (pag, dir) => {         // dir -1 = dedo hacia la izquier
   await pag.mouse.move(x0, 330); await pag.mouse.down(); await pag.mouse.move((x0 + x1) / 2, 335, { steps: 4 }); await pag.mouse.move(x1, 335, { steps: 4 }); await pag.mouse.up(); await dormir(1900);
 };
 const etiqueta = (pag) => pag.evaluate(() => document.getElementById('estado').textContent);
+// 3.7.22: los saltos largos ya no se teletransportan, HOJEAN (≈0,25 s/hoja + 0,9 s la última); se espera al estado, no un tiempo fijo
+const esperarQuieto = async (pag, ms = 9000) => {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    if (await pag.evaluate(() => !window.__album3d.album.estado.animando && !window.__album3d.orbita.tween)) break;
+    await dormir(120);
+  }
+  await dormir(300);
+};
 const hojaDe = (p) => Math.ceil(p / 2) - 1;               // página → hoja física (0-based)
 const losa = (p) => `Hoja_${hojaDe(p)}_Losa`;
 
@@ -111,11 +120,11 @@ await sesion({ width: 390, height: 663 }, async (pag) => {
   ok(await pag.evaluate(() => window.__album3d.album.estado.vueltas) === t0, 'ida y vuelta: mismo estado de hojas');
 
   // 17 ↔ 18
-  await pag.selectOption('#b-salto', '17'); await dormir(1800);
+  await pag.selectOption('#b-salto', '17'); await esperarQuieto(pag);
   await composicion(pag, 17, 'p17');
   await deslizar(pag, -1); ok(/Página 18 de 18/.test(await etiqueta(pag)), 'p17 → p18'); await composicion(pag, 18, 'p18');
   await deslizar(pag, +1); ok(/Página 17 de 18/.test(await etiqueta(pag)), 'p18 → p17'); await composicion(pag, 17, 'p17');
-  await pag.selectOption('#b-salto', '1'); await dormir(1800);
+  await pag.selectOption('#b-salto', '1'); await esperarQuieto(pag);
 
   // selección en la primera y en la última fila
   for (const [nombre, etq] of [['Hoja_0_F_Bolsillo_1', 'primera fila'], ['Hoja_0_F_Bolsillo_7', 'última fila']]) {
@@ -149,7 +158,7 @@ await sesion({ width: 390, height: 663 }, async (pag) => {
   const cd = await proyectar(pag, { malla: 'Lomo' });
   const tapas = [await proyectar(pag, { malla: 'Contratapa' }), await proyectar(pag, { malla: 'Tapa_Malla' })];
   ok(Math.min(...tapas.map((q) => q.x0)) >= -1 && Math.max(...tapas.map((q) => q.x1)) <= cd.w + 1, 'vista de dos páginas: cubiertas y lomo caben en el ancho');
-  await pag.selectOption('#b-salto', '18'); await dormir(1800);
+  await pag.selectOption('#b-salto', '18'); await esperarQuieto(pag);
   ok(/18 de 18/.test(await etiqueta(pag)) || /Páginas 1[78]/.test(await etiqueta(pag)), 'salto directo a la página 18 en vista doble');
   const fin = [await proyectar(pag, { malla: 'Contratapa' }), await proyectar(pag, { malla: 'Tapa_Malla' }), await proyectar(pag, { malla: 'Hoja_8_Losa' })];
   ok(fin.every((q) => q.x0 >= -1 && q.x1 <= q.w + 1), 'final: pila y contratapa dentro de pantalla (3.7.1 recortaba la contratapa)');

@@ -69,7 +69,7 @@ test('T7 interfaz: reglas del tema en CSS (paneles crema, botones con sombra, ve
   const css = await leer('../css/prueba-3d.css'), html = await leer('../index.html'), main = await leer('../js/main.js');
   for (const r of ['body[data-tema="acogedor"] h1', 'body[data-tema="acogedor"] button.principal', 'body[data-tema="acogedor"] .ficha', 'ui-rounded', '--crema', 'radial-gradient']) assert.ok(css.includes(r), r);
   const sinClaro = css.slice(0, css.indexOf('TEMA «CLARO»')); assert.ok(!/backdrop-filter|filter:\s*blur/.test(sinClaro), 'noche y acogedor: sin desenfoques');
-  const vidrio = [...css.matchAll(/([^{}]+)\{[^{}]*backdrop-filter[^{}]*\}/g)].map((m) => m[1].trim()).filter((x) => !x.startsWith('@supports')); assert.ok(vidrio.length <= 4 && vidrio.every((x) => /data-tema="claro"\]\s+(h1|\.barra|\.ficha)$/.test(x)), 'el vidrio esmerilado solo en cabecera, barra y ficha del tema claro: ' + vidrio.join(' | '));
+  const vidrio = [...css.matchAll(/([^{}]+)\{[^{}]*backdrop-filter(?!: none)[^{}]*\}/g)].map((m) => m[1].trim()).filter((x) => !x.startsWith('@supports'));   // 3.7.24: la regla ?vidrio=ligero APAGA el desenfoque (none), no cuenta como vidrio assert.ok(vidrio.length <= 4 && vidrio.every((x) => /data-tema="claro"\]\s+(h1|\.barra|\.ficha)$/.test(x)), 'el vidrio esmerilado solo en cabecera, barra y ficha del tema claro: ' + vidrio.join(' | '));
   assert.ok(html.includes("t === 'noche' || t === 'acogedor' ? t : 'claro'")); assert.ok(/elegirTema\(params\.get\('tema'\)\)/.test(main) && /fijarTemaMarcadores\(tema\)/.test(main) && /color: TEMAS\[tema\]\.aro/.test(main));
   assert.ok(css.indexOf('body[data-tema="acogedor"]') > css.indexOf('.ficha-abierta .barra'), 'el tema solo sobrescribe, no reemplaza la estructura');
 });

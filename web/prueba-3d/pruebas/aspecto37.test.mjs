@@ -68,7 +68,7 @@ test('4 niveles de calidad: relieve 0/128/256, rugosidad variable desde media, s
   assert.equal(r.baja.normal, false); assert.equal(r.media.normal, true); assert.equal(r.media.tam, 128); assert.equal(r.alta.tam, 256);
   assert.equal(r.baja.rug, false); assert.equal(r.media.rug, true); assert.equal(r.alta.rug, true);
   assert.ok(r.baja.recursos < r.media.recursos && r.media.recursos < r.alta.recursos, 'más calidad = más recursos');
-  assert.ok(r.alta.texturas <= 5, 'alta: normal + rugosidad + reflejo de funda + sombra + panorama del entorno (3.7.19), no más');
+  assert.ok(r.alta.texturas <= 6, 'alta: normal + rugosidad + reflejo de funda + sombra + panorama (3.7.19) + emblema (3.7.25), no más');
   const { a, asp } = await nuevo('media'); const n0 = asp.recursos.length; asp.aplicarAlbum(a); assert.equal(asp.recursos.length, n0, 'aplicarAlbum es idempotente');
   assert.equal(mat(a, 'Tapa_Malla').normalMap, mat(a, 'Lomo').normalMap, 'una sola textura de relieve compartida');
 });
@@ -192,7 +192,7 @@ test('15 alta usa MeshPhysicalMaterial con sheen SOLO en tapas y lomo (2 materia
   assert.equal(mat(alta.a, 'Hoja_0_Losa').constructor.name, 'MeshStandardMaterial'); assert.equal(alta.a.nodo.get('Hoja_0_F_Funda').material.constructor.name, 'MeshStandardMaterial');
   assert.equal(mat(media.a, 'Tapa_Malla').constructor.name, 'MeshStandardMaterial'); assert.ok(mat(media.a, 'Tapa_Malla').roughnessMap, 'media: rugosidad con pequeñas variaciones');
   const unicos = (a) => { const s = new Set(); a.escena.traverse((o) => o.isMesh && s.add(o.material)); return s.size; };
-  assert.ok(unicos(alta.a) <= 8 && unicos(media.a) <= 8, 'materiales del álbum: cubierta, lomo, hoja, soldadura, funda, carta + costura (3.7.7) (nunca uno por bolsillo)');
+  assert.ok(unicos(alta.a) <= 9 && unicos(media.a) <= 9, 'materiales del álbum: cubierta, lomo, hoja, soldadura, funda, carta, costura (3.7.7) y emblema (3.7.25) (nunca uno por bolsillo)');
 });
 
 test('16 funda: UV de página completa para el reflejo, la misma película en las 162 fundas y sin tocar el raycasting (no es un candidato de picking)', async () => {

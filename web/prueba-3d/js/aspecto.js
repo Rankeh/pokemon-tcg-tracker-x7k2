@@ -323,13 +323,49 @@ export function generarEntorno(tam = ENTORNO.tam, p = TEMAS.claro.entorno) {
   return out;
 }
 
+// ------------------------------------------------------------------ 3.7.25 · emblema «bordado» de la tapa (diseño propio: orla con puntadas + rombo satinado; sin marcas ni personajes)
+export const EMBLEMA = { tam: 192, fraccion: 0.46, fuerza: 2.6, aclarado: 1.18 };   // fraccion: diámetro respecto al lado corto de la tapa; aclarado: el hilo es un pelín más claro que la tela
+
+/** Altura y alfa del parche (PURO). Parche circular: tela base con grano, cordón exterior con puntadas radiales y rombo central con relleno satinado a 45°. */
+export function alturaEmblema(tam = EMBLEMA.tam) {
+  const h = new Float32Array(tam * tam), alfa = new Float32Array(tam * tam), TAU = 2 * Math.PI;
+  for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
+    const x = ((i + 0.5) / tam) * 2 - 1, y = ((j + 0.5) / tam) * 2 - 1, r = Math.hypot(x, y), ang = Math.atan2(y, x), k = j * tam + i;
+    alfa[k] = 1 - suavizar(0.93, 0.97, r);                                           // borde del parche, suave
+    if (alfa[k] <= 0) continue;
+    let v = 0.3 + 0.06 * Math.sin(TAU * i * 26 / tam) * Math.sin(TAU * j * 26 / tam); // tela base del parche
+    const rombo = Math.abs(x) + Math.abs(y);
+    if (rombo <= 0.5) v = 0.62 + 0.16 * Math.sin((x + y) * TAU * 7);                  // relleno satinado: hilos paralelos a 45°
+    v += (1 - suavizar(0.04, 0.085, Math.abs(rombo - 0.5))) * 0.3;                    // cordón del borde del rombo
+    const anillo = 1 - suavizar(0.045, 0.1, Math.abs(r - 0.84));
+    v += anillo * (0.42 + 0.1 * Math.sin(ang * 56));                                  // orla exterior: cordón con puntadas radiales
+    h[k] = Math.min(1, v);
+  }
+  return { h, alfa };
+}
+
+/** Normales RGBA8 (alfa del parche en el canal A) a partir de la altura del emblema. No periódico: se fija en los bordes. */
+export function generarEmblemaNormales(tam = EMBLEMA.tam, fuerza = EMBLEMA.fuerza) {
+  const { h, alfa } = alturaEmblema(tam), out = new Uint8Array(tam * tam * 4), c = (i) => Math.min(tam - 1, Math.max(0, i));
+  for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
+    const dx = (h[j * tam + c(i + 1)] - h[j * tam + c(i - 1)]) * fuerza, dy = (h[c(j + 1) * tam + i] - h[c(j - 1) * tam + i]) * fuerza;
+    const l = Math.hypot(dx, dy, 1), k = (j * tam + i) * 4;
+    out[k] = Math.round((-dx / l * 0.5 + 0.5) * 255); out[k + 1] = Math.round((-dy / l * 0.5 + 0.5) * 255);
+    out[k + 2] = Math.round((1 / l * 0.5 + 0.5) * 255); out[k + 3] = Math.round(alfa[j * tam + i] * 255);
+  }
+  return out;
+}
+
+const aclarar = (hex, f) => { const r = Math.min(255, ((hex >> 16) & 255) * f), g = Math.min(255, ((hex >> 8) & 255) * f), b = Math.min(255, (hex & 255) * f); return (r << 16 | g << 8 | b); };
+
 export class Aspecto {
-  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito', entorno = true }) {
+  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito', entorno = true, emblema = true }) {
     this.tapa = elegirAcabado(tapa); this.acabado = ACABADOS[this.tapa];
     this.tema = TEMAS[tema] ? tema : 'noche'; this.t = TEMAS[this.tema];
     this.renderer = renderer; this.scene = scene; this.nivel = nivel; this.origen = origen;
     this.config = NIVELES[nivel] || null;                    // null = legado
     this.luces = {}; this.recursos = []; this.mallasPropias = []; this.sombra = null; this.mesa = null; this.materiales = new Map(); this.uvHechas = new WeakSet();
+    this.conEmblema = emblema;
     this._montarLuces();
     this._montarEntorno(entorno);
     this._montarMesa();
@@ -470,7 +506,32 @@ export class Aspecto {
     if (normal) {
       for (const o of [...grupos.cubierta, ...grupos.lomo]) if (!this.uvHechas.has(o.geometry)) { rellenarUV(o.geometry, ac ? ac.uv : ESCALA_UV); this.uvHechas.add(o.geometry); }
     }
+    this._montarEmblema(album, ac);
     this.sincronizar(album);
+  }
+
+  /** 3.7.25 · Emblema en relieve sobre la portada: un decal (plano con normales + alfa) hijo de Tapa_Malla, así gira con la tapa.
+   *  Con el álbum cerrado la cara superior de la tapa ES la portada exterior: el emblema queda a la vista, y al abrir queda boca abajo, como en un álbum real.
+   *  ?emblema=0 lo quita. Diseño propio (orla + rombo): sin logos ni personajes. */
+  _montarEmblema(album, ac) {
+    if (!this.conEmblema || !this.config || this.emblema) return;
+    const tapaMalla = album.nodo.get('Tapa_Malla');
+    if (!tapaMalla || !tapaMalla.geometry) return;
+    if (!tapaMalla.geometry.boundingBox) tapaMalla.geometry.computeBoundingBox();
+    const bb = tapaMalla.geometry.boundingBox;
+    const t = this._recurso(new THREE.DataTexture(generarEmblemaNormales(), EMBLEMA.tam, EMBLEMA.tam, THREE.RGBAFormat));
+    t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
+    const base = ac ? ac.color : this.t.paleta.cubierta;
+    const m = this._recurso(new THREE.MeshStandardMaterial({ color: aclarar(base, EMBLEMA.aclarado), roughness: ac ? Math.min(1, ac.rugosidad + 0.06) : 0.85, metalness: 0,
+      transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+    m.normalMap = t; m.normalScale?.set?.(1, 1); m.alphaMap = t; m.envMapIntensity = this.entorno ? ENTORNO.intensidad.cubierta : 1;
+    const lado = Math.min(bb.max.x - bb.min.x, bb.max.z - bb.min.z) * EMBLEMA.fraccion;
+    const o = new THREE.Mesh(this._recurso(new THREE.PlaneGeometry(lado, lado)), m);
+    o.name = 'Tapa_Emblema'; o.rotation.x = -Math.PI / 2;
+    o.position.set((bb.min.x + bb.max.x) / 2, bb.max.y + 0.0003, (bb.min.z + bb.max.z) / 2);
+    o.renderOrder = 1;
+    tapaMalla.add(o);
+    this.emblema = o;
   }
 
   _textura(datos, tam) {
@@ -496,13 +557,15 @@ export class Aspecto {
 
   resumen() {
     return { nivel: this.nivel, origen: this.origen, luces: Object.keys(this.luces), relieve: this.config ? this.config.relieve : 0, mapaRugosidad: !!(this.config && this.config.mapaRugosidad),
-      tema: this.tema, tapa: this.tapa, escenario: !!this.alfombra, sombraContacto: !!this.sombra, entorno: !!this.entorno, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
+      tema: this.tema, tapa: this.tapa, escenario: !!this.alfombra, sombraContacto: !!this.sombra, entorno: !!this.entorno, emblema: !!this.emblema, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
   }
 
   liberar() {
     for (const o of this.mallasPropias) this.scene.remove(o);
     for (const r of this.recursos) r.dispose?.();
     if (this.entorno && this.scene.environment === this.entorno) this.scene.environment = null;
+    if (this.emblema && this.emblema.parent) this.emblema.parent.remove(this.emblema);
+    this.emblema = null;
     this.mallasPropias = []; this.recursos = []; this.luces = {}; this.sombra = null; this.mesa = null; this.alfombra = null; this.entorno = null;
   }
 }
