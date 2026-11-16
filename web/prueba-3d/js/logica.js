@@ -82,12 +82,15 @@ export class EstadoAlbum {
     while (restante > 0 && (this.actual || this.cola.length)) {
       if (!this.actual) {
         const s = this.cola.shift();
-        this.actual = { i: s.i, desde: this.progreso[s.i], hasta: s.a, t: 0 };
+        // 3.7.22 · Hojeo acelerado: con varios giros en cola cada uno dura menos (hasta ÷3,6), como al hojear un álbum de verdad.
+        // Antes los saltos largos y «Cerrar» se teletransportaban (irA) porque girar todo a 0,9 s/hoja era eterno.
+        const rapidez = Math.min(1 + 0.8 * this.cola.length, 3.6);
+        this.actual = { i: s.i, desde: this.progreso[s.i], hasta: s.a, t: 0, dur: this.duracion / rapidez };
       }
       const a = this.actual;
-      const falta = (1 - a.t) * this.duracion;
+      const falta = (1 - a.t) * a.dur;
       const usa = Math.min(restante, falta);
-      a.t += usa / this.duracion;
+      a.t += usa / a.dur;
       this.progreso[a.i] = lerp(a.desde, a.hasta, a.t);
       restante -= usa;
       movido = true;

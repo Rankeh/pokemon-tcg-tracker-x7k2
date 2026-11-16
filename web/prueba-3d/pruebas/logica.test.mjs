@@ -38,12 +38,12 @@ test('animar: avanzar/retroceder, cola, y no pasarse de los límites', () => {
   const e = new EstadoAlbum(geo(), 1);
   assert.equal(e.vueltas, 0);
   assert.ok(!e.puedeRetroceder());
-  e.avanzar(); e.avanzar();
-  assert.equal(e.objetivo, 2);
+  e.avanzar();
+  assert.equal(e.objetivo, 1);
   e.actualizar(0.5);
-  cerca(e.progreso[0], 0.5);
+  cerca(e.progreso[0], 0.5);                                     // un solo giro: ritmo de siempre (la aceleración 3.7.22 solo entra con cola)
   e.actualizar(0.5); assert.equal(e.progreso[0], 1);
-  e.actualizar(10);
+  e.avanzar(); e.actualizar(10);
   assert.equal(e.progreso[1], 1); assert.equal(e.vueltas, 2); assert.ok(!e.animando);
   e.retroceder(); e.actualizar(10);
   assert.equal(e.vueltas, 1); assert.equal(e.progreso[1], 0);
@@ -53,12 +53,15 @@ test('animar: avanzar/retroceder, cola, y no pasarse de los límites', () => {
   assert.equal(e.vueltas, geo().elementos);
 });
 
-test('un dt grande atraviesa varios pasos de la cola sin saltarse ninguno', () => {
+test('un dt grande atraviesa varios pasos de la cola sin saltarse ninguno (con el hojeo acelerado 3.7.22)', () => {
   const e = new EstadoAlbum(geo(), 0.9);
   for (let i = 0; i < 4; i++) e.avanzar();
-  e.actualizar(0.9 * 2 + 0.45);
+  // duraciones: cola 3 → 0,9/3,4; cola 2 → 0,9/2,6; cola 1 → 0,9/1,8; cola 0 → 0,9
+  const d = [0.9 / 3.4, 0.9 / 2.6, 0.9 / 1.8, 0.9];
+  e.actualizar(d[0] + d[1] + d[2] / 2);
   assert.equal(e.progreso[0], 1); assert.equal(e.progreso[1], 1); cerca(e.progreso[2], 0.5);
   assert.equal(e.progreso[3], 0);
+  e.actualizar(d[2] / 2 + d[3] + 1); assert.ok(!e.animando); assert.equal(e.vueltas, 4);
 });
 
 test('centrado: cerrado a la izquierda media tapa, abierto 0, al final media tapa a la derecha; continuo', () => {

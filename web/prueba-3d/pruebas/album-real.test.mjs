@@ -227,7 +227,9 @@ test('caché: deduplica, respeta recuento, prioridad, cancelación, errores y pr
 test('navegación: vueltas↔página, etiquetas, salto, ventana de páginas', async () => {
   assert.equal(vueltasParaPagina(1), 1); assert.equal(vueltasParaPagina(2), 2); assert.equal(vueltasParaPagina(3), 2); assert.equal(vueltasParaPagina(18), 10);
   assert.equal(etiquetaPaginas(1, 18), 'Página 1 de 18'); assert.equal(etiquetaPaginas(10, 18), 'Página 18 de 18');
-  const m = await crearMundo(); const r = irAPagina(m.album.estado, 9, 18); assert.equal(r.animado, false); assert.equal(m.album.estado.vueltas, 5);
+  const m = await crearMundo(); const r = irAPagina(m.album.estado, 9, 18);        // 3.7.22: también los saltos largos se animan (hojeo acelerado)
+  assert.equal(r.animado, true); assert.equal(m.album.estado.objetivo, 5); assert.equal(m.album.estado.cola.length, 5);
+  m.album.estado.irA(5);
   assert.equal(irAPagina(m.album.estado, 11, 18).animado, true);
   const n = paginasNecesarias([5], 18, 1); assert.equal(n.get(8), 0); assert.equal(n.get(9), 0); assert.ok(n.size <= 8);
 });

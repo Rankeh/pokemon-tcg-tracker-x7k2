@@ -231,7 +231,10 @@ function alternarAbrir() {
   if (!puedeNavegar()) return;
   if (album.estado.objetivo === 0) avanzar('der'); else irAPagina0();
 }
-function irAPagina0() { album.estado.irA(0); album.aplicar(); sincronizarTexturas(); actualizarUi(); pedirFrame(); }
+function irAPagina0() {                                          // 3.7.22: cerrar también se anima (cascada de giros acelerada); antes era un salto seco
+  while (album.estado.puedeRetroceder()) album.estado.retroceder();
+  sincronizarTexturas(); actualizarUi(); pedirFrame();
+}
 function saltarA(pagina) {
   if (!puedeNavegar()) return;
   const r = irAPagina(album.estado, pagina, adaptador.mapa.totalPaginas);

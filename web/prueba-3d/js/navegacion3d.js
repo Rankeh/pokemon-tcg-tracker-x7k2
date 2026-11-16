@@ -34,9 +34,9 @@ export function irAPagina(estado, pagina, total) {
   const v = vueltasParaPagina(p);
   const distancia = Math.abs(v - estado.objetivo);
   if (distancia === 0) return { vueltas: v, animado: false };
-  if (distancia === 1) { v > estado.objetivo ? estado.avanzar() : estado.retroceder(); return { vueltas: v, animado: true }; }
-  estado.irA(v);
-  return { vueltas: v, animado: false };
+  // 3.7.22: SIEMPRE se anima, también los saltos largos: se encolan todos los giros y EstadoAlbum los hojea acelerando (antes el salto era un teletransporte)
+  while (estado.objetivo !== v) { if (!(v > estado.objetivo ? estado.avanzar() : estado.retroceder())) break; }
+  return { vueltas: v, animado: true };
 }
 
 /** Páginas visibles (1..total) con `vueltas` hojas giradas: la izquierda es la 2·(v−1) y la derecha la 2·v−1. */

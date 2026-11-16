@@ -102,3 +102,18 @@ test('E7 (3.7.21) OrbitaLigera: el arrastre y el zoom del usuario cancelan la tr
   assert.equal(o.tween, null, 'el zoom también cancela');
   o.zoom(1e-6); assert.ok(o.radio >= o.limites.radio[0], 'límite inferior'); o.zoom(1e6); assert.ok(o.radio <= o.limites.radio[1], 'límite superior');
 });
+
+test('E8 (3.7.22) hojeo acelerado: con cola larga cada giro dura menos (tope ÷3,6), de uno en uno dura lo de siempre; cerrar en cascada', async () => {
+  const { crearGeometria, EstadoAlbum } = await import('../js/logica.js');
+  const geo = crearGeometria({ n_hojas: 9, grosor_tapa: 0.003, paso: 0.004, y_base: 0.0015, ancho_tapa: 0.26, ancho_hoja: 0.24 });
+  const e = new EstadoAlbum(geo, 0.9);
+  e.avanzar(); e.actualizar(0.01);
+  assert.ok(Math.abs(e.actual.dur - 0.9) < 1e-9, 'un solo giro: duración completa');
+  e.irA(0);
+  for (let i = 0; i < 6; i++) e.avanzar();                       // 6 en cola: el primero arranca con 5 pendientes → 0,9 / (1+0,8·5=5 → tope 3,6)
+  e.actualizar(0.01);
+  assert.ok(Math.abs(e.actual.dur - 0.9 / 3.6) < 1e-9, 'cola larga: giro rápido');
+  let t = 0; while (e.animando && t < 30) { e.actualizar(0.05); t += 0.05; }
+  assert.equal(e.vueltas, 6, 'llega igual de exacto');
+  assert.ok(t < 3, `cerrar/saltar 6 hojas tarda ${t.toFixed(2)} s, no 5,4 s (el último giro conserva sus 0,9 s: la hoja final se asienta)`);
+});
