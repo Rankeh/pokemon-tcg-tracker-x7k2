@@ -324,7 +324,7 @@ export function generarEntorno(tam = ENTORNO.tam, p = TEMAS.claro.entorno) {
 }
 
 // ------------------------------------------------------------------ 3.7.25 · emblema «bordado» de la tapa (diseño propio: orla con puntadas + rombo satinado; sin marcas ni personajes)
-export const EMBLEMA = { tam: 192, fraccion: 0.46, fuerza: 2.6, aclarado: 1.18 };   // fraccion: diámetro respecto al lado corto de la tapa; aclarado: el hilo es un pelín más claro que la tela
+export const EMBLEMA = { tam: 192, fraccion: 0.46, fuerza: 2.6, aclarado: 1.35 };   // fraccion: diámetro respecto al lado corto de la tapa; aclarado: el hilo es un pelín más claro que la tela
 
 /** Altura y alfa del parche (PURO). Parche circular: tela base con grano, cordón exterior con puntadas radiales y rombo central con relleno satinado a 45°. */
 export function alturaEmblema(tam = EMBLEMA.tam) {
@@ -353,6 +353,14 @@ export function generarEmblemaNormales(tam = EMBLEMA.tam, fuerza = EMBLEMA.fuerz
     out[k] = Math.round((-dx / l * 0.5 + 0.5) * 255); out[k + 1] = Math.round((-dy / l * 0.5 + 0.5) * 255);
     out[k + 2] = Math.round((1 / l * 0.5 + 0.5) * 255); out[k + 3] = Math.round(alfa[j * tam + i] * 255);
   }
+  return out;
+}
+
+/** Textura de alfa del parche. OJO: alphaMap de Three lee el canal VERDE (no el A); por eso el alfa va en su propia textura con el valor en G.
+ *  (Primera versión 3.7.25: alfa en el canal A del mapa de normales → verde ≈ 0,5 uniforme → el parche se veía como un velo, no se veía el logo.) */
+export function generarEmblemaAlfa(tam = EMBLEMA.tam) {
+  const { alfa } = alturaEmblema(tam), out = new Uint8Array(tam * tam * 4);
+  for (let k = 0; k < tam * tam; k++) { const v = Math.round(alfa[k] * 255); out[k * 4] = v; out[k * 4 + 1] = v; out[k * 4 + 2] = v; out[k * 4 + 3] = v; }
   return out;
 }
 
@@ -524,7 +532,9 @@ export class Aspecto {
     const base = ac ? ac.color : this.t.paleta.cubierta;
     const m = this._recurso(new THREE.MeshStandardMaterial({ color: aclarar(base, EMBLEMA.aclarado), roughness: ac ? Math.min(1, ac.rugosidad + 0.06) : 0.85, metalness: 0,
       transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
-    m.normalMap = t; m.normalScale?.set?.(1, 1); m.alphaMap = t; m.envMapIntensity = this.entorno ? ENTORNO.intensidad.cubierta : 1;
+    const ta = this._recurso(new THREE.DataTexture(generarEmblemaAlfa(), EMBLEMA.tam, EMBLEMA.tam, THREE.RGBAFormat));
+    ta.magFilter = THREE.LinearFilter; ta.minFilter = THREE.LinearFilter; ta.generateMipmaps = false; ta.wrapS = ta.wrapT = THREE.ClampToEdgeWrapping; ta.needsUpdate = true;
+    m.normalMap = t; m.normalScale?.set?.(1, 1); m.alphaMap = ta; m.envMapIntensity = this.entorno ? ENTORNO.intensidad.cubierta : 1;
     const lado = Math.min(bb.max.x - bb.min.x, bb.max.z - bb.min.z) * EMBLEMA.fraccion;
     const o = new THREE.Mesh(this._recurso(new THREE.PlaneGeometry(lado, lado)), m);
     o.name = 'Tapa_Emblema'; o.rotation.x = -Math.PI / 2;

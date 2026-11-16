@@ -151,6 +151,10 @@ test('E12 (3.7.25) cableado del emblema: decal hijo de Tapa_Malla, transparente,
   const d = a.nodo.get('Tapa_Malla').children.find((o) => o.name === 'Tapa_Emblema');
   assert.ok(d, 'existe como hijo de la tapa (gira con ella)');
   assert.equal(d.material.transparent, true); assert.ok(d.material.normalMap, 'relieve'); assert.equal(d.material.depthWrite, false);
+  assert.ok(d.material.alphaMap && d.material.alphaMap !== d.material.normalMap, 'alfa en textura PROPIA: alphaMap lee el canal VERDE, no el A del mapa de normales');
+  const al = d.material.alphaMap.datos, t = (await import('../js/aspecto.js')).EMBLEMA.tam;
+  assert.equal(al[(Math.floor(t / 2) * t + Math.floor(t / 2)) * 4 + 1], 255, 'verde=255 en el centro (opaco)');
+  assert.equal(al[1], 0, 'verde=0 en la esquina (transparente)');
   assert.equal(asp.resumen().emblema, true);
   asp.liberar();
   assert.ok(!a.nodo.get('Tapa_Malla').children.includes(d), 'liberar lo retira');

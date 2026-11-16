@@ -331,3 +331,6 @@ El salto clásico de «render plano» a «render de producto»: hasta ahora los 
 
 ### 3.7.26 — Vidrio ligero por defecto
 El modo sin `backdrop-filter` pasa a ser el por defecto en todos los dispositivos (pedido tras 3.7.24). `?vidrio=pleno` recupera el desenfoque visionOS, útil para comparar FPS o si se quiere en escritorio.
+
+### 3.7.27 — El emblema no se veía: alfa en el canal equivocado
+`alphaMap` de Three lee el canal VERDE de la textura y el alfa del parche iba en el canal A del mapa de normales (verde ≈ 0,5 uniforme): el emblema era un velo cuadrado casi invisible. Ahora el alfa tiene textura propia (G = alfa) y el hilo contrasta más (aclarado ×1,35). Pendiente de verlo en tu pantalla.
