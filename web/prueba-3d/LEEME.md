@@ -300,3 +300,7 @@ TCGdex no tiene imagen de svp-208 a 212 (Victini, Thundurus, Tornadus, Gothitell
 
 ### 3.7.14 — Arte real opcional para esas 5 promos
 Desde aquí no puedo descargar imágenes (sin red). En tu PC ejecuta `python herramientas/proxies/descargar_arte.py`: guarda `assets/proxies/arte/svp-20x.webp` y la app lo usa en lugar del proxy (si falta, sigue el proxy). Solo la URL de svp-208 está comprobada; las otras 4 siguen el mismo patrón sin verificar. Hay que hacer commit de los .webp para que salgan en GitHub Pages.
+
+
+### 3.7.17 — Arte real ya en el repo
+Las 5 imágenes (`svp-208.png` a `svp-212.png`, 736×1024, español) están descargadas de limitlesstcg.com y subidas en `assets/proxies/arte/`. La app las usa automáticamente en vez del proxy. Las cartas de proxy (`generar_proxies.py`) se quedan como respaldo por si algún día hay que regenerar o añadir otra promo sin imagen.
