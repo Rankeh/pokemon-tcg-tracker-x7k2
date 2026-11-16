@@ -1,6 +1,6 @@
 // Ficha de carta (DOM): panel inferior en móvil y tarjeta lateral en escritorio. Solo muestra datos y avisa de los botones; no guarda nada.
 import { rutasArte, rutaProxy } from './proxies.js';
-import { lineaPrecio } from './precios.js';
+import { lineaPrecio, enlaceCardmarket } from './precios.js';
 export const SALIDA_MS = 220;
 export class FichaUI {
   constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', precios = null, alCerrar, alAnadir, alRetirar }) {
@@ -53,6 +53,10 @@ export class FichaUI {
     this.el.expansion.textContent = d.nombreExpansion || d.expansion;
     this.el.numero.textContent = `Nº ${d.numero}${d.rareza ? ' · ' + d.rareza : ''} · pág. ${d.pagina}, bolsillo ${d.posicion}`;
     if (this.el.precio) this.el.precio.textContent = lineaPrecio(this.precios, d.id);     // 3.7.30: '' si no hay precios descargados (el archivo es opcional)
+    if (this.el.cardmarket) {                                                             // 3.7.31: el «mínimo en español» no existe como dato; el enlace abre las ofertas filtradas a español
+      const u = enlaceCardmarket(this.precios, d.id);
+      this.el.cardmarket.hidden = !u; if (u) this.el.cardmarket.href = u;
+    }
     this.el.cantidad.textContent = String(d.cantidad);
     this.el.estadoTxt.textContent = d.cantidad > 0 ? (d.cantidad === 1 ? 'En tu álbum' : `En tu álbum · ${d.cantidad} copias`) : 'Pendiente';
     this.el.raiz.dataset.estado = d.cantidad > 0 ? 'conseguida' : 'pendiente';

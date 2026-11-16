@@ -344,3 +344,6 @@ Con `?debug=1` el usuario confirmó `emblema sí` sin verse nada: el decal estab
 - **Cómo se actualizan:** en tu PC, `python herramientas/precios/descargar_precios.py` (tarda ~1 min, es educado con la API). Genera `datos/catalogo/precios-teselia.json`; haz commit y push para que llegue a GitHub Pages. Repite cuando quieras refrescar.
 - **Qué se ve:** en la ficha de cada carta, «≈ 3,20 € · mín. 1,50 € · Cardmarket 2026-11-16» (tendencia y precio mínimo de venta); en la cabecera, junto al progreso, «≈ 85 €» = Σ tendencia × copias conseguidas, sin céntimos. Sin el JSON, no se enseña nada (el archivo es opcional, no un error).
 - El catálogo y la base IndexedDB no se tocan: los precios viven en su propio archivo.
+
+### 3.7.31 — «Mínimo en español»: lo que existe y lo que no
+El mínimo por idioma NO existe como dato en ninguna fuente gratuita: la guía de precios de Cardmarket solo publica mínimo/tendencia agregados (su único campo por país es «German Pro Low») y su API está cerrada; scrapear la web va contra sus condiciones. Lo que sí hay: la ficha enlaza a la página de la carta en Cardmarket con el filtro de idioma español puesto (`?language=4`), donde se ve el mínimo español en vivo. El enlace lo añade `descargar_precios.py` (la URL del producto sale de pokemontcg.io): vuelve a ejecutarlo y haz commit del JSON para tenerlos.

@@ -50,3 +50,21 @@ test('PR5 la herramienta de descarga existe, apunta a TCGdex y es Python válido
   const src = await fs.readFile(new URL('../../../herramientas/precios/descargar_precios.py', import.meta.url), 'utf8');
   assert.match(src, /api\.tcgdex\.net\/v2\/es\/cards/); assert.match(src, /precios-teselia\.json/); assert.match(src, /time\.sleep/);
 });
+
+test('PR6 (3.7.31) enlace a ofertas en español: visible con enlace, oculto sin él; el script lo construye con language=4', async () => {
+  const { FichaUI } = await import('../js/ficha-ui.js');
+  const { enlaceCardmarket } = await import('../js/precios.js');
+  const P2 = { fecha: 'x', cartas: { 'a-1': { tendencia: 1, enlace: 'https://www.cardmarket.com/es/X?language=4' }, 'a-2': { tendencia: 1 } } };
+  assert.equal(enlaceCardmarket(P2, 'a-1'), 'https://www.cardmarket.com/es/X?language=4'); assert.equal(enlaceCardmarket(P2, 'a-2'), null);
+  const cls = () => ({ add() {}, remove() {}, has: () => false, toggle() {} });
+  const mk = () => ({ hidden: true, isConnected: true, classList: cls(), dataset: {}, onclick: null, textContent: '', focus() {}, replaceChildren() {}, append() {}, disabled: false });
+  const el = { raiz: mk(), fondo: mk(), cerrar: mk(), anadir: mk(), retirar: mk(), imagen: mk(), nombre: mk(), expansion: mk(), numero: mk(), precio: mk(), cardmarket: mk(), cantidad: mk(), estadoTxt: mk(), error: mk() };
+  globalThis.document = { body: { classList: cls() }, createElement: () => mk() }; globalThis.Image = class { set src(v) {} };
+  const f = new FichaUI(el, { precios: P2, alCerrar() {}, alAnadir() {}, alRetirar() {} });
+  f.abrir({ id: 'a-1', nombre: 'N', expansion: 'e', numero: 1, pagina: 1, posicion: 1, cantidad: 0 });
+  assert.equal(el.cardmarket.hidden, false); assert.match(el.cardmarket.href, /language=4/);
+  f.actualizar({ id: 'a-2', nombre: 'N', expansion: 'e', numero: 2, pagina: 1, posicion: 1, cantidad: 0 });
+  assert.equal(el.cardmarket.hidden, true);
+  const src = await (await import('node:fs/promises')).readFile(new URL('../../../herramientas/precios/descargar_precios.py', import.meta.url), 'utf8');
+  assert.match(src, /language=4/); assert.match(src, /zsv10pt5/);
+});

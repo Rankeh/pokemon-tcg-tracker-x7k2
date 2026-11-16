@@ -41,3 +41,6 @@ export function lineaPrecio(precios, id) {
   if (p.bajo != null) partes.push(`mín. ${eur(p.bajo)}`);
   return `${partes.join(' · ')} · Cardmarket${precios.fecha ? ' ' + precios.fecha : ''}`;
 }
+
+/** Enlace a las ofertas EN ESPAÑOL de la carta en Cardmarket (la página de producto, con el filtro de idioma en la URL). null si no lo hay. */
+export const enlaceCardmarket = (precios, id) => { const p = precioDe(precios, id); return (p && p.enlace) || null; };
