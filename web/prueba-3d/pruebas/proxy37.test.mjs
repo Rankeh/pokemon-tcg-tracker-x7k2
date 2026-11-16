@@ -50,3 +50,22 @@ test('P5: con arte descargado el productor lo prefiere al proxy; sin él cae al 
   T.TextureLoader.falla = null;
   assert.match((await prod.mini({ id: 'svp-209' })()).textura.url, /arte\/svp-209\.png/);
 });
+
+test('P6: la ficha (panel de detalle) también usa arte/proxy cuando no hay copia oficial en el manifiesto', async () => {
+  const { FichaUI } = await import('../js/ficha-ui.js');
+  const cls = () => { const s = new Set(); return { add: (c) => s.add(c), remove: (c) => s.delete(c), has: (c) => s.has(c), toggle() {} }; };
+  const mk = () => ({ hidden: true, isConnected: true, classList: cls(), dataset: {}, onclick: null, textContent: '', focus() {}, replaceChildren() {}, append() {}, disabled: false });
+  const el = { raiz: mk(), fondo: mk(), cerrar: mk(), anadir: mk(), retirar: mk(), imagen: mk(), nombre: mk(), expansion: mk(), numero: mk(), cantidad: mk(), estadoTxt: mk(), error: mk() };
+  globalThis.document = { body: { classList: cls() }, createElement: () => mk() };
+  const srcs = [];
+  globalThis.Image = class { set src(v) { srcs.push(v); } };
+  const f = new FichaUI(el, { alCerrar() {}, alAnadir() {}, alRetirar() {} });
+  const d = { id: 'svp-209', nombre: 'Thundurus', expansion: 'svp', numero: 209, pagina: 1, posicion: 1, cantidad: 0 };
+  f.abrir(d);
+  assert.match(srcs[0], /proxies\/arte\/svp-209\.png/, 'intenta primero el arte real');
+
+  const d2 = { id: 'zzz-1', nombre: 'X', expansion: 'e', numero: 1, pagina: 1, posicion: 1, cantidad: 0 };
+  el.imagen.replaceChildren = function () { this._marcador = true; }; el.imagen.append = function () { this._tuvoMarcador = true; };
+  f.abrir(d2);
+  assert.ok(el.imagen._tuvoMarcador, 'sin oficial, arte ni proxy: cae al marcador');
+});

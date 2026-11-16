@@ -1,4 +1,5 @@
 // Ficha de carta (DOM): panel inferior en móvil y tarjeta lateral en escritorio. Solo muestra datos y avisa de los botones; no guarda nada.
+import { rutasArte, rutaProxy } from './proxies.js';
 export const SALIDA_MS = 220;
 export class FichaUI {
   constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', alCerrar, alAnadir, alRetirar }) {
@@ -23,12 +24,14 @@ export class FichaUI {
       const e2 = document.createElement('em'); e2.textContent = 'Sin imagen';
       m.append(n, x, e2); caja.append(m); caja.dataset.estado = 'marcador';
     };
-    if (!e) return marcador();
+    // sin copia oficial en el manifiesto: arte real descargado (arte/) → carta proxy propia → marcador
+    const cadena = e ? [this.rutaBase + e.grande, this.rutaBase + e.mini].filter(Boolean) : [...rutasArte(d.id), rutaProxy(d.id)].filter(Boolean);
+    if (!cadena.length) return marcador();
     const img = new Image(); img.alt = `${d.nombre}, ${d.nombreExpansion || d.expansion} ${d.numero}`; img.decoding = 'async';
-    const cadena = [e.grande, e.mini].filter(Boolean); let i = 0;
-    img.onerror = () => { i++; if (i < cadena.length) img.src = this.rutaBase + cadena[i]; else marcador(); };
+    let i = 0;
+    img.onerror = () => { i++; if (i < cadena.length) img.src = cadena[i]; else marcador(); };
     img.onload = () => { caja.dataset.estado = 'imagen'; };
-    img.src = this.rutaBase + cadena[0];
+    img.src = cadena[0];
     caja.append(img);
   }
 

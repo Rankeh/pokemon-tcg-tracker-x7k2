@@ -304,3 +304,7 @@ Desde aquí no puedo descargar imágenes (sin red). En tu PC ejecuta `python her
 
 ### 3.7.17 — Arte real ya en el repo
 Las 5 imágenes (`svp-208.png` a `svp-212.png`, 736×1024, español) están descargadas de limitlesstcg.com y subidas en `assets/proxies/arte/`. La app las usa automáticamente en vez del proxy. Las cartas de proxy (`generar_proxies.py`) se quedan como respaldo por si algún día hay que regenerar o añadir otra promo sin imagen.
+
+
+### 3.7.18 — La ficha de detalle también usa el arte/proxy
+La carta grande del álbum ya usaba el arte real/proxy, pero el panel de detalle (ficha) solo miraba el manifiesto de imágenes oficiales, así que seguía diciendo «Sin imagen» para las 5 promos. Ahora la ficha sigue la misma cadena: oficial → arte real descargado → proxy → marcador.
