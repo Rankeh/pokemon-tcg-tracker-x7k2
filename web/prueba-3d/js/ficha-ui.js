@@ -1,9 +1,10 @@
 // Ficha de carta (DOM): panel inferior en móvil y tarjeta lateral en escritorio. Solo muestra datos y avisa de los botones; no guarda nada.
 import { rutasArte, rutaProxy } from './proxies.js';
+import { lineaPrecio } from './precios.js';
 export const SALIDA_MS = 220;
 export class FichaUI {
-  constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', alCerrar, alAnadir, alRetirar }) {
-    this.el = el; this.manifiesto = manifiesto; this.rutaBase = rutaBase;
+  constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', precios = null, alCerrar, alAnadir, alRetirar }) {
+    this.el = el; this.manifiesto = manifiesto; this.rutaBase = rutaBase; this.precios = precios;
     el.cerrar.onclick = () => alCerrar();
     el.anadir.onclick = () => alAnadir();
     el.retirar.onclick = () => alRetirar();
@@ -51,6 +52,7 @@ export class FichaUI {
     this.el.nombre.textContent = d.nombre;
     this.el.expansion.textContent = d.nombreExpansion || d.expansion;
     this.el.numero.textContent = `Nº ${d.numero}${d.rareza ? ' · ' + d.rareza : ''} · pág. ${d.pagina}, bolsillo ${d.posicion}`;
+    if (this.el.precio) this.el.precio.textContent = lineaPrecio(this.precios, d.id);     // 3.7.30: '' si no hay precios descargados (el archivo es opcional)
     this.el.cantidad.textContent = String(d.cantidad);
     this.el.estadoTxt.textContent = d.cantidad > 0 ? (d.cantidad === 1 ? 'En tu álbum' : `En tu álbum · ${d.cantidad} copias`) : 'Pendiente';
     this.el.raiz.dataset.estado = d.cantidad > 0 ? 'conseguida' : 'pendiente';

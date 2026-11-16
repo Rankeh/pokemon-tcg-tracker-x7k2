@@ -337,3 +337,10 @@ El modo sin `backdrop-filter` pasa a ser el por defecto en todos los dispositivo
 
 ### 3.7.29 — El emblema estaba enterrado bajo el panel de la tapa
 Con `?debug=1` el usuario confirmó `emblema sí` sin verse nada: el decal estaba a +0,3 mm de la MALLA de la tapa (3,3 mm), pero la banda y el panel de cuero de 3.7.7 suben a 4,2 y 3,8 mm, así que quedaba bajo la superficie y el test de profundidad lo descartaba. Ahora se coloca sobre la pieza más alta de la tapa (+0,4 mm), medida en el GLB (prueba E13).
+
+## 3.7.30 — Precio en euros de cada carta y valor de la colección
+
+- **De dónde salen:** Cardmarket vía TCGdex (`api.tcgdex.net/v2/es/cards/<id>`, campo `pricing.cardmarket`, EUR, actualizado a diario, sin clave de API). **Nota honesta:** Cardmarket agrega el mercado europeo y el precio NO distingue el idioma de la carta; por eso todo se enseña con «≈».
+- **Cómo se actualizan:** en tu PC, `python herramientas/precios/descargar_precios.py` (tarda ~1 min, es educado con la API). Genera `datos/catalogo/precios-teselia.json`; haz commit y push para que llegue a GitHub Pages. Repite cuando quieras refrescar.
+- **Qué se ve:** en la ficha de cada carta, «≈ 3,20 € · Cardmarket 2026-11-16» (tendencia); en la cabecera, junto al progreso, «≈ 85 €» = Σ tendencia × copias conseguidas, sin céntimos. Sin el JSON, no se enseña nada (el archivo es opcional, no un error).
+- El catálogo y la base IndexedDB no se tocan: los precios viven en su propio archivo.

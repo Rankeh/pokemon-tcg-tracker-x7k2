@@ -19,9 +19,10 @@ import { VistaBolsillos } from './bolsillos3d.js';
 import { Controlador } from './controlador.js';
 import { FichaUI } from './ficha-ui.js';
 import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoLectura } from './navegacion3d.js';
+import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
-export const FASE = '3.7.29';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.7.30';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -208,9 +209,15 @@ function actualizarUi() {
   if (pagSel) sel.value = String(pagSel); else sel.selectedIndex = -1;         // cerrado o todo girado: ninguna página marcada (antes quedaba «Página 1» engañosa)
 }
 
+let precios = null;
 function pintarProgreso() {
   const p = adaptador.modelo.progreso ? adaptador.modelo.progreso() : null;
-  $('progreso').textContent = p ? `${p.conseguidas} de ${p.total}` : '';
+  let texto = p ? `${p.conseguidas} de ${p.total}` : '';
+  if (p && precios) {                                            // 3.7.30: valor de la colección (Σ tendencia Cardmarket × copias); «≈» porque es un precio de mercado
+    const v = valorColeccion(precios, adaptador.mapa.cartas.map((c) => c.id), (id) => adaptador.modelo.cantidad(id));
+    if (v.valoradas) texto += ` · ≈ ${eurEntero(v.total)}`;
+  }
+  $('progreso').textContent = texto;
 }
 
 /** Mantiene en la GPU solo las texturas de las páginas visibles y las vecinas (carga diferida + liberación). */
@@ -440,14 +447,15 @@ async function arrancar() {
   resaltado = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro });
 
   const manifiesto = await cargarManifiesto();
+  precios = await cargarPrecios();                               // opcional: null hasta ejecutar herramientas/precios/descargar_precios.py
   cache = new CacheTexturas({ presupuestoBytes: (+params.get('mem') || 32) * 1048576, concurrencia: 4 });
   vista = new VistaBolsillos({ album, adaptador, cache, materialCarta: (c, r) => aspecto.materialCarta(c, r), reducirMovimiento: () => reducirMovimiento,
     productores: crearProductores({ manifiesto, anisotropia: Math.min(4, renderer.capabilities.getMaxAnisotropy()) }) });
   vista.animandoTurno = () => album.estado.animando;
 
-  ficha = new FichaUI({ raiz: $('ficha'), fondo: $('f-fondo'), imagen: $('f-imagen'), nombre: $('f-nombre'), expansion: $('f-exp'), numero: $('f-num'), cantidad: $('f-cant'),
+  ficha = new FichaUI({ raiz: $('ficha'), fondo: $('f-fondo'), imagen: $('f-imagen'), nombre: $('f-nombre'), expansion: $('f-exp'), numero: $('f-num'), precio: $('f-precio'), cantidad: $('f-cant'),
     estadoTxt: $('f-estado-txt'), error: $('f-error'), cerrar: $('f-cerrar'), anadir: $('f-mas'), retirar: $('f-menos') },
-  { manifiesto, alCerrar: cerrarFicha, alAnadir: () => ctrl.anadir(), alRetirar: () => ctrl.retirar() });
+  { manifiesto, precios, alCerrar: cerrarFicha, alAnadir: () => ctrl.anadir(), alRetirar: () => ctrl.retirar() });
   if (soloLectura) { $('f-mas').disabled = $('f-menos').disabled = true; }
   const fichaConProgreso = Object.create(ficha); // tras cada cambio confirmado se refresca el contador de progreso
   fichaConProgreso.actualizar = (d) => { ficha.actualizar(d); pintarProgreso(); };
