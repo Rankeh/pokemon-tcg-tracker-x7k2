@@ -26,24 +26,37 @@ def enlace_cardmarket(c):
     ident = id_ptcgio(c)
     if not ident: return None
     destino = None
-    try:
-        r = _ABRIDOR.open(urllib.request.Request(REDIRECTOR + ident, headers={'User-Agent': 'album-teselia (uso personal)'}), timeout=20)
-        r.close()
-    except urllib.error.HTTPError as e:
-        if 300 <= e.code < 400: destino = e.headers.get('Location')
-    except Exception:
-        return None
+    for i in range(3):
+        try:
+            r = _ABRIDOR.open(urllib.request.Request(REDIRECTOR + ident, headers={'User-Agent': 'album-teselia (uso personal)'}), timeout=20)
+            r.close(); break
+        except urllib.error.HTTPError as e:
+            if 300 <= e.code < 400: destino = e.headers.get('Location'); break
+            if i == 2: return None
+            time.sleep(3 * (i + 1) ** 2)
+        except Exception:
+            if i == 2: return None
+            time.sleep(3 * (i + 1) ** 2)
     if not destino or 'cardmarket.com' not in destino: return None
     return destino.split('?')[0].replace('/en/', '/es/') + '?language=4'
 
-def pedir(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'album-teselia (uso personal)'})
-    with urllib.request.urlopen(req, timeout=20) as r:
-        return json.load(r)
+def pedir(url, intentos=3):
+    # 3.7.33: reintentos con espera creciente — a ~37 cartas seguidas la API suelta un 503 pasajero y antes se perdía la carta
+    for i in range(intentos):
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'album-teselia (uso personal)'})
+            with urllib.request.urlopen(req, timeout=20) as r:
+                return json.load(r)
+        except Exception:
+            if i == intentos - 1: raise
+            espera = 3 * (i + 1) ** 2
+            print('      ... reintento en %d s' % espera); time.sleep(espera)
 
 def main():
     cat = json.load(open(RAIZ / 'datos/catalogo/coleccion-teselia.json', encoding='utf-8'))
     cartas = cat if isinstance(cat, list) else cat['cartas']
+    destino = RAIZ / 'datos/catalogo/precios-teselia.json'
+    previo = json.loads(destino.read_text(encoding='utf-8')) if destino.exists() else {'cartas': {}}   # lo ya descargado no se pierde si hoy algo falla
     salida = {'fecha': time.strftime('%Y-%m-%d'), 'fuente': 'Cardmarket vía TCGdex (api.tcgdex.net)', 'unidad': 'EUR',
               'nota': 'Precio del mercado europeo; Cardmarket no separa por idioma de la carta.', 'cartas': {}}
     sin = []
@@ -55,16 +68,21 @@ def main():
             v = {'tendencia': cm.get('trend', cm.get('trend-holo')), 'bajo': cm.get('low', cm.get('low-holo')),
                  'medio30': cm.get('avg30', cm.get('avg30-holo')), 'actualizado': cm.get('updated')}
             enlace = enlace_cardmarket(c)
+            anterior = previo['cartas'].get(c['id']) or {}
+            if not enlace and 'cardmarket.com' in str(anterior.get('enlace', '')): enlace = anterior['enlace']   # el enlace directo anterior sigue valiendo
             if enlace: v['enlace'] = enlace
             if v['tendencia'] is None and v['bajo'] is None and not enlace:
                 sin.append(c['id'])
             else:
                 salida['cartas'][c['id']] = {k: x for k, x in v.items() if x is not None}
-            print('%3d/158 %-14s %s' % (i, c['id'], v['tendencia'] if v['tendencia'] is not None else 'sin precio'))
+            print('%3d/158 %-14s %s%s' % (i, c['id'], v['tendencia'] if v['tendencia'] is not None else 'sin precio', ' · enlace ✓' if enlace else ''))
         except Exception as e:
-            sin.append(c['id']); print('%3d/158 %-14s fallo: %s' % (i, c['id'], e))
-        time.sleep(0.15)                                   # educado con la API pública
-    destino = RAIZ / 'datos/catalogo/precios-teselia.json'
+            if previo['cartas'].get(c['id']):
+                salida['cartas'][c['id']] = previo['cartas'][c['id']]
+                print('%3d/158 %-14s fallo (%s): se conserva lo de la descarga anterior' % (i, c['id'], e))
+            else:
+                sin.append(c['id']); print('%3d/158 %-14s fallo: %s' % (i, c['id'], e))
+        time.sleep(0.3)                                    # educado con la API pública (dos peticiones por carta)
     destino.write_text(json.dumps(salida, ensure_ascii=False, indent=1), encoding='utf-8')
     print('\nGuardado', destino, '·', len(salida['cartas']), 'con precio;', len(sin), 'sin precio', ('→ ' + ', '.join(sin)) if sin else '')
     sys.exit(0 if salida['cartas'] else 1)
