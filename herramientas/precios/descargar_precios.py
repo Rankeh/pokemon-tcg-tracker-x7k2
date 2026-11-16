@@ -7,24 +7,34 @@ import json, pathlib, time, urllib.request, sys
 
 RAIZ = pathlib.Path(__file__).resolve().parents[2]
 API = 'https://api.tcgdex.net/v2/es/cards/'
-# pokemontcg.io da la URL del producto en Cardmarket; con ?language=4 la página abre filtrada a OFERTAS EN ESPAÑOL
-# (el «mínimo en español» no existe como número en ninguna fuente gratuita: ni la guía de Cardmarket lo publica).
-PTCGIO = 'https://api.pokemontcg.io/v2/cards/'
+# Enlace a la página del producto en Cardmarket con las ofertas filtradas a ESPAÑOL (?language=4).
+# 3.7.32: prices.pokemontcg.io/cardmarket/<id> es un redirector público; se le LEE la cabecera Location sin seguirla
+# (así no dependemos de la API de pokemontcg.io, que limita peticiones, ni tocamos cardmarket.com, que bloquea bots).
+# La primera versión añadía language=4 al redirector y la redirección lo perdía: el enlace llegaba sin filtro.
+REDIRECTOR = 'https://prices.pokemontcg.io/cardmarket/'
 SETS_PTCGIO = {'sv10.5b': 'zsv10pt5', 'sv10.5w': 'rsv10pt5', 'svp': 'svp'}
+
+class _SinRedirecciones(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *a, **k): return None
+_ABRIDOR = urllib.request.build_opener(_SinRedirecciones)
 
 def id_ptcgio(c):
     s = SETS_PTCGIO.get(c['expansion'])
     return '%s-%d' % (s, int(c['numero'])) if s else None
 
 def enlace_cardmarket(c):
+    ident = id_ptcgio(c)
+    if not ident: return None
+    destino = None
     try:
-        ident = id_ptcgio(c)
-        if not ident: return None
-        url = ((pedir(PTCGIO + ident).get('data') or {}).get('cardmarket') or {}).get('url')
-        if not url: return None
-        return url.replace('/en/', '/es/') + ('&' if '?' in url else '?') + 'language=4'
+        r = _ABRIDOR.open(urllib.request.Request(REDIRECTOR + ident, headers={'User-Agent': 'album-teselia (uso personal)'}), timeout=20)
+        r.close()
+    except urllib.error.HTTPError as e:
+        if 300 <= e.code < 400: destino = e.headers.get('Location')
     except Exception:
         return None
+    if not destino or 'cardmarket.com' not in destino: return None
+    return destino.split('?')[0].replace('/en/', '/es/') + '?language=4'
 
 def pedir(url):
     req = urllib.request.Request(url, headers={'User-Agent': 'album-teselia (uso personal)'})

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import './mundo.mjs';
 import { cargarPrecios, precioDe, eur, eurEntero, valorColeccion, lineaPrecio } from '../js/precios.js';
 
-const P = { fecha: '2026-11-16', unidad: 'EUR', cartas: { 'a-1': { tendencia: 2.5, bajo: 1 }, 'a-2': { bajo: 0.3 }, 'a-3': { tendencia: 10 } } };
+const P = { fecha: '2026-11-16', unidad: 'EUR', cartas: { 'a-1': { tendencia: 2.5, bajo: 1 }, 'a-2': { bajo: 0.3 }, 'a-3': { tendencia: 10, actualizado: '2026-11-15T22:24:06.201Z' } } };
 
 test('PR1 valorColeccion: suma tendencia × copias solo de las conseguidas, y cuenta las conseguidas sin precio', () => {
   const cant = { 'a-1': 2, 'a-2': 1, 'a-3': 0, 'a-4': 3 };
@@ -17,9 +17,9 @@ test('PR1 valorColeccion: suma tendencia × copias solo de las conseguidas, y cu
 
 test('PR2 formato español: coma decimal y símbolo €; el total de cabecera va sin céntimos', () => {
   assert.match(eur(3.2), /3,20\s*€/); assert.match(eurEntero(85.43), /85\s*€/);
-  assert.equal(lineaPrecio(P, 'a-1'), `≈ ${eur(2.5)} · mín. ${eur(1)} · Cardmarket 2026-11-16`);
-  assert.equal(lineaPrecio(P, 'a-2'), `mín. ${eur(0.3)} · Cardmarket 2026-11-16`, 'solo mínimo: se enseña el mínimo');
-  assert.equal(lineaPrecio(P, 'a-3'), `≈ ${eur(10)} · Cardmarket 2026-11-16`, 'solo tendencia: sin mínimo');
+  assert.equal(lineaPrecio(P, 'a-1'), `≈ ${eur(2.5)} · mín. ${eur(1)} · guía Cardmarket 2026-11-16`);
+  assert.equal(lineaPrecio(P, 'a-2'), `mín. ${eur(0.3)} · guía Cardmarket 2026-11-16`, 'solo mínimo: se enseña el mínimo');
+  assert.equal(lineaPrecio(P, 'a-3'), `≈ ${eur(10)} · guía Cardmarket 2026-11-15`, 'con «actualizado» propio manda su fecha, no la del archivo');
   assert.equal(lineaPrecio(null, 'a-1'), '');
 });
 
@@ -40,7 +40,7 @@ test('PR4 la ficha enseña la línea de precio cuando hay precios, y nada cuando
   globalThis.document = { body: { classList: cls() }, createElement: () => mk() }; globalThis.Image = class { set src(v) {} };
   const d = { id: 'a-1', nombre: 'N', expansion: 'e', numero: 1, pagina: 1, posicion: 1, cantidad: 0 };
   new FichaUI(el, { precios: P, alCerrar() {}, alAnadir() {}, alRetirar() {} }).abrir(d);
-  assert.match(el.precio.textContent, /≈ .*€ · Cardmarket/);
+  assert.match(el.precio.textContent, /≈ .*€ · guía Cardmarket/);
   new FichaUI(el, { alCerrar() {}, alAnadir() {}, alRetirar() {} }).abrir(d);
   assert.equal(el.precio.textContent, '');
 });
@@ -54,8 +54,9 @@ test('PR5 la herramienta de descarga existe, apunta a TCGdex y es Python válido
 test('PR6 (3.7.31) enlace a ofertas en español: visible con enlace, oculto sin él; el script lo construye con language=4', async () => {
   const { FichaUI } = await import('../js/ficha-ui.js');
   const { enlaceCardmarket } = await import('../js/precios.js');
-  const P2 = { fecha: 'x', cartas: { 'a-1': { tendencia: 1, enlace: 'https://www.cardmarket.com/es/X?language=4' }, 'a-2': { tendencia: 1 } } };
-  assert.equal(enlaceCardmarket(P2, 'a-1'), 'https://www.cardmarket.com/es/X?language=4'); assert.equal(enlaceCardmarket(P2, 'a-2'), null);
+  const P2 = { fecha: 'x', cartas: { 'a-1': { tendencia: 1, enlace: 'https://www.cardmarket.com/es/X?language=4' }, 'a-2': { tendencia: 1 },
+    'a-3': { tendencia: 1, enlace: 'https://prices.pokemontcg.io/cardmarket/x-1?language=4' } } };
+  assert.equal(enlaceCardmarket(P2, 'a-1'), 'https://www.cardmarket.com/es/X?language=4'); assert.equal(enlaceCardmarket(P2, 'a-2'), null); assert.equal(enlaceCardmarket(P2, 'a-3'), null, 'redirector de la primera descarga: se oculta, pierde el filtro de idioma');
   const cls = () => ({ add() {}, remove() {}, has: () => false, toggle() {} });
   const mk = () => ({ hidden: true, isConnected: true, classList: cls(), dataset: {}, onclick: null, textContent: '', focus() {}, replaceChildren() {}, append() {}, disabled: false });
   const el = { raiz: mk(), fondo: mk(), cerrar: mk(), anadir: mk(), retirar: mk(), imagen: mk(), nombre: mk(), expansion: mk(), numero: mk(), precio: mk(), cardmarket: mk(), cantidad: mk(), estadoTxt: mk(), error: mk() };

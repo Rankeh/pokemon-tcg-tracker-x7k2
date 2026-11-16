@@ -39,8 +39,15 @@ export function lineaPrecio(precios, id) {
   const partes = [];
   if (p.tendencia != null) partes.push(`≈ ${eur(p.tendencia)}`);
   if (p.bajo != null) partes.push(`mín. ${eur(p.bajo)}`);
-  return `${partes.join(' · ')} · Cardmarket${precios.fecha ? ' ' + precios.fecha : ''}`;
+  // «guía» y fecha: es la guía DIARIA de Cardmarket (vía TCGdex), no el precio en vivo; el mínimo cuenta cualquier condición e idioma
+  const fecha = ((p.actualizado || '').slice(0, 10)) || precios.fecha || '';
+  return `${partes.join(' · ')} · guía Cardmarket${fecha ? ' ' + fecha : ''}`;
 }
 
-/** Enlace a las ofertas EN ESPAÑOL de la carta en Cardmarket (la página de producto, con el filtro de idioma en la URL). null si no lo hay. */
-export const enlaceCardmarket = (precios, id) => { const p = precioDe(precios, id); return (p && p.enlace) || null; };
+/** Enlace a las ofertas EN ESPAÑOL de la carta en Cardmarket. Solo valen enlaces DIRECTOS a cardmarket.com:
+ *  los redirectores (prices.pokemontcg.io, de la primera descarga) pierden ?language=4 al redirigir, así que se ocultan. */
+export const enlaceCardmarket = (precios, id) => {
+  const p = precioDe(precios, id);
+  const u = p && p.enlace;
+  return u && /^https:\/\/www\.cardmarket\.com\//.test(u) ? u : null;
+};
