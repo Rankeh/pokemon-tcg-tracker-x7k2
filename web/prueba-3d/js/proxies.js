@@ -6,4 +6,4 @@ export const PROXIES = {
 };
 export const rutaProxy = (id) => PROXIES[id] || null;
 // Si has ejecutado herramientas/proxies/descargar_arte.py existe también el arte real en esta ruta; la app lo prueba primero.
-export const rutaArte = (id) => (PROXIES[id] ? 'assets/proxies/arte/' + id + '.webp' : null);
+export const rutasArte = (id) => (PROXIES[id] ? ['png', 'webp'].map((e) => 'assets/proxies/arte/' + id + '.' + e) : []);

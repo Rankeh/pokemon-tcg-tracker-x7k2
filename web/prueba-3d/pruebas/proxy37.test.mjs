@@ -48,5 +48,5 @@ test('P5: con arte descargado el productor lo prefiere al proxy; sin él cae al 
   T.TextureLoader.falla = (u) => /arte\//.test(u);
   assert.match((await prod.mini({ id: 'svp-209' })()).textura.url, /proxies\/svp-209\.png/);
   T.TextureLoader.falla = null;
-  assert.match((await prod.mini({ id: 'svp-209' })()).textura.url, /arte\/svp-209\.webp/);
+  assert.match((await prod.mini({ id: 'svp-209' })()).textura.url, /arte\/svp-209\.png/);
 });

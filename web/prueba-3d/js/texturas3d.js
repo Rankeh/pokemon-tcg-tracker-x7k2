@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { dibujarMarcador, dibujarEtiquetaPendiente } from './marcadores.js';
 import { memoriaTexturaBytes } from './logica.js';
-import { rutaProxy, rutaArte } from './proxies.js';
+import { rutaProxy, rutasArte } from './proxies.js';
 
 export const TAM_MINI = { w: 256, h: 358 };
 export const TAM_ETIQUETA = { w: 128, h: 179 };
@@ -23,7 +23,9 @@ export function crearProductores({ manifiesto, rutaBase = 'assets/cartas/', anis
         const rp = rutaProxy(carta.id);
         if (!rp) throw new Error('sin imagen local para ' + carta.id);
         let ruta = rp;
-        try { await new THREE.TextureLoader().loadAsync(rutaArte(carta.id)).then((t) => { t.dispose && t.dispose(); ruta = rutaArte(carta.id); }); } catch { /* sin arte descargado: proxy */ }
+        for (const r of rutasArte(carta.id)) {                   // arte real descargado (.png o .webp); si no existe, proxy
+          try { const t = await new THREE.TextureLoader().loadAsync(r); t.dispose && t.dispose(); ruta = r; break; } catch { /* siguiente */ }
+        }
         return { textura: preparar(await new THREE.TextureLoader().loadAsync(ruta)), bytes: memoriaTexturaBytes(TAM_MINI.w, TAM_MINI.h) };
       }
       const t = await new THREE.TextureLoader().loadAsync(rutaBase + e.mini);
