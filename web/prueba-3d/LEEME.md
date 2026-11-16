@@ -334,3 +334,6 @@ El modo sin `backdrop-filter` pasa a ser el por defecto en todos los dispositivo
 
 ### 3.7.27 — El emblema no se veía: alfa en el canal equivocado
 `alphaMap` de Three lee el canal VERDE de la textura y el alfa del parche iba en el canal A del mapa de normales (verde ≈ 0,5 uniforme): el emblema era un velo cuadrado casi invisible. Ahora el alfa tiene textura propia (G = alfa) y el hilo contrasta más (aclarado ×1,35). Pendiente de verlo en tu pantalla.
+
+### 3.7.29 — El emblema estaba enterrado bajo el panel de la tapa
+Con `?debug=1` el usuario confirmó `emblema sí` sin verse nada: el decal estaba a +0,3 mm de la MALLA de la tapa (3,3 mm), pero la banda y el panel de cuero de 3.7.7 suben a 4,2 y 3,8 mm, así que quedaba bajo la superficie y el test de profundidad lo descartaba. Ahora se coloca sobre la pieza más alta de la tapa (+0,4 mm), medida en el GLB (prueba E13).

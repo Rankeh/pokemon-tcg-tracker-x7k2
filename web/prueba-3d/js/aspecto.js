@@ -538,7 +538,15 @@ export class Aspecto {
     const lado = Math.min(bb.max.x - bb.min.x, bb.max.z - bb.min.z) * EMBLEMA.fraccion;
     const o = new THREE.Mesh(this._recurso(new THREE.PlaneGeometry(lado, lado)), m);
     o.name = 'Tapa_Emblema'; o.rotation.x = -Math.PI / 2;
-    o.position.set((bb.min.x + bb.max.x) / 2, bb.max.y + 0.0003, (bb.min.z + bb.max.z) / 2);
+    // 3.7.29 · ENCIMA de la pieza más alta de la tapa: la banda y el panel de cuero (3.7.7) sobresalen de la malla (4,2 y 3,8 mm frente a 3,0);
+    // a +0,3 mm de la malla el emblema quedaba ENTERRADO bajo el panel y el test de profundidad lo descartaba (por eso «no se veía el logo»).
+    const cima = ['Tapa_Malla', 'Tapa_Banda', 'Tapa_Panel'].reduce((y, nombre) => {
+      const n = album.nodo.get(nombre);
+      if (!n || !n.geometry) return y;
+      if (!n.geometry.boundingBox) n.geometry.computeBoundingBox();
+      return Math.max(y, n.geometry.boundingBox.max.y + (n.position && n.position.y || 0));
+    }, bb.max.y);
+    o.position.set((bb.min.x + bb.max.x) / 2, cima + 0.0004, (bb.min.z + bb.max.z) / 2);
     o.renderOrder = 1;
     tapaMalla.add(o);
     this.emblema = o;

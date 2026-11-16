@@ -163,3 +163,12 @@ test('E12 (3.7.25) cableado del emblema: decal hijo de Tapa_Malla, transparente,
   assert.equal(sin.asp.resumen().emblema, false);
   assert.ok(m && scene);
 });
+
+test('E13 (3.7.29) el emblema queda POR ENCIMA de banda y panel (que sobresalen de la malla de la tapa); medido contra el GLB real', async () => {
+  const { a } = await nuevo('media');
+  const d = a.nodo.get('Tapa_Malla').children.find((o) => o.name === 'Tapa_Emblema');
+  for (const n of ['Tapa_Malla', 'Tapa_Banda', 'Tapa_Panel']) {
+    const o = a.nodo.get(n); if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+    assert.ok(d.position.y > o.geometry.boundingBox.max.y + 0.0002, `${n}: cima ${o.geometry.boundingBox.max.y} < emblema ${d.position.y}`);
+  }
+});
