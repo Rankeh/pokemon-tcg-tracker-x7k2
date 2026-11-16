@@ -98,7 +98,10 @@ export function alturaAcabado(tam, semilla, tipo) {
     let v;
     if (tipo === 'fieltro') v = 0.5 * ruidoPeriodico(i * 48 / tam, j * 48 / tam, 48, semilla) + 0.3 * ruidoPeriodico(i * 96 / tam, j * 96 / tam, 96, semilla + 3) + 0.2 * ruidoPeriodico(i * 12 / tam, j * 12 / tam, 12, semilla + 5);
     else if (tipo === 'cuero') { const n = ruidoPeriodico(i * 14 / tam, j * 14 / tam, 14, semilla), r = 1 - Math.abs(2 * n - 1); v = 0.7 * r * r + 0.3 * ruidoPeriodico(i * 40 / tam, j * 40 / tam, 40, semilla + 2); }
-    else if (tipo === 'tejido') { const d = 0.5 + 0.5 * Math.sin(TAU * (i + j) * 24 / tam), t = 0.5 + 0.5 * Math.sin(TAU * i * 48 / tam) * Math.sin(TAU * j * 48 / tam); v = 0.55 * d + 0.25 * t + 0.2 * ruidoPeriodico(i * 32 / tam, j * 32 / tam, 32, semilla); }
+    else if (tipo === 'tejido') {                                   // sarga diagonal + hilos ANISÓTROPOS (3.7.20): la urdimbre (vertical) pesa más que la trama, como en un tejido real
+      const d = 0.5 + 0.5 * Math.sin(TAU * (i + j) * 24 / tam), hU = 0.5 + 0.5 * Math.sin(TAU * i * 48 / tam), hV = 0.5 + 0.5 * Math.sin(TAU * j * 48 / tam);
+      v = 0.48 * d + 0.22 * hU + 0.10 * hV + 0.2 * ruidoPeriodico(i * 32 / tam, j * 32 / tam, 32, semilla);
+    }
     else if (tipo === 'acolchado') { const a = Math.sin(Math.PI * (i + j) * 4 / tam), b = Math.sin(Math.PI * (i - j) * 4 / tam); v = Math.pow(Math.abs(a * b), 0.6) * 0.9 + 0.1 * ruidoPeriodico(i * 40 / tam, j * 40 / tam, 40, semilla); }
     else v = 0.5;
     h[j * tam + i] = Math.min(1, Math.max(0, v));
@@ -127,9 +130,12 @@ export function generarNormales(tam, fuerza = 2.2, semilla = 7, tipo = 'grano') 
   return out;
 }
 /** Mapa de rugosidad (canal G, multiplica la rugosidad del material): variaciones discretas entre 0,82 y 1,0. */
-export function generarRugosidad(tam, semilla = 11) {
-  const h = alturaRelieve(tam, semilla), out = new Uint8Array(tam * tam * 4);
-  for (let k = 0; k < tam * tam; k++) { const v = Math.round((0.82 + 0.18 * h[k]) * 255); out[k * 4] = v; out[k * 4 + 1] = v; out[k * 4 + 2] = v; out[k * 4 + 3] = 255; }
+export function generarRugosidad(tam, semilla = 11, tipo = 'grano') {
+  const h = alturaRelieve(tam, semilla, tipo), out = new Uint8Array(tam * tam * 4);
+  // 3.7.20: la rugosidad sale de la MISMA altura que el relieve (antes siempre era el grano genérico y el brillo no seguía la trama).
+  // En los acabados, las CRESTAS quedan pulidas (el roce las satina) y los valles mates: el satinado sigue los hilos. El grano conserva su fórmula de siempre.
+  const v_ = tipo === 'grano' ? (x) => 0.82 + 0.18 * x : (x) => 0.8 + 0.2 * (1 - x);
+  for (let k = 0; k < tam * tam; k++) { const v = Math.round(v_(h[k]) * 255); out[k * 4] = v; out[k * 4 + 1] = v; out[k * 4 + 2] = v; out[k * 4 + 3] = 255; }
   return out;
 }
 
@@ -415,7 +421,7 @@ export class Aspecto {
     });
     const ac = this.acabado;
     const normal = cfg.relieve ? this._textura(generarNormales(cfg.relieve, ac ? ac.fuerza : 2.2, 7, ac ? ac.tipo : 'grano'), cfg.relieve) : null;
-    const rugo = cfg.mapaRugosidad && cfg.relieve ? this._textura(generarRugosidad(cfg.relieve), cfg.relieve) : null;
+    const rugo = cfg.mapaRugosidad && cfg.relieve ? this._textura(generarRugosidad(cfg.relieve, 11, ac ? ac.tipo : 'grano'), cfg.relieve) : null;
 
     // un material por grupo (nunca por bolsillo); las mallas que lo comparten (p. ej. Tapa y Contratapa) siguen compartiéndolo
     const nuevoMaterial = (grupo, hex, p, relieve) => {

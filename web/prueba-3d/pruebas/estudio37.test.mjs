@@ -67,3 +67,25 @@ test('E4 liberar: scene.environment queda limpio y la textura del panorama se li
   assert.equal(t.disposed, true);
   assert.equal(asp.resumen().entorno, false);
 });
+
+test('E5 (3.7.20) rugosidad correlacionada: en los acabados el satinado sigue la trama (crestas pulidas) y el grano no cambia', () => {
+  const h = A.alturaRelieve(64, 11, 'tejido'), r = A.generarRugosidad(64, 11, 'tejido');
+  let iMax = 0, iMin = 0;
+  for (let k = 0; k < h.length; k++) { if (h[k] > h[iMax]) iMax = k; if (h[k] < h[iMin]) iMin = k; }
+  assert.ok(r[iMax * 4] < r[iMin * 4], 'cresta más pulida (valor menor) que el valle');
+  const g = A.generarRugosidad(32), hg = A.alturaRelieve(32, 11, 'grano');
+  for (const k of [0, 100, 500]) assert.equal(g[k * 4], Math.round((0.82 + 0.18 * hg[k]) * 255), 'fórmula del grano intacta');
+});
+
+test('E6 (3.7.20) tejido anisótropo: a los tamaños reales del mapa (128 media, 256 alta) la urdimbre varía más que la trama', () => {
+  // a 64 px los hilos (48 ciclos) hacen aliasing y la medida no vale; 128/256 son los tamaños que usan los niveles
+  for (const [tam, minimo] of [[128, 1.08], [256, 1.1]]) {
+    const h = A.alturaRelieve(tam, 7, 'tejido');
+    let dx = 0, dy = 0;
+    for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
+      dx += Math.abs(h[j * tam + (i + 1) % tam] - h[j * tam + i]);
+      dy += Math.abs(h[((j + 1) % tam) * tam + i] - h[j * tam + i]);
+    }
+    assert.ok(dx > dy * minimo, `anisotropía a ${tam}: ratio=${(dx / dy).toFixed(3)}`);
+  }
+});

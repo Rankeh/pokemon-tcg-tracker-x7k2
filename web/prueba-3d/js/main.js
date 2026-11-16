@@ -47,7 +47,7 @@ const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: cal
 const orbita = new OrbitaLigera();
 let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl = null, adaptador = null, ficha = null;
 let sucioHasta = 0, continuo = false, forzarDibujo = false, claveNav = '';
-const pedirFrame = (ms = 1200) => { sucioHasta = Math.max(sucioHasta, performance.now() + ms); };
+const pedirFrame = (ms = 500) => { sucioHasta = Math.max(sucioHasta, performance.now() + ms); };
 const avisar = (t) => { $('aviso').textContent = t || ''; $('aviso').hidden = !t; };
 
 // ------------------------------------------------------------------ cámara cinematográfica (Fase 3.7.1)
@@ -200,7 +200,8 @@ function actualizarUi() {
   botones.ant.disabled = botones.ant.disabled && !(libre && enPagina && lado === 'der' && izquierda);
   botones.salto.disabled = !libre;
   const sel = botones.salto;
-  sel.value = String((modo === 'pagina' ? (lado === 'izq' ? izquierda : derecha) : derecha) || derecha || izquierda || '');
+  const pagSel = (modo === 'pagina' ? (lado === 'izq' ? izquierda : derecha) : derecha) || derecha || izquierda;
+  if (pagSel) sel.value = String(pagSel); else sel.selectedIndex = -1;         // cerrado o todo girado: ninguna página marcada (antes quedaba «Página 1» engañosa)
 }
 
 function pintarProgreso() {
