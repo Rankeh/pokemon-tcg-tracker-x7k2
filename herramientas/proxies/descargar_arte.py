@@ -6,8 +6,8 @@ Uso personal de tu colección; revisa los derechos de las imágenes si algún d�
 import pathlib, urllib.request, sys
 RAIZ = pathlib.Path(__file__).resolve().parents[2]
 SALIDA = RAIZ / 'web/prueba-3d/assets/proxies/arte'; SALIDA.mkdir(parents=True, exist_ok=True)
-LIMITLESS = 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/SVP/SVP_{n}_{r}_{i}_LG.png'
-PATRONES = [LIMITLESS.format(n='{num}', r=r, i=i) for i in ('ES', 'EN') for r in ('R', 'U', 'C', 'RR')] + ['https://cdn.pokedexia.com/cards/sv/SVP/cards/{id}-high.webp', 'https://cdn.pokedexia.com/cards/sv/SVP/cards/{id}-low.webp']
+LIMITLESS = 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/SVP/SVP_{n}_{r}_{i}{t}.png'   # {t}: '' (URL que has comprobado tú) o '_LG'
+PATRONES = [LIMITLESS.format(n='{num}', r=r, i=i, t=t) for t in ('', '_LG') for i in ('ES', 'EN') for r in ('R', 'U', 'C', 'RR')] + ['https://cdn.pokedexia.com/cards/sv/SVP/cards/{id}-high.webp', 'https://cdn.pokedexia.com/cards/sv/SVP/cards/{id}-low.webp']
 ok = 0
 for n in range(208, 213):
     id_ = 'svp-%d' % n
