@@ -42,7 +42,7 @@ export class Diagnostico {
     s += this.linea('Three', 'r' + THREE.REVISION + ' · ' + (window.__origenThree || '?') + ' · ' + (gl instanceof WebGL2RenderingContext ? 'WebGL2' : 'WebGL1'));
     s += this.linea('GLB', this.estadoGlb);
     const asp = window.__album3d && window.__album3d.aspecto;
-    if (asp) { const rz = asp.resumen(); s += this.linea('Fase', (window.__album3d.FASE || '?') + ' · entorno ' + (rz.entorno ? 'sí' : 'no') + ' · emblema ' + (rz.emblema ? 'sí' : 'NO')); }
+    if (asp) { const rz = asp.resumen(); s += this.linea('Fase', (window.__album3d.FASE || '?') + ' · entorno ' + (rz.entorno ? 'sí' : 'no') + ' · tapa ' + (rz.portada ? 'lámina' : rz.emblema ? 'emblema' : 'lisa')); }
     const errs = (window.__errores || []).slice(-4);
     s += this.linea('Errores JS', errs.length ? '\n  ' + errs.join('\n  ') : 'ninguno');
     s += this.linea('Shaders', this.shaderErrores.length ? this.shaderErrores.slice(-2).join(' || ') : 'sin errores de compilación');

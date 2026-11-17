@@ -22,7 +22,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
-export const FASE = '3.7.32';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.8';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -44,7 +44,7 @@ const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchM
 const tema = elegirTema(params.get('tema'));                 // ?tema=claro (por defecto, estilo Apple) | acogedor (videojuego cálido) | noche (grafito de 3.7.2)
 document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
 const tapa = elegirAcabado(params.get('tapa'));               // ?tapa=grafito (por defecto) | fieltro | cuero | tejido | acolchado
-const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0', emblema: params.get('emblema') !== '0' });   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone
+const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0', emblema: params.get('emblema') !== '0', portada: params.get('portada') !== '0' });   // ?portada=0: tapa lisa con el emblema bordado (3.7.25)   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone
 
 const orbita = new OrbitaLigera();
 let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl = null, adaptador = null, ficha = null;
@@ -442,6 +442,7 @@ async function arrancar() {
   album.onCambio = () => pedirFrame();
   if (reducirMovimiento) album.estado.duracion = 0.01;
   scene.add(album.escena);
+  aspecto.alCambiar = () => pedirFrame();
   aspecto.aplicarAlbum(album);
   dim = dimensiones(album.params);
   resaltado = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro });
@@ -490,7 +491,7 @@ async function arrancar() {
     pedirFrame(1800);
   }
   setInterval(() => { if (!$('panel').hidden) metricas.pintar(); }, 500);
-  console.info('Álbum 3D · fase ' + FASE + ' · emblema: ' + (aspecto.resumen().emblema ? 'montado' : 'NO (nivel baja/legado o ?emblema=0)'));
+  console.info('Álbum 3D · fase ' + FASE + ' · tapa: ' + (aspecto.resumen().portada ? 'lámina Llama Blanca / Fulgor Negro' : aspecto.resumen().emblema ? 'emblema bordado' : 'lisa (nivel legado o ?emblema=0)'));
   window.__album3d = { FASE, medirEscenas, aspecto, dim, resaltado, diagCam, reservado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
   requestAnimationFrame(bucle);
   if (params.get('auto') === 'medir') setTimeout(medir, 800);

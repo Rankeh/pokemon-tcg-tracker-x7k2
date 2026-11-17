@@ -4,6 +4,7 @@
 // Las funciones puras (parámetros, ruido, estimación de luminancia, elección de calidad) se prueban en Node; el dibujo real solo puede verlo un navegador.
 import * as THREE from 'three';
 import { aabbMundo } from './encuadre.js';
+import { PORTADA, dibujarPortada, dibujarBanda, cargarCartas, tamLienzo } from './portada-tapa.js';
 
 // ------------------------------------------------------------------ parámetros artísticos (un solo sitio)
 export const PALETA = {
@@ -367,13 +368,15 @@ export function generarEmblemaAlfa(tam = EMBLEMA.tam) {
 const aclarar = (hex, f) => { const r = Math.min(255, ((hex >> 16) & 255) * f), g = Math.min(255, ((hex >> 8) & 255) * f), b = Math.min(255, (hex & 255) * f); return (r << 16 | g << 8 | b); };
 
 export class Aspecto {
-  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito', entorno = true, emblema = true }) {
+  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito', entorno = true, emblema = true, portada = false }) {
     this.tapa = elegirAcabado(tapa); this.acabado = ACABADOS[this.tapa];
     this.tema = TEMAS[tema] ? tema : 'noche'; this.t = TEMAS[this.tema];
     this.renderer = renderer; this.scene = scene; this.nivel = nivel; this.origen = origen;
     this.config = NIVELES[nivel] || null;                    // null = legado
     this.luces = {}; this.recursos = []; this.mallasPropias = []; this.sombra = null; this.mesa = null; this.materiales = new Map(); this.uvHechas = new WeakSet();
     this.conEmblema = emblema;
+    this.conPortada = portada;                               // 3.8: lámina impresa Llama Blanca / Fulgor Negro (sustituye al emblema bordado)
+    this.alCambiar = null;                                   // main.js lo usa para pedir un fotograma cuando llegan las ilustraciones
     this._montarLuces();
     this._montarEntorno(entorno);
     this._montarMesa();
@@ -514,7 +517,7 @@ export class Aspecto {
     if (normal) {
       for (const o of [...grupos.cubierta, ...grupos.lomo]) if (!this.uvHechas.has(o.geometry)) { rellenarUV(o.geometry, ac ? ac.uv : ESCALA_UV); this.uvHechas.add(o.geometry); }
     }
-    this._montarEmblema(album, ac);
+    if (!this._montarPortada(album)) this._montarEmblema(album, ac);
     this.sincronizar(album);
   }
 
@@ -552,6 +555,47 @@ export class Aspecto {
     this.emblema = o;
   }
 
+  /** 3.8 · Lámina impresa en la portada (panel) y en la banda junto al lomo: planos con CanvasTexture, hijos de Tapa_Malla como el emblema,
+   *  así giran con la tapa y al abrir quedan boca abajo. Acabado laminado (satinado, algo de reflejo). Devuelve true si se montó.
+   *  Las ilustraciones llegan después: la lámina se dibuja ya sin ellas y se repinta al cargarlas. */
+  _montarPortada(album) {
+    if (!this.conPortada || !this.config || this.portada || typeof document === 'undefined' || !THREE.CanvasTexture) return false;
+    const tapaMalla = album.nodo.get('Tapa_Malla'), panel = album.nodo.get('Tapa_Panel'), banda = album.nodo.get('Tapa_Banda');
+    if (!tapaMalla || !panel || !panel.geometry) return false;
+    const caja = (n) => { if (!n.geometry.boundingBox) n.geometry.computeBoundingBox(); return n.geometry.boundingBox; };
+    const lado = { baja: 512, media: 768, alta: 1024 }[this.nivel] || 768;
+    const lamina = (nodo, margen, px, dibujar, nombre) => {
+      const bb = caja(nodo), ancho = bb.max.x - bb.min.x - 2 * margen, alto = bb.max.z - bb.min.z - 2 * margen;
+      const { w, h } = tamLienzo(ancho, alto, px), lienzo = document.createElement('canvas');
+      lienzo.width = w; lienzo.height = h;
+      const ctx = lienzo.getContext('2d');
+      dibujar(ctx, w, h);
+      const t = this._recurso(new THREE.CanvasTexture(lienzo));
+      t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = this.config.anisotropia * 2;
+      // satinado: poco reflejo de entorno (con más, el negro se veía gris y las cartas lavadas) y algo de emisión con el propio dibujo,
+      // como una lámina impresa que conserva el color aunque la luz del estudio sea rasante
+      const m = this._recurso(new THREE.MeshStandardMaterial({ map: t, roughness: 0.55, metalness: 0, transparent: true, depthWrite: false,
+        emissive: 0xffffff, emissiveMap: t, emissiveIntensity: PORTADA.emision, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
+      m.envMapIntensity = this.entorno ? ENTORNO.intensidad.cubierta * 0.35 : 1;
+      const o = new THREE.Mesh(this._recurso(new THREE.PlaneGeometry(ancho, alto)), m);
+      o.name = nombre; o.rotation.x = -Math.PI / 2;          // +Y del plano → -Z: la parte de arriba del dibujo queda al fondo, se lee desde delante
+      o.position.set((bb.min.x + bb.max.x) / 2, bb.max.y + (nodo.position?.y || 0) + 0.0004, (bb.min.z + bb.max.z) / 2);
+      o.renderOrder = 1;
+      tapaMalla.add(o);
+      return { o, t, ctx, w, h };
+    };
+    const p = lamina(panel, PORTADA.margen, lado, (ctx, w, h) => dibujarPortada(ctx, w, h), 'Tapa_Portada');
+    const b = banda && banda.geometry ? lamina(banda, PORTADA.margenBanda, Math.round(lado / 8), dibujarBanda, 'Tapa_Lomo_Titulo') : null;
+    this.portada = { panel: p.o, banda: b ? b.o : null, ilustraciones: false };
+    cargarCartas().then((cartas) => {
+      if (!this.portada || (!cartas.blanca && !cartas.negra)) return;
+      dibujarPortada(p.ctx, p.w, p.h, cartas); p.t.needsUpdate = true;
+      this.portada.ilustraciones = true;
+      this.alCambiar?.();
+    });
+    return true;
+  }
+
   _textura(datos, tam) {
     const t = this._recurso(new THREE.DataTexture(datos, tam, tam, THREE.RGBAFormat));
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true;
@@ -575,7 +619,7 @@ export class Aspecto {
 
   resumen() {
     return { nivel: this.nivel, origen: this.origen, luces: Object.keys(this.luces), relieve: this.config ? this.config.relieve : 0, mapaRugosidad: !!(this.config && this.config.mapaRugosidad),
-      tema: this.tema, tapa: this.tapa, escenario: !!this.alfombra, sombraContacto: !!this.sombra, entorno: !!this.entorno, emblema: !!this.emblema, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
+      tema: this.tema, tapa: this.tapa, escenario: !!this.alfombra, sombraContacto: !!this.sombra, entorno: !!this.entorno, emblema: !!this.emblema, portada: !!this.portada, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
   }
 
   liberar() {
@@ -584,6 +628,8 @@ export class Aspecto {
     if (this.entorno && this.scene.environment === this.entorno) this.scene.environment = null;
     if (this.emblema && this.emblema.parent) this.emblema.parent.remove(this.emblema);
     this.emblema = null;
+    for (const o of [this.portada?.panel, this.portada?.banda]) if (o && o.parent) o.parent.remove(o);
+    this.portada = null;
     this.mallasPropias = []; this.recursos = []; this.luces = {}; this.sombra = null; this.mesa = null; this.alfombra = null; this.entorno = null;
   }
 }
