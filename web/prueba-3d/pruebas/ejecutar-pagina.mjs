@@ -218,7 +218,7 @@ for (const vp of [{ width: 390, height: 844 }, { width: 430, height: 932 }]) {
 }
 
 // ------------------------------------------------------------------ 3.7.3: tema de interfaz aplicado de verdad (estilos calculados por Chromium real; el 3D es simulado)
-for (const [consulta, esperado] of [['', 'diorama'], ['&tema=claro', 'claro'], ['&tema=acogedor', 'acogedor'], ['&tema=noche', 'noche']]) {
+for (const [consulta, esperado] of [['', 'editorial'], ['&tema=diorama', 'diorama'], ['&tema=claro', 'claro'], ['&tema=acogedor', 'acogedor'], ['&tema=noche', 'noche']]) {
   await sesion({ width: 390, height: 844 }, async (pag) => {
     await pag.waitForTimeout(900);                                  // 3.7.5: las animaciones de entrada (0,7 s) y las transiciones de color deben haber terminado
     const r = await pag.evaluate(() => { const css = (sel, p) => getComputedStyle(document.querySelector(sel))[p];
@@ -230,6 +230,9 @@ for (const [consulta, esperado] of [['', 'diorama'], ['&tema=claro', 'claro'], [
     } else if (esperado === 'acogedor') {
       ok(r.h1 === 'rgb(255, 246, 228)' && r.principal === 'rgb(124, 195, 94)' && r.boton === 'rgb(127, 167, 217)', `acogedor: cabecera crema, «Abrir» verde, flechas azules (${r.h1} / ${r.principal} / ${r.boton})`);
       ok(/rounded|Nunito|Segoe|Trebuchet/i.test(r.fuente), 'acogedor: tipografía redondeada del sistema'); ok(r.escenario, 'acogedor: suelo y alfombra en la escena'); ok(r.aro === 0xf0701e, 'acogedor: aro de selección naranja');
+    } else if (esperado === 'editorial') {
+      ok(r.suelo && !r.isla && !r.escenario, 'editorial: suelo oscuro que se funde, sin isla ni alfombra'); ok(r.aro === 0xe5432f, 'editorial: aro de selección rojo');
+      ok(r.principal === 'rgb(242, 242, 242)', `editorial: «Abrir» relleno claro (${r.principal})`); ok(r.volver, 'editorial: botón para volver a la biblioteca');
     } else if (esperado === 'diorama') {
       ok(r.isla && !r.escenario, 'diorama: isla bajo el álbum, sin alfombra'); ok(r.aro === 0xffc94d, 'diorama: aro de selección amarillo sol');
       ok(/rounded|Nunito|Segoe|Trebuchet/i.test(r.fuente), 'diorama: tipografía redondeada'); ok(r.volver, 'diorama: botón para volver a la biblioteca');

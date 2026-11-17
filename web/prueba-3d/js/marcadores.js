@@ -8,9 +8,11 @@ const COL_CLARO = { fondo: '#ecebe6', borde: '#b9b5ab', texto: '#1d1d1f', suave:
 const PEND_CLARO = { placa: '#dedcd5', borde: '#aaa69c', nombre: '#2c2c2e', suave: '#6e6e73' };     // gris cálido hundido respecto a la hoja, texto casi negro
 const COL_DIORAMA = { fondo: '#f6eedb', borde: '#d8c296', texto: '#3b2a1a', suave: '#7d6650', acento: '#4a923c' };
 const PEND_DIORAMA = { placa: '#e9dcbd', borde: '#cdb382', nombre: '#3b2a1a', suave: '#7d6650' };     // papel hundido: más oscuro que la hoja crema
+const COL_EDITORIAL = { fondo: '#1f1f1f', borde: '#3a3a3a', texto: '#f2f2f2', suave: '#9a9a9a', acento: '#e5432f' };
+const PEND_EDITORIAL = { placa: '#242424', borde: '#3d3d3d', nombre: '#e8e8e8', suave: '#8a8a8a' };     // placa hundida en la hoja grafito, texto claro
 let COL = COL_NOCHE, PEND = PEND_NOCHE;
 /** Tema de los marcadores dibujados en canvas (se llama una vez al arrancar, antes de crear texturas). */
-export function fijarTemaMarcadores(tema) { COL = { acogedor: COL_ACOGEDOR, claro: COL_CLARO, diorama: COL_DIORAMA }[tema] || COL_NOCHE; PEND = { acogedor: PEND_ACOGEDOR, claro: PEND_CLARO, diorama: PEND_DIORAMA }[tema] || PEND_NOCHE; }
+export function fijarTemaMarcadores(tema) { COL = { acogedor: COL_ACOGEDOR, claro: COL_CLARO, diorama: COL_DIORAMA, editorial: COL_EDITORIAL }[tema] || COL_NOCHE; PEND = { acogedor: PEND_ACOGEDOR, claro: PEND_CLARO, diorama: PEND_DIORAMA, editorial: PEND_EDITORIAL }[tema] || PEND_NOCHE; }
 
 function ajustarTexto(ctx, texto, maxAncho) {
   let t = String(texto ?? '');

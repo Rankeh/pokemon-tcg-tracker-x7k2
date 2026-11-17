@@ -8,6 +8,7 @@ export const DISENOS_LOMO = ['teselia', 'liso'];
 export const MATERIALES_LOMO = ['cuero', 'tela'];
 
 /** @typedef {{ id: string, nombre: string, subtitulo: string, descripcion: string, expansiones: string[], ruta: string,
+ *              serie: string, nombreSerie: string, cartas: number,
  *              lomo: { diseno: string, material: string, color: string }, orden: number }} Album */
 
 /** @type {Album[]} */
@@ -18,6 +19,9 @@ const ALBUMES = [
     subtitulo: 'Llama Blanca · Fulgor Negro',
     descripcion: 'Álbum de las expansiones Llama Blanca (sv10.5w) y Fulgor Negro (sv10.5b), con sus promociones.',
     expansiones: ['sv10.5w', 'sv10.5b', 'svp'],
+    serie: 'sv',
+    nombreSerie: 'Escarlata y Púrpura',
+    cartas: 158,                                    // tamaño del catálogo (datos/catalogo/coleccion-teselia.json)
     ruta: 'web/prueba-3d/index.html',              // ruta existente del álbum 3D: no se cambia para no romper enlaces
     lomo: { diseno: 'teselia', material: 'cuero', color: '#11141b' },
     orden: 0,

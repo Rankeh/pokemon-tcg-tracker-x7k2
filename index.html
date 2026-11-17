@@ -3,29 +3,48 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#fbf6ea">
-  <title>Mi biblioteca · Pokémon TCG Tracker</title>
+  <meta name="theme-color" content="#0b0b0b">
+  <title>Biblioteca · Pokémon TCG Tracker</title>
   <meta name="description" content="Biblioteca personal de álbumes de cartas del JCC Pokémon.">
-  <link rel="stylesheet" href="web/diorama/diorama.css">
+  <link rel="stylesheet" href="web/editorial/editorial.css">
   <link rel="stylesheet" href="web/estanteria/css/estanteria.css">
 </head>
-<body class="d-fondo">
-  <canvas id="lienzo" tabindex="-1" aria-label="Estantería 3D con tus álbumes. Toca el lomo de un álbum para abrirlo; desliza arriba y abajo para recorrer las baldas."></canvas>
-  <p class="cargando" id="cargando">Preparando la biblioteca…</p>
+<body class="e-fondo">
+  <canvas id="lienzo" tabindex="-1" aria-label="Biblioteca de álbumes. Desliza a los lados para elegir un álbum; toca la portada para abrirlo."></canvas>
+  <div class="velo" aria-hidden="true"></div>
+  <p class="cargando e-etiqueta" id="cargando">Preparando la biblioteca…</p>
 
   <header class="cabecera">
-    <div class="titulo d-panel">
-      <h1>Mi biblioteca</h1>
-      <span class="d-chapa" id="contador">…</span>
-    </div>
-    <a class="d-boton" href="web/cuenta.html" aria-label="Mi cuenta">Cuenta</a>
+    <a class="e-caja" href="web/cuenta.html">Cuenta</a>
+    <a class="marca" href="./" aria-label="Biblioteca">
+      <span class="marca-sello" aria-hidden="true">TCG</span>
+      <span class="marca-texto"><span>Biblioteca</span><span>Pokémon TCG</span></span>
+    </a>
+    <p class="contador e-etiqueta" id="contador">…</p>
   </header>
 
-  <p class="pista d-panel" id="pista">Toca un lomo para abrirlo<span id="desplazar" hidden> · desliza para ver más baldas</span></p>
-  <p class="aviso d-aviso" id="aviso" role="status" aria-live="polite" hidden></p>
+  <nav class="filtros e-pestanas" id="filtros" aria-label="Filtrar por serie"></nav>
 
-  <!-- Los mismos álbumes que la estantería, como enlaces: lector de pantalla, teclado (Tab) y respaldo si no hay WebGL -->
-  <nav class="lista-albumes d-panel" aria-label="Álbumes de la biblioteca">
+  <button type="button" class="flecha izq e-redondo" id="ant" aria-label="Álbum anterior">←</button>
+  <button type="button" class="flecha der e-redondo" id="sig" aria-label="Álbum siguiente">→</button>
+
+  <section class="info" aria-live="polite">
+    <h2 id="i-titulo">…</h2>
+    <p class="sub e-etiqueta e-rojo" id="i-sub"></p>
+    <p class="meta e-etiqueta" id="i-meta"></p>
+    <button type="button" class="abrir e-caja e-llena" id="abrir">Abrir álbum</button>
+  </section>
+
+  <footer class="pie">
+    <p class="e-etiqueta posicion" id="posicion">01 / 01</p>
+    <p class="e-etiqueta ayuda" style="color: var(--e-tenue)">← → para elegir · Enter para abrir</p>
+    <p class="e-etiqueta" style="color: var(--e-tenue)">Uso personal · Imágenes TCGdex</p>
+  </footer>
+
+  <p class="aviso e-aviso" id="aviso" role="status" aria-live="polite" hidden></p>
+
+  <!-- Los mismos álbumes como enlaces: lector de pantalla, teclado (Tab) y respaldo si no hay WebGL -->
+  <nav class="lista-albumes" aria-label="Álbumes de la biblioteca">
     <ul id="lista-albumes"><li><a href="web/prueba-3d/index.html">Teselia — Llama Blanca · Fulgor Negro</a></li></ul>
   </nav>
 
@@ -48,7 +67,7 @@
   catch (e) {
     console.error(e);
     document.body.classList.add('sin-3d');
-    document.getElementById('cargando').textContent = 'No se pudo cargar la estantería 3D. Puedes abrir tus álbumes desde la lista.';
+    document.getElementById('cargando').textContent = 'No se pudo cargar la biblioteca 3D. Puedes abrir tus álbumes desde la lista.';
   }
 })();
 </script>

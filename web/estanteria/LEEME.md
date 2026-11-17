@@ -1,24 +1,23 @@
-# Estantería 3D — pantalla principal (Fase 1: estantería visual)
+# Biblioteca — pantalla principal (dirección editorial)
 
-`index.html` (raíz del repositorio y de GitHub Pages) muestra la biblioteca: una estantería de madera de juguete, sobre una isla de diorama pintada
-(ver `web/diorama/LEEME.md`), con los álbumes **de pie, enseñando el lomo**.
-Toca el lomo de un álbum para abrirlo (de momento, sin animación: la extracción y la transición llegan en la Fase 2). El álbum sigue en su ruta de siempre,
-`web/prueba-3d/index.html`, así que ningún enlace se rompe.
+`index.html` (raíz del repositorio y de GitHub Pages) es la biblioteca: **una fila horizontal de lomos** sobre fondo grafito enmarcado en negro,
+como un catálogo de diseño gráfico. El álbum elegido sale de la fila, sube un poco y **gira para enseñar su portada** en el centro; los demás se
+apartan mostrando solo el lomo. Debajo, su ficha (título, expansiones en rojo, nº de cartas) y **Abrir álbum**: la cámara se acerca a la portada,
+la pantalla funde a negro y se pasa al visor 3D, que sigue en su ruta de siempre (`web/prueba-3d/index.html`).
 
-- **Álbumes reales, sin relleno.** Hoy solo está Teselia (Llama Blanca · Fulgor Negro). Detrás van el sujetalibros de madera y el lomo «Nuevo álbum»
-  (`+`, hueco disponible; crear álbumes es la Fase 3). El resto de huecos queda vacío y siempre hay sitio libre: la estantería añade baldas cuando hace falta.
-- **iPhone:** en vertical salen 4 huecos por balda (lomos grandes) y se desliza arriba/abajo para recorrer las baldas. En escritorio, rueda, arrastre o ↑/↓.
-- **Calidad:** la misma elección que el álbum (`?calidad=baja|media|alta`). Baja: sin relieve ni reflejos de entorno y menos resolución.
-- **Datos:** la Fase 1 **no abre IndexedDB**. La lista de álbumes es fija (`js/albumes.js`) y en la Fase 4 pasará a IndexedDB sin tocar la estantería.
+- **Elegir:** tocar un lomo, deslizar a los lados, flechas ← → (pantalla o teclado), rueda/trackpad. **Abrir:** tocar la portada, el botón o Enter.
+- **Filtros por serie** en pestañas finas (hoy: Todos · Escarlata y Púrpura). El último elemento es siempre **Nuevo álbum** (Fase 3).
+- Se recuerda el último álbum elegido (localStorage, solo comodidad). Al volver con «atrás» se quita el fundido (Safari guarda la página en caché).
+- **Datos:** no abre IndexedDB. Los álbumes vienen de `js/albumes.js` (solo lectura; en la Fase 4 pasarán a IndexedDB sin tocar el carrusel).
 
 | Archivo | Qué hace |
 |---|---|
-| `js/main.js` | Renderer, cámara, desplazamiento entre baldas, toque/ratón y dibujo solo cuando algo cambia |
-| `js/disposicion.js` | PURO: medidas (las del álbum 3D: 268 × 322 × 46,5 mm), huecos por balda, qué va en cada hueco y dónde |
+| `js/main.js` | Renderer, luz de estudio, carrusel animado, gestos, ficha, filtros y transición de apertura |
+| `js/carrusel.js` | PURO: pose de cada libro según el elegido, elementos, series y encuadre |
 | `js/albumes.js` | Registro de álbumes (validación y orden) |
-| `js/mueble.js` | Mueble de juguete: laterales, baldas, fondo pintado, patas y cartel de madera |
-| `js/libros.js` | Libros de pie (una geometría compartida), «Nuevo álbum» y sujetalibros |
-| `js/lomo-teselia.js` | Lomo Teselia (color + relieve + metal/rugosidad), tapa con la lámina del álbum, cantos de hoja |
-| `js/texturas.js` | Sombra de contacto y relieve → normales (lo pintado está en `web/diorama/pintura.js`) |
+| `js/libros.js` | Libros 3D (una geometría compartida) y «Nuevo álbum» con lomo y portada propios |
+| `js/lomo-teselia.js` | Lomo Teselia (color + relieve + metal), tapa con la lámina del álbum, cantos y el lomo/portada de «Nuevo álbum» |
+| `js/disposicion.js` | Medidas del libro (las del álbum 3D: 268 × 322 × 46,5 mm) |
+| `css/estanteria.css` | Retícula de la página; los componentes vienen de `web/editorial/editorial.css` |
 
 Pruebas: `node --test web/estanteria/pruebas/*.test.mjs`

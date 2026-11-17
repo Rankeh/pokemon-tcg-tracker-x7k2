@@ -10,9 +10,9 @@ const leer = (r) => readFile(new URL(r, import.meta.url), 'utf8');
 const montar = async (nivel, tema) => { const m = await crearMundo(); const scene = new T.Object3D(); const asp = new A.Aspecto({ renderer: {}, scene, nivel, tema }); asp.aplicarAlbum(m.album); return { m, scene, asp, a: m.album }; };
 const lum = (c) => A.luminanciaSrgb(c);
 
-test('T1 elegirTema: diorama por defecto (3.9), claro/acogedor/noche si se piden, valores raros → diorama; Aspecto sin tema conserva el grafito de 3.7.2', () => {
-  assert.equal(A.elegirTema(null), 'diorama'); assert.equal(A.elegirTema('claro'), 'claro'); assert.equal(A.elegirTema('acogedor'), 'acogedor'); assert.equal(A.elegirTema('noche'), 'noche'); assert.equal(A.elegirTema('NOCHE'), 'noche'); assert.equal(A.elegirTema('zzz'), 'diorama');
-  assert.deepEqual([...A.NOMBRES_TEMA].sort(), ['acogedor', 'claro', 'diorama', 'noche']); assert.equal(A.TEMAS.noche.paleta, A.PALETA);
+test('T1 elegirTema: editorial por defecto (3.10), diorama/claro/acogedor/noche si se piden, valores raros → editorial; Aspecto sin tema conserva el grafito de 3.7.2', () => {
+  assert.equal(A.elegirTema(null), 'editorial'); assert.equal(A.elegirTema('diorama'), 'diorama'); assert.equal(A.elegirTema('claro'), 'claro'); assert.equal(A.elegirTema('acogedor'), 'acogedor'); assert.equal(A.elegirTema('noche'), 'noche'); assert.equal(A.elegirTema('NOCHE'), 'noche'); assert.equal(A.elegirTema('zzz'), 'editorial');
+  assert.deepEqual([...A.NOMBRES_TEMA].sort(), ['acogedor', 'claro', 'diorama', 'editorial', 'noche']); assert.equal(A.TEMAS.noche.paleta, A.PALETA);
 });
 
 test('T2 acogedor: materiales con la paleta cálida (cubierta teal, hojas crema, lomo caramelo, marcos tostados) y luces cálidas con exposición propia', async () => {
@@ -70,7 +70,7 @@ test('T7 interfaz: reglas del tema en CSS (paneles crema, botones con sombra, ve
   for (const r of ['body[data-tema="acogedor"] h1', 'body[data-tema="acogedor"] button.principal', 'body[data-tema="acogedor"] .ficha', 'ui-rounded', '--crema', 'radial-gradient']) assert.ok(css.includes(r), r);
   const sinClaro = css.slice(0, css.indexOf('TEMA «CLARO»')); assert.ok(!/backdrop-filter|filter:\s*blur/.test(sinClaro), 'noche y acogedor: sin desenfoques');
   const vidrio = [...css.matchAll(/([^{}]+)\{[^{}]*backdrop-filter(?!: none)[^{}]*\}/g)].map((m) => m[1].trim()).filter((x) => !x.startsWith('@supports'));   // 3.7.24: la regla ?vidrio=ligero APAGA el desenfoque (none), no cuenta como vidrio assert.ok(vidrio.length <= 4 && vidrio.every((x) => /data-tema="claro"\]\s+(h1|\.barra|\.ficha)$/.test(x)), 'el vidrio esmerilado solo en cabecera, barra y ficha del tema claro: ' + vidrio.join(' | '));
-  assert.ok(html.includes("t === 'noche' || t === 'acogedor' || t === 'claro' ? t : 'diorama'")); assert.ok(/elegirTema\(params\.get\('tema'\)\)/.test(main) && /fijarTemaMarcadores\(tema\)/.test(main) && /color: TEMAS\[tema\]\.aro/.test(main));
+  assert.ok(html.includes("t === 'noche' || t === 'acogedor' || t === 'claro' || t === 'diorama' ? t : 'editorial'")); assert.ok(/elegirTema\(params\.get\('tema'\)\)/.test(main) && /fijarTemaMarcadores\(tema\)/.test(main) && /color: TEMAS\[tema\]\.aro/.test(main));
   assert.ok(css.indexOf('body[data-tema="acogedor"]') > css.indexOf('.ficha-abierta .barra'), 'el tema solo sobrescribe, no reemplaza la estructura');
 });
 

@@ -1,10 +1,11 @@
-// Libros de la estantería: álbumes de pie mostrando el lomo (cara +z), y el lomo especial «Nuevo álbum».
-// Una sola geometría para todos los libros (mismas medidas que el álbum 3D); cada diseño de lomo comparte sus materiales.
-// Caras de la caja (orden de BoxGeometry): 0 +x tapa delantera · 1 −x contratapa · 2 +y canto superior · 3 −y canto inferior · 4 +z LOMO · 5 −z canto delantero.
+// Libros del carrusel: álbumes de pie (lomo en la cara +z) y el elemento «Nuevo álbum».
+// Una sola geometría para todos (mismas medidas que el álbum 3D). Caras (orden de BoxGeometry):
+// 0 +x tapa delantera · 1 −x contratapa · 2 +y canto superior · 3 −y canto inferior · 4 +z LOMO · 5 −z canto delantero.
+// Al girar −90° en Y, la tapa delantera (+x) mira a la cámara: así el elegido enseña su portada.
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { LIBRO } from './disposicion.js';
-import { dibujarLomoTeselia, dibujarTapa, dibujarCantos, dibujarLomoNuevo, COLORES } from './lomo-teselia.js';
+import { dibujarLomoTeselia, dibujarTapa, dibujarCantos, dibujarLomoNuevo, dibujarTapaNueva, COLORES } from './lomo-teselia.js';
 import { generarSombra, normalDesdeAltura } from './texturas.js';
 import { cargarCartas } from '../../prueba-3d/js/portada-tapa.js';
 
@@ -13,24 +14,22 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
   const geo = r(new RoundedBoxGeometry(LIBRO.grueso, LIBRO.alto, LIBRO.fondo, 3, 0.0042));
   const ancho = { baja: 96, media: 160, alta: 224 }[calidad.nivel] || 160;
   const tex = (c, srgb = true) => { const t = r(new THREE.CanvasTexture(c)); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = calidad.anisotropia; return t; };
-  const sombraTex = tex(generarSombra());
-  const sombraMat = r(new THREE.MeshBasicMaterial({ map: sombraTex, color: 0x3a2412, transparent: true, opacity: 0.5, depthWrite: false }));
-  const sombraGeo = r(new THREE.PlaneGeometry(LIBRO.grueso * 2.3, LIBRO.fondo * 1.25));
+  const sombraMat = r(new THREE.MeshBasicMaterial({ map: tex(generarSombra()), color: 0x000000, transparent: true, opacity: 0.75, depthWrite: false }));
+  const sombraGeo = r(new THREE.PlaneGeometry(1, 1));
   const cache = new Map();
 
   function materialesTeselia() {
     if (cache.has('teselia')) return cache.get('teselia');
     const lomo = dibujarLomoTeselia(ancho);
-    const conRelieve = calidad.nivel !== 'baja';
     const mr = tex(lomo.mr, false);                               // una sola textura: G = rugosidad, B = metal
     const mLomo = r(new THREE.MeshStandardMaterial({
       map: tex(lomo.color), roughnessMap: mr, metalnessMap: mr, roughness: 1, metalness: 1,
-      normalMap: conRelieve ? tex(normalDesdeAltura(lomo.alto, 3), false) : null,
+      normalMap: calidad.nivel !== 'baja' ? tex(normalDesdeAltura(lomo.alto, 3), false) : null,
     }));
     if (mLomo.normalMap) mLomo.normalScale.set(0.9, 0.9);
-    const lienzoTapa = dibujarTapa({}, calidad.nivel === 'baja' ? 256 : 512);
+    const lienzoTapa = dibujarTapa({}, calidad.nivel === 'baja' ? 384 : 768);
     const tTapa = tex(lienzoTapa);
-    const mTapa = r(new THREE.MeshStandardMaterial({ map: tTapa, roughness: 0.78, metalness: 0 }));
+    const mTapa = r(new THREE.MeshStandardMaterial({ map: tTapa, roughness: 0.72, metalness: 0 }));
     const mContra = r(new THREE.MeshStandardMaterial({ color: COLORES.tejido, roughness: 0.82, metalness: 0 }));
     const mCantos = r(new THREE.MeshStandardMaterial({ map: tex(dibujarCantos()), roughness: 0.9, metalness: 0 }));
     const lista = [mTapa, mContra, mCantos, mCantos, mLomo, mCantos];
@@ -38,59 +37,47 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
     // la lámina de la portada lleva Reshiram y Zekrom: se repinta cuando llegan las imágenes locales (no bloquea el primer dibujo)
     cargarCartas(new URL('../../prueba-3d/assets/cartas/grande/', import.meta.url)).then((cartas) => {
       if (!cartas.blanca && !cartas.negra) return;
-      const nuevo = dibujarTapa(cartas, lienzoTapa.width);
-      lienzoTapa.getContext('2d').drawImage(nuevo, 0, 0); tTapa.needsUpdate = true; alCambiar();
+      lienzoTapa.getContext('2d').drawImage(dibujarTapa(cartas, lienzoTapa.width), 0, 0); tTapa.needsUpdate = true; alCambiar();
     });
     return lista;
-  }
-
-  /** Álbum de pie en el hueco. El grupo se coloca en el centro del libro; `userData` identifica el álbum para el picking. */
-  function crearAlbum(album, pos) {
-    const g = new THREE.Group(); g.name = 'Libro_' + album.id;
-    const mats = album.lomo.diseno === 'teselia' ? materialesTeselia() : materialesLisos(album.lomo.color);
-    const libro = new THREE.Mesh(geo, mats); libro.name = 'Cuerpo';
-    g.add(libro);
-    const s = new THREE.Mesh(sombraGeo, sombraMat); s.rotation.x = -Math.PI / 2; s.position.y = -LIBRO.alto / 2 + 0.0006; s.renderOrder = 1; g.add(s);
-    g.position.set(pos.x, pos.y, pos.z);
-    g.userData = { tipo: 'album', id: album.id, ruta: album.ruta, nombre: album.nombre };
-    libro.userData = g.userData;
-    return g;
   }
 
   function materialesLisos(color) {
     const k = 'liso:' + color;
     if (cache.has(k)) return cache.get(k);
     const m = r(new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0 }));
-    const mCantos = cache.get('teselia')?.[2] || r(new THREE.MeshStandardMaterial({ map: tex(dibujarCantos()), roughness: 0.9 }));
+    const mCantos = r(new THREE.MeshStandardMaterial({ map: tex(dibujarCantos()), roughness: 0.9 }));
     const lista = [m, m, mCantos, mCantos, m, mCantos];
     cache.set(k, lista); return lista;
   }
 
-  /** «Nuevo álbum»: volumen de cristal muy tenue + lomo dibujado (sin libro ficticio: se lee como hueco disponible). */
-  function crearNuevo(pos) {
+  /** Sombra de contacto: se queda en el suelo (y = 0) y sigue al libro en x/z. La añade el llamador a la escena. */
+  function sombra() {
+    const s = new THREE.Mesh(sombraGeo, sombraMat); s.rotation.x = -Math.PI / 2; s.position.y = 0.0005; s.renderOrder = 1;
+    return s;
+  }
+
+  /** Álbum de pie. El grupo se coloca en el centro del libro; `userData` identifica el álbum para el picking. */
+  function crearAlbum(album) {
+    const g = new THREE.Group(); g.name = 'Libro_' + album.id;
+    const libro = new THREE.Mesh(geo, album.lomo.diseno === 'teselia' ? materialesTeselia() : materialesLisos(album.lomo.color));
+    libro.name = 'Cuerpo'; g.add(libro);
+    g.userData = { tipo: 'album', id: album.id };
+    libro.userData = g.userData;
+    return g;
+  }
+
+  /** «Nuevo álbum»: libro de cristal ahumado con lomo y portada propios, para que también pueda quedar seleccionado. */
+  function crearNuevo() {
     const g = new THREE.Group(); g.name = 'NuevoAlbum';
-    const vidrio = r(new THREE.MeshStandardMaterial({ color: 0xffe6b8, roughness: 0.15, metalness: 0, transparent: true, opacity: 0.06, depthWrite: false }));
-    const volumen = new THREE.Mesh(geo, vidrio); g.add(volumen);
-    const t = tex(dibujarLomoNuevo(ancho));
-    const frente = new THREE.Mesh(r(new THREE.PlaneGeometry(LIBRO.grueso, LIBRO.alto)),
-      r(new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.95 })));
-    frente.position.z = LIBRO.fondo / 2 + 0.0008; g.add(frente);
-    const s = new THREE.Mesh(sombraGeo, sombraMat); s.rotation.x = -Math.PI / 2; s.position.y = -LIBRO.alto / 2 + 0.0006; s.scale.set(0.8, 0.8, 1); s.renderOrder = 1; g.add(s);
-    g.position.set(pos.x, pos.y, pos.z);
+    const vidrio = r(new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.3, metalness: 0, transparent: true, opacity: 0.55 }));
+    const lomo = r(new THREE.MeshBasicMaterial({ map: tex(dibujarLomoNuevo(ancho)), toneMapped: false }));
+    const tapa = r(new THREE.MeshBasicMaterial({ map: tex(dibujarTapaNueva(calidad.nivel === 'baja' ? 384 : 640)), toneMapped: false }));
+    const cuerpo = new THREE.Mesh(geo, [tapa, vidrio, vidrio, vidrio, lomo, vidrio]); g.add(cuerpo);
     g.userData = { tipo: 'nuevo', id: 'nuevo' };
-    volumen.userData = g.userData; frente.userData = g.userData;
+    cuerpo.userData = g.userData;
     return g;
   }
 
-  /** Sujetalibros de madera en L (no es un libro). */
-  function crearSujetalibros(pos, laton) {
-    const g = new THREE.Group(); g.name = 'Sujetalibros';
-    const base = new THREE.Mesh(r(new RoundedBoxGeometry(0.055, 0.012, 0.11, 2, 0.004)), laton); base.position.set(0.008, -LIBRO.alto / 2 + 0.006, 0);
-    const placa = new THREE.Mesh(r(new RoundedBoxGeometry(0.014, 0.15, 0.11, 2, 0.005)), laton); placa.position.set(-0.014, -LIBRO.alto / 2 + 0.075, 0);
-    g.add(base, placa);
-    g.position.set(pos.x, pos.y, pos.z + LIBRO.fondo / 2 - 0.07);
-    return g;
-  }
-
-  return { crearAlbum, crearNuevo, crearSujetalibros };
+  return { crearAlbum, crearNuevo, sombra };
 }

@@ -1,0 +1,57 @@
+/* =====================================================================================================================================
+   EDITORIAL — sistema visual común de la biblioteca y el álbum (dirección «catálogo de diseño gráfico»).
+   Fondo casi negro enmarcado, tipografía de grotesca del sistema (titulares ligeros y grandes, etiquetas pequeñas en versalitas espaciadas),
+   un único acento rojo y controles finos de 1 px. La jerarquía la marcan el tamaño, el peso y el espacio, no los adornos.
+   ===================================================================================================================================== */
+:root {
+  --e-fondo: #1c1c1c;
+  --e-marco: #0b0b0b;
+  --e-texto: #f2f2f2;
+  --e-suave: rgba(242, 242, 242, .58);
+  --e-tenue: rgba(242, 242, 242, .32);
+  --e-linea: rgba(242, 242, 242, .22);
+  --e-rojo: #e5432f;
+  --e-panel: #232323;
+  --e-fuente: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", Inter, Roboto, system-ui, sans-serif;
+  --e-marco-ancho: clamp(0px, 3vw, 40px);
+}
+
+.e-fondo {
+  background: var(--e-fondo); color: var(--e-texto); font-family: var(--e-fuente);
+  -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1;
+}
+/* marco negro alrededor de la página, como un catálogo impreso montado sobre negro (solo en pantallas grandes) */
+@media (min-width: 900px) {
+  .e-fondo::after { content: ""; position: fixed; inset: 0; border: var(--e-marco-ancho) solid var(--e-marco); pointer-events: none; z-index: 10; }
+}
+
+/* etiqueta pequeña en versalitas espaciadas */
+.e-etiqueta { font: 600 .68rem/1.3 var(--e-fuente); letter-spacing: .14em; text-transform: uppercase; color: var(--e-texto); }
+.e-rojo { color: var(--e-rojo); }
+
+/* control fino de 1 px (enlace o botón) */
+.e-caja {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 30px; padding: 0 10px;
+  font: 600 .68rem/1 var(--e-fuente); letter-spacing: .14em; text-transform: uppercase; color: var(--e-texto); text-decoration: none;
+  background: transparent; border: 1px solid var(--e-linea); border-radius: 0; cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.e-caja:hover { border-color: var(--e-texto); }
+.e-caja:focus-visible { outline: 2px solid var(--e-rojo); outline-offset: 2px; }
+.e-caja:disabled { opacity: .3; cursor: default; }
+.e-caja[aria-pressed="true"], .e-caja.e-llena { background: var(--e-texto); color: #111; border-color: var(--e-texto); }
+
+/* pestañas pegadas (filtros) */
+.e-pestanas { display: inline-flex; }
+.e-pestanas > button { margin-left: -1px; }
+
+/* botón redondo de icono (flechas) */
+.e-redondo { width: 44px; height: 44px; display: inline-grid; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 50%; background: transparent;
+  color: var(--e-texto); font: 300 1.3rem/1 var(--e-fuente); cursor: pointer; transition: border-color .15s, opacity .15s; -webkit-tap-highlight-color: transparent; }
+.e-redondo:hover:not(:disabled) { border-color: var(--e-linea); }
+.e-redondo:focus-visible { outline: 2px solid var(--e-rojo); outline-offset: 2px; }
+.e-redondo:disabled { opacity: .2; cursor: default; }
+
+.e-aviso { padding: 10px 16px; background: var(--e-panel); border: 1px solid var(--e-linea); font: 500 .85rem/1.3 var(--e-fuente); color: var(--e-texto); pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) { .e-caja, .e-redondo { transition: none; } }

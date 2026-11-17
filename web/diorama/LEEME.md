@@ -11,8 +11,8 @@ no reproduce personajes, lugares ni elementos de ninguna obra concreta.
 | `diorama.css` | Interfaz: fondo de papel (`.d-fondo`), paneles (`.d-panel`), botones de juguete (`.d-boton` + `.d-verde` acción, `.d-azul` navegar, `.d-madera` volver), chapas y avisos |
 
 **Dónde se usa**
-- Estantería (`index.html`): el mueble de madera miel sobre la isla, con agua delante, árboles a los lados y el cielo recortado en arco.
-- Álbum (`web/prueba-3d/`): tema `diorama` (por defecto desde la 3.9). El álbum se apoya en una isla pequeña; la interfaz usa los mismos
+- La biblioteca pasó a la dirección editorial (ver `web/editorial/LEEME.md`); este sistema queda para el tema `?tema=diorama` del álbum.
+- Álbum (`web/prueba-3d/`): tema `diorama` (`?tema=diorama`; fue el de por defecto en la 3.9). El álbum se apoya en una isla pequeña; la interfaz usa los mismos
   componentes y el botón **‹ Biblioteca** vuelve a la estantería. Los temas anteriores siguen disponibles: `?tema=claro`, `?tema=acogedor`, `?tema=noche`.
 
 **Rendimiento:** todas las texturas se generan una vez por página (resolución según la calidad: baja ½, media ¾, alta completa); geometrías y

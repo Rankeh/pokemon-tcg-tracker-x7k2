@@ -284,8 +284,23 @@ TEMAS.diorama = {
   entorno: { arriba: 0x8fcff5, horizonte: 0xd8eef9, abajo: 0x6b8a4a, ventana: 0xfff4d8, ganancia: 1.4, aro: 0xffffff, ganancia2: 0.5 },
   escenario: { isla: { ancho: 0.74, fondo: 0.62, agua: 0.12, alto: 0.09 } },      // algo mayor que el álbum abierto: se ve flotar sobre el papel
 };
+// EDITORIAL (3.10, por defecto): la misma dirección que la biblioteca (catálogo de diseño gráfico). Estudio oscuro: suelo grafito que se funde
+// con el fondo, páginas grafito para que las cartas sean lo único con color, foco frontal cálido, contorno que recorta los cantos y aro rojo.
+TEMAS.editorial = {
+  paleta: { cubierta: 0x40597a, pagina: 0x2e2e2e, lomo: 0x36495f, soldadura: 0x4a4a4a, funda: 0xffffff, mesa: 0x222222 },
+  luces: {
+    hemi: { cielo: 0xffffff, suelo: 0x101010, intensidad: 0.6 },
+    principal: { color: 0xfff4e8, intensidad: 2.4, pos: [-0.6, 0.62, 0.5] },
+    relleno: { color: 0xd8e0ff, intensidad: 0.35, pos: [0.8, 0.3, 0.35] },
+    contorno: { color: 0xffe0d0, intensidad: 1.4, pos: [0.3, 0.5, -0.85] },
+  },
+  cantos: { cubierta: { canto: [1.4, 1.4, 1.4] }, pagina: { canto: [1.5, 1.5, 1.5] }, lomo: { curvatura: 0.6 } },
+  exposicion: 1.05, sheen: 0xd0d6e2, aro: 0xe5432f, sombraOpacidad: 0.55,
+  escenario: { suelo: [0x1d1e20], tablones: false, alfombra: null, ladoSuelo: 3 },
+  entorno: { arriba: 0x2a2a2a, horizonte: 0x161616, abajo: 0x080808, ventana: 0xffffff, ganancia: 1.6, aro: 0xffd8c8, ganancia2: 0.4 },
+};
 export const NOMBRES_TEMA = Object.keys(TEMAS);
-export const TEMA_DEFECTO = 'diorama';
+export const TEMA_DEFECTO = 'editorial';
 export const elegirTema = (p) => (TEMAS[(p || '').toLowerCase()] ? (p || '').toLowerCase() : TEMA_DEFECTO);
 
 const rgb = (h) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];

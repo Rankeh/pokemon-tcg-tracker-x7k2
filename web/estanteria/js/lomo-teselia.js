@@ -7,6 +7,7 @@ import { dibujarPortada, dibujarBanda } from '../../prueba-3d/js/portada-tapa.js
 
 const SERIF = '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif';
 const SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+const ROJO = '#e5432f';                                   // acento editorial (el mismo de la interfaz)
 export const COLORES = { marfil: '#ece3d2', marfilSombra: '#d6c9b1', noche: '#12151c', oro: '#caa25c', oroClaro: '#f0d9a2', tinta: '#2a1d14', tejido: '#40597a' };
 // metal/rugosidad: G = rugosidad, B = metal (convención de Three para roughnessMap/metalnessMap)
 const MR = { cuero: 'rgb(0,150,0)', oro: 'rgb(0,72,255)', costura: 'rgb(0,190,0)' };
@@ -150,20 +151,37 @@ export function dibujarCantos(w = 64, h = 256) {
   return c;
 }
 
-/** Lomo «Nuevo álbum»: hueco disponible con contorno dorado discontinuo, «+» en un círculo y el texto en vertical. Fondo transparente. */
+/** Lomo «Nuevo álbum» (editorial): negro mate, contorno fino discontinuo, «+» rojo y el texto en vertical. */
 export function dibujarLomoNuevo(ancho = 160) {
   const { w, h } = tamLomo(ancho), c = lienzo(w, h), ctx = c.getContext('2d');
-  ctx.fillStyle = 'rgba(255,253,246,.55)'; ctx.beginPath(); ctx.roundRect(w * 0.08, w * 0.08, w * 0.84, h - w * 0.16, w * 0.16); ctx.fill();   // papel translúcido
-  ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = w * 0.035; ctx.setLineDash([w * 0.12, w * 0.08]);
-  ctx.beginPath(); ctx.roundRect(w * 0.08, w * 0.08, w * 0.84, h - w * 0.16, w * 0.16); ctx.stroke();
+  ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = w * 0.025; ctx.setLineDash([w * 0.1, w * 0.08]);
+  ctx.strokeRect(w * 0.12, w * 0.12, w * 0.76, h - w * 0.24);
   ctx.setLineDash([]);
-  const cy = h * 0.2, r = w * 0.27;
-  ctx.fillStyle = '#6cbb52'; ctx.beginPath(); ctx.arc(w / 2, cy, r, 0, 2 * Math.PI); ctx.fill();
-  ctx.lineWidth = w * 0.035; ctx.strokeStyle = '#ffffff'; ctx.stroke();
-  ctx.lineWidth = w * 0.06; ctx.lineCap = 'round'; ctx.strokeStyle = '#ffffff';
+  const cy = h * 0.16, r = w * 0.22;
+  ctx.fillStyle = ROJO; ctx.beginPath(); ctx.arc(w / 2, cy, r, 0, 2 * Math.PI); ctx.fill();
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = w * 0.05; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(w / 2 - r * 0.5, cy); ctx.lineTo(w / 2 + r * 0.5, cy); ctx.moveTo(w / 2, cy - r * 0.5); ctx.lineTo(w / 2, cy + r * 0.5); ctx.stroke();
-  ctx.save(); ctx.fillStyle = '#5b4026';
-  textoVertical(ctx, 'NUEVO ÁLBUM', w / 2, h * 0.6, w * 0.25, w * 0.06, SANS, h * 0.55);
+  ctx.save(); ctx.fillStyle = '#f2f2f2';
+  textoVertical(ctx, 'NUEVO ÁLBUM', w / 2, h * 0.58, w * 0.24, w * 0.08, SANS, h * 0.6);
   ctx.restore();
+  return c;
+}
+
+/** Portada del «Nuevo álbum» (se ve cuando queda seleccionado): negro, contorno discontinuo y un «+» grande. u = 0 junto al lomo. */
+export function dibujarTapaNueva(ancho = 640) {
+  const W = ancho, H = Math.round(ancho * LIBRO.alto / LIBRO.fondo), c = lienzo(W, H), ctx = c.getContext('2d');
+  ctx.fillStyle = '#161616'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#0f0f0f'; ctx.fillRect(0, 0, W * 0.06, H);                    // lomo a la izquierda
+  ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = W * 0.006; ctx.setLineDash([W * 0.03, W * 0.02]);
+  ctx.strokeRect(W * 0.12, W * 0.06, W * 0.82, H - W * 0.12);
+  ctx.setLineDash([]);
+  const cx = W * 0.53, cy = H * 0.44, r = W * 0.13;
+  ctx.strokeStyle = ROJO; ctx.lineWidth = W * 0.018; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke();
+  ctx.fillStyle = '#f2f2f2'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.font = `300 ${W * 0.08}px ${SANS}`; ctx.fillText('Nuevo álbum', cx, H * 0.66);
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `600 ${W * 0.032}px ${SANS}`;
+  const t = 'PRÓXIMAMENTE'; ctx.fillText([...t].join('\u2009'), cx, H * 0.72);
   return c;
 }

@@ -1,72 +1,59 @@
-// Pruebas de la estantería (Fase 1): partes puras, sin Three.js ni navegador.
+// Pruebas de la biblioteca (carrusel editorial): partes puras, sin Three.js ni navegador.
 // Uso: node --test web/estanteria/pruebas/*.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LIBRO, PASO, MUEBLE, ALTO_HUECO, huecosPorBalda, disponer, medidasMueble, posicionLibro, ySueloBalda } from '../js/disposicion.js';
+import { LIBRO } from '../js/disposicion.js';
+import { poses, mover, elementos, series, altoVisible, CARRUSEL } from '../js/carrusel.js';
 import { listarAlbumes, validarAlbum, normalizarAlbumes } from '../js/albumes.js';
 
 test('el libro tiene las medidas del álbum 3D (GLB: 258 + 10 mm de ancho, 322 mm de alto, 46,5 mm de grosor)', () => {
-  assert.equal(LIBRO.alto, 0.322);
-  assert.equal(LIBRO.fondo, 0.268);
-  assert.equal(LIBRO.grueso, 0.0465);
-  assert.ok(ALTO_HUECO > LIBRO.alto, 'el libro cabe de pie en el hueco');
-  assert.ok(MUEBLE.fondo > LIBRO.fondo + MUEBLE.retranqueo, 'y en profundidad');
+  assert.deepEqual(LIBRO, { grueso: 0.0465, alto: 0.322, fondo: 0.268 });
 });
 
-test('huecos por balda: pocos en iPhone vertical, más en escritorio, siempre entre 4 y 18', () => {
-  const iphone = huecosPorBalda(390 / 844), pc = huecosPorBalda(1440 / 900), ultra = huecosPorBalda(5);
-  assert.ok(iphone >= 4 && iphone <= 6, `iPhone: ${iphone}`);
-  assert.ok(pc > iphone, `PC (${pc}) > iPhone (${iphone})`);
-  assert.equal(ultra, 18);
-  assert.equal(huecosPorBalda(0), 6);
+test('poses: el elegido queda en el centro, de cara (giro −90°), adelantado y algo levantado; el resto de lomo', () => {
+  const p = poses(5, 2);
+  assert.equal(p[2].x, 0); assert.equal(p[2].giro, -Math.PI / 2);
+  assert.ok(p[2].z > 0 && p[2].y > LIBRO.alto / 2, 'sale hacia la cámara y sube un poco');
+  for (const i of [0, 1, 3, 4]) { assert.equal(p[i].giro, 0); assert.equal(p[i].z, 0); assert.equal(p[i].y, LIBRO.alto / 2); }
+  assert.ok(p[1].x < 0 && p[3].x > 0, 'anteriores a la izquierda, siguientes a la derecha');
+  assert.ok(Math.abs(p[1].x + p[3].x) < 1e-12, 'simétrico');
 });
 
-test('disposición con el álbum actual: álbum, sujetalibros, «Nuevo álbum» y el resto vacío (sin libros de relleno)', () => {
-  const d = disponer({ albumes: [{ id: 'teselia' }], huecos: 5, minBaldas: 3 });
-  assert.deepEqual(d.elementos, [
-    { tipo: 'album', id: 'teselia', balda: 0, hueco: 0 },
-    { tipo: 'nuevo', id: 'nuevo', balda: 0, hueco: 2 },
-  ]);
-  assert.deepEqual(d.sujetalibros, { balda: 0, hueco: 1 });
-  assert.equal(d.baldas, 3);
-  assert.equal(d.vacios, 15 - 3);
-  assert.equal(d.elementos.filter((e) => e.tipo === 'album').length, 1, 'solo los álbumes reales');
-});
-
-test('la estantería crece: siempre queda sitio libre detrás del «Nuevo álbum»', () => {
-  for (const huecos of [4, 5, 12]) for (let n = 0; n <= 40; n++) {
-    const d = disponer({ albumes: Array.from({ length: n }, (_, i) => ({ id: 'a' + i })), huecos, minBaldas: 3 });
-    const nuevo = d.elementos.find((e) => e.tipo === 'nuevo');
-    assert.ok(d.vacios >= 1, `${n} álbumes / ${huecos} huecos: sin hueco libre`);
-    assert.ok(nuevo.balda < d.baldas && nuevo.hueco < huecos);
-    const claves = d.elementos.map((e) => `${e.balda}:${e.hueco}`).concat(d.sujetalibros ? [`${d.sujetalibros.balda}:${d.sujetalibros.hueco}`] : []);
-    assert.equal(new Set(claves).size, claves.length, 'nunca dos cosas en el mismo hueco');
+test('poses: nadie se solapa con la portada abierta ni entre sí', () => {
+  for (const n of [1, 2, 6, 20]) for (let s = 0; s < n; s++) {
+    const p = poses(n, s), mitadPortada = LIBRO.fondo / 2;
+    p.forEach((q, i) => { if (i !== s) assert.ok(Math.abs(q.x) - LIBRO.grueso / 2 >= mitadPortada + CARRUSEL.aire - 1e-9, `n=${n} s=${s} i=${i}`); });
+    const xs = p.filter((_, i) => i !== s).map((q) => q.x).sort((a, b) => a - b);
+    for (let i = 1; i < xs.length; i++) assert.ok(xs[i] - xs[i - 1] >= LIBRO.grueso - 1e-9, 'lomos sin solaparse');
   }
 });
 
-test('sin álbumes no hay sujetalibros y «Nuevo álbum» va primero', () => {
-  const d = disponer({ albumes: [], huecos: 6 });
-  assert.equal(d.sujetalibros, null);
-  assert.deepEqual(d.elementos, [{ tipo: 'nuevo', id: 'nuevo', balda: 0, hueco: 0 }]);
+test('mover: se queda en los extremos (sin dar la vuelta); selección fuera de rango se acota', () => {
+  assert.equal(mover(3, 0, -1), 0); assert.equal(mover(3, 2, 1), 2); assert.equal(mover(3, 1, 1), 2);
+  assert.equal(poses(2, 9)[1].giro, -Math.PI / 2, 'índice acotado al último');
 });
 
-test('posiciones: los libros apoyan en su balda, quedan dentro del mueble y no se solapan', () => {
-  const huecos = 6, baldas = 3, { interior } = medidasMueble(huecos, baldas);
-  for (let b = 0; b < baldas; b++) for (let h = 0; h < huecos; h++) {
-    const p = posicionLibro({ balda: b, hueco: h }, huecos, baldas);
-    assert.ok(Math.abs(p.y - LIBRO.alto / 2 - ySueloBalda(b, baldas)) < 1e-9, 'apoyado en la balda');
-    assert.ok(p.x - LIBRO.grueso / 2 >= -interior / 2 && p.x + LIBRO.grueso / 2 <= interior / 2, 'dentro de los laterales');
-    if (h > 0) assert.ok(p.x - posicionLibro({ balda: b, hueco: h - 1 }, huecos, baldas).x >= LIBRO.grueso, 'sin solaparse');
-  }
-  assert.ok(ySueloBalda(0, baldas) > ySueloBalda(1, baldas), 'la balda 0 es la de arriba');
-  assert.ok(PASO > LIBRO.grueso);
+test('elementos: álbumes reales (filtrables por serie) y siempre «Nuevo álbum» al final; sin libros de relleno', () => {
+  const a = [{ id: 'a', serie: 'sv' }, { id: 'b', serie: 'swsh' }];
+  assert.deepEqual(elementos(a).map((e) => e.id), ['a', 'b', 'nuevo']);
+  assert.deepEqual(elementos(a, 'swsh').map((e) => e.id), ['b', 'nuevo']);
+  assert.deepEqual(elementos([]).map((e) => e.tipo), ['nuevo']);
+  assert.deepEqual(series([{ serie: 'sv', nombreSerie: 'Escarlata y Púrpura' }, { serie: 'sv' }, { serie: 'swsh' }]), [{ id: 'sv', nombre: 'Escarlata y Púrpura' }, { id: 'swsh', nombre: 'swsh' }]);
 });
 
-test('álbumes: el actual (Teselia) está y apunta a la ruta existente del visor 3D', async () => {
+test('encuadre: el libro de cara ocupa ~la mitad del alto; en vertical caben la portada y algo de los vecinos', () => {
+  assert.ok(Math.abs(LIBRO.alto / altoVisible(16 / 9) - 0.5) < 1e-9, 'escritorio: medio alto');
+  const iphone = 390 / 844, ancho = altoVisible(iphone) * iphone;
+  assert.ok(ancho > LIBRO.fondo + 2 * CARRUSEL.aire, `iPhone: caben portada y aire (${ancho.toFixed(3)} m)`);
+  assert.ok(LIBRO.alto / altoVisible(iphone) > 0.3, 'iPhone: el libro no queda diminuto');
+});
+
+test('álbumes: el actual (Teselia) está, con serie y nº de cartas, y apunta a la ruta existente del visor 3D', async () => {
   const lista = await listarAlbumes();
   assert.equal(lista.length, 1);
   assert.equal(lista[0].id, 'teselia');
   assert.equal(lista[0].ruta, 'web/prueba-3d/index.html');
+  assert.equal(lista[0].serie, 'sv'); assert.equal(lista[0].cartas, 158);
   assert.deepEqual(validarAlbum(lista[0]), []);
   lista[0].nombre = 'cambiado';
   assert.equal((await listarAlbumes())[0].nombre, 'Teselia', 'devuelve copias: nadie modifica el registro por accidente');

@@ -22,7 +22,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
-export const FASE = '3.9';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.10';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -41,7 +41,7 @@ const camara = new THREE.PerspectiveCamera(FOV, 1, 0.02, 5);
 // Fase 3.7.2a: luces, mesa, sombra de contacto, materiales y tone mapping los gestiona Aspecto según el nivel de calidad (?calidad=baja|media|alta|legado).
 const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchMedia('(pointer: coarse)').matches,
   nucleos: navigator.hardwareConcurrency || 0, memoriaGb: navigator.deviceMemory || 0 });
-const tema = elegirTema(params.get('tema'));                 // ?tema=diorama (por defecto, 3.9: la misma ilustración que la estantería) | claro (estilo Apple) | acogedor | noche
+const tema = elegirTema(params.get('tema'));                 // ?tema=editorial (por defecto, 3.10: la dirección de la biblioteca) | diorama | claro | acogedor | noche
 document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
 const tapa = elegirAcabado(params.get('tapa'));               // ?tapa=grafito (por defecto) | fieltro | cuero | tejido | acolchado
 const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0', emblema: params.get('emblema') !== '0', portada: params.get('portada') !== '0' });   // ?portada=0: tapa lisa con el emblema bordado (3.7.25)   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone
