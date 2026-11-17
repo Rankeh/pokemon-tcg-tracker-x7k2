@@ -1,4 +1,4 @@
-"""Descarga el arte real de las 5 promos que TCGdex no tiene, desde tu PC (el entorno de Claude no tiene red).
+"""Descarga el arte real de las 5 promos (y otras cartas, ver EXTRA) que TCGdex no tiene, desde tu PC (el entorno de Claude no tiene red).
 Uso (en la raíz del repo):  python herramientas/proxies/descargar_arte.py
 Guarda web/prueba-3d/assets/proxies/arte/<id>.png/.webp. Si un archivo existe, la app lo usa en lugar del proxy.
 Fuente principal: limitlesstcg.com (SVP_208_R_ES_LG.png, URL leída de su página); respaldo: pokedexia. Las URLs de 209-212 siguen el mismo patrón, sin verificar.
@@ -20,4 +20,12 @@ for n in range(208, 213):
         except Exception as e:
             print('fallo', id_, p.split('/')[-1], e)
     else: print('SIN ARTE', id_, '(seguirá el proxy)')
-print(ok, 'de 5 descargadas'); sys.exit(0 if ok else 1)
+# 3.15 · otras cartas que TCGdex no tiene (sin proxy): URL comprobada en limitlesstcg.com. Nombre en minúsculas (GitHub Pages).
+EXTRA = {'swsh12.5gg-gg19': 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRZ/CRZ_GG19_R_ES_LG.png'}   # Altaria (Asako Ito)
+for id_, url in EXTRA.items():
+    try:
+        datos = urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'}), timeout=20).read()
+        if datos[:4] == b'\x89PNG' and len(datos) > 2000: (SALIDA / (id_ + '.png')).write_bytes(datos); print('OK ', id_, len(datos), 'bytes'); ok += 1
+        else: print('SIN ARTE', id_)
+    except Exception as e: print('fallo', id_, e)
+print(ok, 'de', 5 + len(EXTRA), 'descargadas'); sys.exit(0 if ok else 1)

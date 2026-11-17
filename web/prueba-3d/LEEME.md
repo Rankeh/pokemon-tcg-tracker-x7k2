@@ -367,3 +367,10 @@ cantidad exacta (se lee la colección entera y se reescribe sin las cartas del �
 foto para deshacer). Como las copias se guardan por carta, una carta que está también en otro álbum desaparece de los dos: la confirmación lo
 avisa con el nombre del otro álbum (p. ej. Audino de Fulgor Negro está en Asako Ito y en Teselia) y su botón es rojo.
 **Deshacer el último cambio en bloque** (mismo menú) recupera exactamente lo eliminado, cantidades incluidas, hasta tu próximo cambio a mano.
+
+## 3.15 — Altaria GG19 con imagen real
+TCGdex no tiene imagen de Altaria (Cenit Supremo, Galería de Galar, GG19 — álbum Asako Ito). Como con las promos de Blanco y Negro, se usa
+el arte real en español de limitlesstcg.com, guardado en `assets/proxies/arte/swsh12.5gg-gg19.png` (minúsculas: GitHub Pages distingue
+mayúsculas). `proxies.js` tiene ahora una lista `ARTE` para cartas con arte descargado que no necesitan proxy; el bolsillo 3D y la ficha siguen
+la cadena oficial → arte → proxy → marcador (y el 3D carga cada imagen una sola vez). `herramientas/proxies/descargar_arte.py` la descarga
+también (lista `EXTRA`). Una prueba comprueba que, en todos los álbumes, toda carta sin imagen oficial tiene arte o proxy en disco.

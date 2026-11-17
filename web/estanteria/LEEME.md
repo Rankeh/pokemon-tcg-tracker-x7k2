@@ -31,4 +31,4 @@ Las copias se guardan por id de carta en la misma base de datos: una carta que e
 **Álbum de artista — Asako Ito:** `python herramientas/catalogo-ilustrador/generar.py --ilustrador "Asako Ito" --id asako-ito` y
 `python herramientas/texturas/descargar_cartas.py --catalogo datos/catalogo/coleccion-asako-ito.json`. 37 cartas físicas según TCGdex
 (coincidencia exacta del nombre); se excluyen 6 de Pokémon TCG Pocket (digital) — `--incluir-pocket` las añadiría. Altaria GG19 no tiene imagen
-en TCGdex y sale con marcador.
+en TCGdex: se usa la de limitlesstcg.com (ver web/prueba-3d/LEEME.md, 3.15).

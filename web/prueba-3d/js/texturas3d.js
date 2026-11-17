@@ -19,14 +19,12 @@ export function crearProductores({ manifiesto, rutaBase = 'assets/cartas/', anis
     /** Imagen local de la carta. Rechaza si no hay copia local (el llamante cae al marcador). */
     mini: (carta) => async () => {
       const e = manifiesto && manifiesto.cartas && manifiesto.cartas[carta.id];
-      if (!e) {                                                  // sin copia oficial: ¿hay carta proxy propia?
-        const rp = rutaProxy(carta.id);
-        if (!rp) throw new Error('sin imagen local para ' + carta.id);
-        let ruta = rp;
-        for (const r of rutasArte(carta.id)) {                   // arte real descargado (.png o .webp); si no existe, proxy
-          try { const t = await new THREE.TextureLoader().loadAsync(r); t.dispose && t.dispose(); ruta = r; break; } catch { /* siguiente */ }
+      if (!e) {                                                  // sin copia oficial: arte real descargado → carta proxy propia → (marcador)
+        const candidatas = [...rutasArte(carta.id), rutaProxy(carta.id)].filter(Boolean);
+        for (const r of candidatas) {                            // 3.15: una sola carga por candidata (antes se cargaba dos veces) y vale sin proxy
+          try { return { textura: preparar(await new THREE.TextureLoader().loadAsync(r)), bytes: memoriaTexturaBytes(TAM_MINI.w, TAM_MINI.h) }; } catch { /* siguiente */ }
         }
-        return { textura: preparar(await new THREE.TextureLoader().loadAsync(ruta)), bytes: memoriaTexturaBytes(TAM_MINI.w, TAM_MINI.h) };
+        throw new Error('sin imagen local para ' + carta.id);
       }
       const t = await new THREE.TextureLoader().loadAsync(rutaBase + e.mini);
       return { textura: preparar(t), bytes: memoriaTexturaBytes(e.anchoMini || TAM_MINI.w, e.altoMini || TAM_MINI.h) };

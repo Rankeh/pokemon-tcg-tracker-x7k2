@@ -69,3 +69,22 @@ test('P6: la ficha (panel de detalle) también usa arte/proxy cuando no hay copi
   f.abrir(d2);
   assert.ok(el.imagen._tuvoMarcador, 'sin oficial, arte ni proxy: cae al marcador');
 });
+
+test('3.15 · toda carta sin imagen oficial en el manifiesto tiene arte descargado o proxy (archivo presente, nombre en minúsculas) en TODOS los álbumes', async () => {
+  const { readFile, access } = await import('node:fs/promises');
+  const { ARTE, rutasArte, rutaProxy } = await import('../js/proxies.js');
+  const base = new URL('../', import.meta.url), raiz = new URL('../../../', import.meta.url);
+  const manifiesto = JSON.parse(await readFile(new URL('assets/cartas/manifiesto.json', base), 'utf8')).cartas;
+  for (const cat of ['coleccion-teselia.json', 'coleccion-asako-ito.json']) {
+    for (const c of JSON.parse(await readFile(new URL('datos/catalogo/' + cat, raiz), 'utf8')).cartas) {
+      if (manifiesto[c.id]) continue;
+      const rutas = [...rutasArte(c.id), rutaProxy(c.id)].filter(Boolean);
+      assert.ok(rutas.length, `${cat}: ${c.id} no tiene imagen oficial, ni arte, ni proxy`);
+      let alguna = false;
+      for (const r of rutas) { try { await access(new URL(r, base)); alguna = true; } catch { /* siguiente */ } }
+      assert.ok(alguna, `${cat}: ${c.id}: ningún archivo de ${rutas.join(', ')}`);
+    }
+  }
+  for (const r of Object.values(ARTE)) assert.equal(r, r.toLowerCase(), 'nombre en minúsculas (GitHub Pages): ' + r);
+  assert.deepEqual(rutasArte('swsh12.5gg-GG19'), ['assets/proxies/arte/swsh12.5gg-gg19.png']);
+});
