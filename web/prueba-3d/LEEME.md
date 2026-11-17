@@ -353,3 +353,10 @@ Dos fallos de 3.7.31: (1) la URL de pokemontcg.io era un REDIRECTOR y el `?langu
 
 ## Imágenes de cartas en GitHub Pages
 La app nunca pide imágenes a servidores externos: lee `assets/cartas/manifiesto.json` + `mini/` y `grande/` (rutas relativas, válidas bajo `/pokemon-tcg-tracker-x7k2/`). Esa carpeta debe estar en el repo: genérala con `python herramientas/texturas/descargar_cartas.py` (o `java herramientas/texturas/PrepararTexturas.java`), y haz `git add web/prueba-3d/assets/cartas`. Nombres siempre en minúsculas. Sin manifiesto se ven marcadores y la consola avisa.
+
+## 3.13 — Añadir todas las cartas de un álbum
+Menú **⋯** de la cabecera → **Añadir todas las cartas (faltan N)**. Pide confirmación y marca con **1 copia** las cartas del álbum que faltan;
+las que ya tienes no cambian (nunca baja una cantidad) y las de otros álbumes no se tocan. Usa `Almacen.importar(…, 'combinar')`, que guarda
+antes una foto de la colección: **Deshacer «añadir todas»** (mismo menú) vuelve exactamente a como estaba. El deshacer solo se ofrece hasta el
+siguiente cambio a mano o hasta releer la colección, porque volver a la foto pisaría esos cambios. En móvil el cambio de modo claro/oscuro
+también está en este menú. Prueba con IndexedDB real: `node web/prueba-3d/pruebas/ejecutar-completar.mjs`.

@@ -14,6 +14,7 @@
       b.setAttribute('aria-pressed', String(claro));
       b.setAttribute('aria-label', claro ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro');
       b.title = claro ? 'Modo oscuro' : 'Modo claro';
+      if (b.hasAttribute('data-con-texto')) b.textContent = claro ? 'Modo oscuro' : 'Modo claro';     // opción de menú con texto
     });
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', claro ? '#efede8' : '#1c1c1c');

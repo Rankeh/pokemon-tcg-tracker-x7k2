@@ -392,3 +392,31 @@ body[data-tema="editorial"] .modo-album[aria-pressed] { background: transparent;
   body[data-tema="editorial"] h1 { font-size: 1.1rem; }
   body[data-tema="editorial"] button, body[data-tema="editorial"] select { min-height: 44px; padding: 0 10px; }
 }
+
+/* =====================================================================================================================================
+   3.13 · Menú «⋯» del álbum (Añadir todas las cartas / Deshacer) y ventana de confirmación. Base para todos los temas + ajuste editorial.
+   ===================================================================================================================================== */
+.opciones { pointer-events: auto; width: 44px; min-height: 40px; padding: 0; font-size: 1.2rem; line-height: 1; }
+.menu-album { position: fixed; z-index: 8; top: calc(max(10px, env(safe-area-inset-top)) + 52px); right: max(14px, env(safe-area-inset-right)); min-width: 240px;
+  display: grid; padding: 6px; background: var(--panel); border: 1px solid var(--borde); border-radius: 12px; box-shadow: 0 16px 40px rgba(0, 0, 0, .35); }
+.menu-album button { display: flex; align-items: center; justify-content: flex-start; text-align: left; border: 0; background: transparent; width: 100%; }
+.menu-album button:disabled { opacity: .5; }
+.confirmar { max-width: min(420px, calc(100vw - 32px)); padding: 22px; color: var(--texto); background: var(--panel); border: 1px solid var(--borde); border-radius: 16px; }
+.confirmar::backdrop { background: rgba(0, 0, 0, .45); }
+.confirmar h2 { margin: 0 0 8px; font-size: 1.2rem; }
+.confirmar p { margin: 0 0 18px; color: var(--suave); line-height: 1.45; }
+.confirmar-botones { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+body[data-tema="editorial"] .opciones { margin-left: auto; width: 32px; min-height: 32px; font: 300 1.1rem/1 var(--e-fuente); letter-spacing: 0; }
+body[data-tema="editorial"] .opciones + .modo-album { margin-left: 0; }
+body[data-tema="editorial"] .menu-album { border-radius: 0; background: var(--e-ficha); border-color: var(--e-linea); padding: 4px; }
+body[data-tema="editorial"] .menu-album button { display: flex; align-items: center; min-height: 44px; border: 0; background: transparent; text-transform: none; letter-spacing: .01em; font: 500 .9rem/1.2 var(--e-fuente); }
+body[data-tema="editorial"] .menu-album button:hover:not(:disabled) { background: var(--e-control); }
+body[data-tema="editorial"] .confirmar { border-radius: 0; background: var(--e-ficha); border-color: var(--e-linea); color: var(--e-texto); }
+body[data-tema="editorial"] .confirmar::backdrop { background: var(--e-velo); }
+body[data-tema="editorial"] .confirmar h2 { font: 300 1.5rem/1.15 var(--e-fuente); letter-spacing: -.01em; }
+body[data-tema="editorial"] .confirmar p { color: var(--e-suave); font-size: .92rem; }
+@media (min-width: 900px) { body[data-tema="editorial"] .menu-album { top: calc(var(--e-marco-ancho) + 56px); right: calc(var(--e-marco-ancho) + 18px); } }
+/* el cambio de modo va en la cabecera en pantallas anchas y dentro del menú ⋯ en móvil (la cabecera cabe en una fila) */
+.m-modo { display: none; }
+@media (max-width: 520px) { body[data-tema="editorial"] .modo-album { display: none; } body[data-tema="editorial"] .m-modo { display: flex; } }

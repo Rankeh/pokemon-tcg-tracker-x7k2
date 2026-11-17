@@ -12,6 +12,7 @@ import { Resaltado } from './resaltado.js';
 import { Metricas } from './metricas.js';
 import { Aspecto, elegirCalidad, elegirTema, elegirAcabado, TEMAS } from './aspecto.js';
 import { albumPorId } from '../../estanteria/js/albumes.js';
+import { montarMenu, cartasPendientes, copiasParaCompletar } from './completar.js';
 import { fijarTemaMarcadores } from './marcadores.js';
 import { Diagnostico } from './diagnostico.js';
 import { CacheTexturas } from './texturas.js';
@@ -23,7 +24,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
-export const FASE = '3.12';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.13';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -59,6 +60,8 @@ let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl
 let sucioHasta = 0, continuo = false, forzarDibujo = false, claveNav = '';
 const pedirFrame = (ms = 500) => { sucioHasta = Math.max(sucioHasta, performance.now() + ms); };
 const avisar = (t) => { $('aviso').textContent = t || ''; $('aviso').hidden = !t; };
+let menuAlbum = null;                                           // 3.13 · «Añadir todas las cartas» (completar.js)
+const cambioAMano = () => menuAlbum?.invalidarDeshacer();         // tras un cambio a mano ya no se ofrece deshacer «añadir todas»
 
 // ------------------------------------------------------------------ cámara cinematográfica (Fase 3.7.1)
 // El encuadre NO usa distancias fijas: se calcula con calcularEncuadre() a partir del viewport, la proporción, la elevación, las dimensiones reales
@@ -432,9 +435,9 @@ async function arrancar() {
   const catalogo = await (await fetch('../../' + albumActual.catalogo)).json();
   const mapa = crearMapa(catalogo);
   // Persistencia: LA MISMA base de datos de la app original ('coleccion-teselia'). ?bd=otro-nombre solo para pruebas con datos ajenos.
-  let modelo, soloLectura = false;
+  let modelo, soloLectura = false, almacen = null;
   try {
-    const almacen = await Almacen.abrir(params.get('bd') || undefined);
+    almacen = await Almacen.abrir(params.get('bd') || undefined);
     modelo = new ModeloColeccion(almacen, mapa.cartas);
     await modelo.cargar();
   } catch (e) {
@@ -466,7 +469,7 @@ async function arrancar() {
 
   ficha = new FichaUI({ raiz: $('ficha'), fondo: $('f-fondo'), imagen: $('f-imagen'), nombre: $('f-nombre'), expansion: $('f-exp'), numero: $('f-num'), precio: $('f-precio'), cardmarket: $('f-cardmarket'), cantidad: $('f-cant'),
     estadoTxt: $('f-estado-txt'), error: $('f-error'), cerrar: $('f-cerrar'), anadir: $('f-mas'), retirar: $('f-menos') },
-  { manifiesto, precios, alCerrar: cerrarFicha, alAnadir: () => ctrl.anadir(), alRetirar: () => ctrl.retirar() });
+  { manifiesto, precios, alCerrar: cerrarFicha, alAnadir: () => { cambioAMano(); ctrl.anadir(); }, alRetirar: () => { cambioAMano(); ctrl.retirar(); } });
   if (soloLectura) { $('f-mas').disabled = $('f-menos').disabled = true; }
   const fichaConProgreso = Object.create(ficha); // tras cada cambio confirmado se refresca el contador de progreso
   fichaConProgreso.actualizar = (d) => { ficha.actualizar(d); pintarProgreso(); };
@@ -478,9 +481,20 @@ async function arrancar() {
     const primera = mapa.paginas[p - 1].bolsillos.find(Boolean);
     sel.append(new Option(`Página ${p} · ${primera ? primera.nombre : ''}`, String(p)));
   }
+  // 3.13 · menú «⋯»: añadir todas las cartas del álbum (con confirmación y deshacer)
+  const releer = async () => { await adaptador.cargar(); vista.refrescar(); pintarProgreso(); pedirFrame(); };
+  let idAviso = 0;
+  menuAlbum = montarMenu({ boton: $('b-opciones'), menu: $('menu-album'), todas: $('m-todas'), deshacer: $('m-deshacer'), dialogo: $('d-todas'),
+    texto: $('d-todas-txt'), aceptar: $('d-aceptar'), cancelar: $('d-cancelar') }, {
+    nombre: albumActual.nombre, total: mapa.cartas.length, soloLectura,
+    pendientes: () => cartasPendientes(mapa.cartas, (id) => modelo.cantidad(id)),
+    completar: async (ids) => { if (ids.length) { await almacen.importar(copiasParaCompletar(ids), 'combinar'); } await releer(); },
+    deshacer: async () => { await almacen.deshacerImportacion(); await releer(); },
+    avisar: (t) => { avisar(t); const id = ++idAviso; setTimeout(() => { if (id === idAviso) avisar(''); }, 5000); },
+  });
   addEventListener('visibilitychange', async () => {            // volver de la app original (otra pestaña) → releer lo guardado
     if (document.visibilityState !== 'visible' || ctrl.fichaAbierta) return;
-    try { await adaptador.cargar(); vista.refrescar(); pintarProgreso(); } catch (e) { /* si falla se sigue con lo que hay */ }
+    try { await adaptador.cargar(); vista.refrescar(); pintarProgreso(); cambioAMano(); } catch (e) { /* si falla se sigue con lo que hay */ }
   });
 
   metricas = new Metricas($('panel'), renderer, album, cache, vista);
