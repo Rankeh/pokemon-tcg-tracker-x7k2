@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cuenta — Álbum Teselia</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <style>
+    body { background: var(--grafito); color: var(--texto-album); font-family: var(--fuente-texto); }
+    main { max-width: 420px; margin: 0 auto; padding: 2rem 1rem; }
+    h1, h2 { font-family: var(--fuente-titulo); color: var(--laton-claro); font-weight: normal; }
+    h1 { text-align: center; }
+    form, #sesion { background: var(--grafito-claro); border: 1px solid var(--grafito-oscuro); border-radius: var(--radio-m); padding: 1.25rem; margin-bottom: 1.25rem; }
+    label { display: block; margin: .6rem 0 .25rem; color: var(--texto-album-suave); font-size: .9rem; }
+    input { width: 100%; box-sizing: border-box; font: inherit; padding: .55rem .7rem; border-radius: var(--radio-s); border: 1px solid var(--grafito-oscuro); background: var(--grafito-oscuro); color: var(--texto-album); }
+    input:focus { outline: 2px solid var(--laton); outline-offset: 1px; }
+    button { font: inherit; margin-top: 1rem; width: 100%; padding: .6rem; border: 0; border-radius: var(--radio-s); background: var(--laton); color: var(--tinta); cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    #mensaje { padding: .6rem .8rem; border-radius: var(--radio-s); margin-bottom: 1rem; background: var(--grafito-claro); }
+    #mensaje[data-tipo="error"] { border-left: 4px solid #c0533f; }
+    #mensaje[data-tipo="ok"] { border-left: 4px solid var(--salvia-claro); }
+    .suave { color: var(--texto-album-suave); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Álbum Teselia</h1>
+  <p id="mensaje" role="status" hidden></p>
+
+  <section id="formularios" hidden>
+    <form id="form-registro">
+      <h2>Crear cuenta</h2>
+      <label for="r-nombre">Nombre de usuario</label>
+      <input id="r-nombre" name="nombre" required minlength="3" maxlength="30" autocomplete="username">
+      <label for="r-correo">Correo</label>
+      <input id="r-correo" name="correo" type="email" required autocomplete="email">
+      <label for="r-clave">Contraseña</label>
+      <input id="r-clave" name="clave" type="password" required minlength="6" autocomplete="new-password">
+      <button type="submit">Crear cuenta</button>
+    </form>
+
+    <form id="form-entrar">
+      <h2>Entrar</h2>
+      <label for="e-correo">Correo</label>
+      <input id="e-correo" name="correo" type="email" required autocomplete="email">
+      <label for="e-clave">Contraseña</label>
+      <input id="e-clave" name="clave" type="password" required autocomplete="current-password">
+      <button type="submit">Entrar</button>
+    </form>
+  </section>
+
+  <section id="sesion" hidden>
+    <h2>Hola, <span id="usuario"></span></h2>
+    <p class="suave">Sesión iniciada como <span id="correo"></span></p>
+    <button id="salir" type="button">Cerrar sesión</button>
+  </section>
+</main>
+<script type="module" src="js/cuenta.js"></script>
+</body>
+</html>
