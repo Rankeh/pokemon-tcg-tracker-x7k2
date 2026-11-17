@@ -7,5 +7,8 @@ La prueba `web/prueba-3d/` carga Three.js 0.160.0 desde jsDelivr. Para usarla **
     iwr "$v/build/three.module.js" -OutFile web/vendor/three/build/three.module.js
     iwr "$v/examples/jsm/loaders/GLTFLoader.js" -OutFile web/vendor/three/examples/jsm/loaders/GLTFLoader.js
     iwr "$v/examples/jsm/utils/BufferGeometryUtils.js" -OutFile web/vendor/three/examples/jsm/utils/BufferGeometryUtils.js
+    # estantería (pantalla principal):
+    New-Item -ItemType Directory -Force web/vendor/three/examples/jsm/geometries | Out-Null
+    iwr "$v/examples/jsm/geometries/RoundedBoxGeometry.js" -OutFile web/vendor/three/examples/jsm/geometries/RoundedBoxGeometry.js
 
-Si `web/vendor/three/build/three.module.js` existe, la página lo usa automáticamente.
+Si `web/vendor/three/build/three.module.js` existe, el álbum lo usa automáticamente. La estantería (`index.html` de la raíz) solo usa la copia local si además está `RoundedBoxGeometry.js`; si falta, usa jsDelivr.
