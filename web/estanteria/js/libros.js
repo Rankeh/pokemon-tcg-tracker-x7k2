@@ -14,7 +14,7 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
   const ancho = { baja: 96, media: 160, alta: 224 }[calidad.nivel] || 160;
   const tex = (c, srgb = true) => { const t = r(new THREE.CanvasTexture(c)); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = calidad.anisotropia; return t; };
   const sombraTex = tex(generarSombra());
-  const sombraMat = r(new THREE.MeshBasicMaterial({ map: sombraTex, color: 0x000000, transparent: true, opacity: 0.7, depthWrite: false }));
+  const sombraMat = r(new THREE.MeshBasicMaterial({ map: sombraTex, color: 0x3a2412, transparent: true, opacity: 0.5, depthWrite: false }));
   const sombraGeo = r(new THREE.PlaneGeometry(LIBRO.grueso * 2.3, LIBRO.fondo * 1.25));
   const cache = new Map();
 
@@ -82,11 +82,11 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
     return g;
   }
 
-  /** Sujetalibros de latón en L (detalle metálico; no es un libro). */
+  /** Sujetalibros de madera en L (no es un libro). */
   function crearSujetalibros(pos, laton) {
     const g = new THREE.Group(); g.name = 'Sujetalibros';
-    const base = new THREE.Mesh(r(new RoundedBoxGeometry(0.05, 0.004, 0.11, 2, 0.0015)), laton); base.position.set(0.006, -LIBRO.alto / 2 + 0.002, 0);
-    const placa = new THREE.Mesh(r(new RoundedBoxGeometry(0.004, 0.16, 0.11, 2, 0.0015)), laton); placa.position.set(-0.016, -LIBRO.alto / 2 + 0.08, 0);
+    const base = new THREE.Mesh(r(new RoundedBoxGeometry(0.055, 0.012, 0.11, 2, 0.004)), laton); base.position.set(0.008, -LIBRO.alto / 2 + 0.006, 0);
+    const placa = new THREE.Mesh(r(new RoundedBoxGeometry(0.014, 0.15, 0.11, 2, 0.005)), laton); placa.position.set(-0.014, -LIBRO.alto / 2 + 0.075, 0);
     g.add(base, placa);
     g.position.set(pos.x, pos.y, pos.z + LIBRO.fondo / 2 - 0.07);
     return g;

@@ -269,8 +269,24 @@ export const TEMAS = {
     escenario: { suelo: [0xc9a47c], alfombra: { centro: 0xf3e3c8, anillo: 0xe9a39a, borde: 0xd98a82, costura: 0xfff4e0 }, radioAlfombra: 0.42, ladoSuelo: 3 },
   },
 };
+// DIORAMA (3.9, por defecto): el álbum apoyado en una isla pintada (hierba, corte de tierra y agua, árboles) con cielo en arco detrás,
+// la misma ilustración que la estantería (web/diorama/). Luz de día: cielo azul de relleno, sol cálido y algo de rebote verde.
+TEMAS.diorama = {
+  paleta: { cubierta: 0x40597a, pagina: 0xf4ecdc, lomo: 0x36495f, soldadura: 0xc9b48a, funda: 0xffffff, mesa: 0x7cc65e },
+  luces: {
+    hemi: { cielo: 0xd6eeff, suelo: 0x8a7a50, intensidad: 0.95 },
+    principal: { color: 0xfff0d2, intensidad: 2.1, pos: [-0.6, 0.62, 0.5] },
+    relleno: { color: 0xbfe3ff, intensidad: 0.45, pos: [0.8, 0.3, 0.35] },
+    contorno: { color: 0xffffff, intensidad: 1.0, pos: [0.3, 0.5, -0.85] },
+  },
+  cantos: { cubierta: { canto: [1.3, 1.3, 1.25] }, pagina: { canto: [0.95, 0.88, 0.72] }, lomo: { curvatura: 0.62 } },
+  exposicion: 1.02, sheen: 0xffe6c4, aro: 0xffc94d, sombraOpacidad: 0.38,
+  entorno: { arriba: 0x8fcff5, horizonte: 0xd8eef9, abajo: 0x6b8a4a, ventana: 0xfff4d8, ganancia: 1.4, aro: 0xffffff, ganancia2: 0.5 },
+  escenario: { isla: { ancho: 0.74, fondo: 0.62, agua: 0.12, alto: 0.09 } },      // algo mayor que el álbum abierto: se ve flotar sobre el papel
+};
 export const NOMBRES_TEMA = Object.keys(TEMAS);
-export const elegirTema = (p) => (TEMAS[(p || '').toLowerCase()] ? (p || '').toLowerCase() : 'claro');
+export const TEMA_DEFECTO = 'diorama';
+export const elegirTema = (p) => (TEMAS[(p || '').toLowerCase()] ? (p || '').toLowerCase() : TEMA_DEFECTO);
 
 const rgb = (h) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
 /** Suelo de madera clara: tablones suaves, centro algo más luminoso y alfa que se desvanece hacia el borde (deja ver el fondo desenfocado de la página). RGBA8 sRGB. */
@@ -428,6 +444,7 @@ export class Aspecto {
 
   /** Escenario de juego: suelo de madera que se desvanece + alfombra redonda (2 planos, 2 texturas, 2 materiales; sin sombras ni postprocesado). */
   _montarEscenario(esc) {
+    if (esc.isla) { this._montarIsla(esc.isla); return; }
     const plano = (nombre, lado, tex, y, orden) => {
       const t = this._recurso(new THREE.DataTexture(tex.datos, tex.tam, tex.tam, THREE.RGBAFormat));
       t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
@@ -438,6 +455,27 @@ export class Aspecto {
     };
     this.mesa = plano('Suelo', esc.ladoSuelo, { datos: generarSuelo(128, esc.suelo[0], esc.tablones !== false), tam: 128 }, -0.0008, -3);
     if (esc.alfombra) this.alfombra = plano('Alfombra', esc.radioAlfombra * 2, { datos: generarAlfombra(512, esc.alfombra), tam: 512 }, -0.0005, -2);
+  }
+
+  /** 3.9 · Isla de diorama bajo el álbum (web/diorama/isla.js). Se crea ya un contenedor vacío (así `mesa` existe desde el principio) y la isla
+   *  se carga después, sin bloquear el arranque; en Node (pruebas, sin canvas) el contenedor se queda vacío. */
+  _montarIsla(p) {
+    const contenedor = new THREE.Object3D(); contenedor.name = 'Isla';
+    this.mesa = contenedor; this._anadir(contenedor);
+    if (typeof document === 'undefined') return;
+    import('../../diorama/isla.js').then(({ crearMaterialesIsla, crearIsla }) => {
+      if (this.mesa !== contenedor) return;                              // se liberó mientras cargaba
+      const rec = [], res = { baja: 0.5, media: 0.75, alta: 1 }[this.nivel] || 0.75;
+      const mat = crearMaterialesIsla({ anisotropia: this.config.anisotropia, res }, rec);
+      const isla = crearIsla({
+        ...p, radio: 0.028, semilla: 5, matas: 16,
+        // árboles pequeños en las esquinas de atrás, fuera de la huella del álbum abierto (x ±0,27, z ±0,16); sin cielo en arco: la cámara mira desde arriba
+        arboles: [[-p.ancho / 2 + 0.05, -(p.fondo - p.agua) / 2 + 0.05, 0.62], [p.ancho / 2 - 0.05, -(p.fondo - p.agua) / 2 + 0.06, 0.55], [p.ancho / 2 - 0.13, -(p.fondo - p.agua) / 2 + 0.03, 0.42]],
+      }, mat, rec);
+      isla.position.set(0, -0.0006, p.agua / 2 - 0.03);                // la tierra queda centrada bajo el álbum y el agua delante
+      contenedor.add(isla); this.recursos.push(...rec);
+      this.alCambiar?.();
+    }).catch((e) => console.warn('Isla del diorama no disponible:', e));
   }
 
   _montarSombra() {

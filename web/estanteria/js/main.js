@@ -1,4 +1,5 @@
-// Estantería 3D (Fase 1): biblioteca de álbumes de pie, mostrando el lomo. Un solo renderer y una sola escena; se dibuja solo cuando algo cambia.
+// Estantería 3D: biblioteca de álbumes de pie, mostrando el lomo, sobre una isla de diorama pintada (hierba, corte de tierra, agua y árboles).
+// Un solo renderer y una sola escena; se dibuja solo cuando algo cambia.
 // No abre IndexedDB: los álbumes vienen de albumes.js (solo lectura). Tocar el lomo de un álbum abre su visor (sin animación hasta la Fase 2).
 import * as THREE from 'three';
 import { elegirCalidad, generarEntorno } from '../../prueba-3d/js/aspecto.js';
@@ -6,6 +7,7 @@ import { listarAlbumes } from './albumes.js';
 import { disponer, huecosPorBalda, medidasMueble, posicionLibro, altoVisibleEnBaldas, ALTO_HUECO, MUEBLE } from './disposicion.js';
 import { crearMaterialesMueble, construirMueble } from './mueble.js';
 import { crearFabricaLibros } from './libros.js';
+import { crearMaterialesIsla, crearIsla } from '../../diorama/isla.js';
 
 export const FASE = 'estanteria-1';
 const $ = (id) => document.getElementById(id);
@@ -27,16 +29,17 @@ const calidad = { nivel, ...NIVELES[nivel] };
 const canvas = $('lienzo');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: calidad.antialias, alpha: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio, +params.get('pr') || calidad.pixelRatio));
-renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
 const scene = new THREE.Scene();
 const camara = new THREE.PerspectiveCamera(30, 1, 0.05, 20);
 const recursos = [];
 
-scene.add(new THREE.HemisphereLight(0xffe2c0, 0x2a1a10, 0.55));
-const principal = new THREE.DirectionalLight(0xffd9ad, 2.4); principal.position.set(-0.6, 1.2, 1.4); scene.add(principal);
-const relleno = new THREE.DirectionalLight(0x9fb2d8, 0.35); relleno.position.set(1, 0.4, 0.8); scene.add(relleno);
-if (calidad.entorno) {        // reflejos cálidos de «habitación» para el latón, el oro del lomo y el barniz de la madera
-  const tam = 64, t = new THREE.DataTexture(generarEntorno(tam, { arriba: 0x3a2a20, horizonte: 0x2c2017, abajo: 0x120c08, ventana: 0xffd2a0, ganancia: 1.7, aro: 0x8aa0c8, ganancia2: 0.45 }), tam, tam / 2, THREE.RGBAFormat);
+// luz de día de diorama: cielo azul que rellena las sombras, sol cálido desde arriba a la izquierda y un rebote suave de la hierba
+scene.add(new THREE.HemisphereLight(0xd6eeff, 0x8a7a50, 0.8));
+const principal = new THREE.DirectionalLight(0xfff0d2, 2.0); principal.position.set(-0.8, 1.5, 1.3); scene.add(principal);
+const relleno = new THREE.DirectionalLight(0xbfe3ff, 0.45); relleno.position.set(1, 0.5, 0.9); scene.add(relleno);
+if (calidad.entorno) {        // reflejos de cielo para el oro del lomo y el barniz de la madera
+  const tam = 64, t = new THREE.DataTexture(generarEntorno(tam, { arriba: 0x8fcff5, horizonte: 0xd8eef9, abajo: 0x6b8a4a, ventana: 0xfff4d8, ganancia: 1.4, aro: 0xffffff, ganancia2: 0.5 }), tam, tam / 2, THREE.RGBAFormat);
   t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true;
   scene.environment = t; recursos.push(t);
 }
@@ -46,6 +49,8 @@ let pendiente = false;
 const pedirFrame = () => { if (!pendiente) { pendiente = true; requestAnimationFrame(bucle); } };
 
 const matMueble = crearMaterialesMueble(calidad, recursos);
+const matIsla = crearMaterialesIsla({ anisotropia: calidad.anisotropia, res: nivel === 'baja' ? 0.5 : nivel === 'media' ? 0.75 : 1 }, recursos);
+export const ISLA = { alto: 0.13, agua: 0.17, margen: 0.16 };
 const libros = crearFabricaLibros(calidad, recursos, pedirFrame);
 let albumes = [], estanteria = null, recursosMueble = [], disp = null, dims = null, ultimoHueco = 0;
 
@@ -55,11 +60,21 @@ function montar(huecos) {
   dims = medidasMueble(disp.huecos, disp.baldas);
   estanteria = new THREE.Group(); estanteria.name = 'Estanteria';
   estanteria.add(construirMueble(disp, matMueble, recursosMueble));
+  // isla bajo el mueble: tierra con margen alrededor, franja de agua delante, árboles a los lados y el cielo en arco detrás
+  const fondoTierra = dims.fondo + ISLA.margen * 1.6, anchoIsla = dims.ancho + ISLA.margen * 2 + 0.3;
+  const isla = crearIsla({
+    ancho: anchoIsla, fondo: fondoTierra + ISLA.agua, alto: ISLA.alto, agua: ISLA.agua, radio: 0.04, semilla: 3, matas: 34,
+    // árboles fuera del mueble: la copa más ancha mide ~0,2 m × escala desde el tronco
+    arboles: [[-(dims.ancho / 2 + 0.26), -dims.fondo * 0.7, 1.6], [dims.ancho / 2 + 0.22, -dims.fondo * 0.5, 1.35], [dims.ancho / 2 + 0.16, -dims.fondo - 0.08, 1.05]],
+    fondoArco: { ancho: anchoIsla - 0.02, alto: dims.alto + ISLA.alto + 0.62, z: -dims.fondo - ISLA.margen * 1.6 },
+  }, matIsla, recursosMueble);
+  isla.position.z = -dims.fondo / 2 + ISLA.agua / 2 + 0.02;
+  estanteria.add(isla);
   for (const e of disp.elementos) {
     const pos = posicionLibro(e, disp.huecos, disp.baldas);
     estanteria.add(e.tipo === 'album' ? libros.crearAlbum(albumes.find((a) => a.id === e.id), pos) : libros.crearNuevo(pos));
   }
-  if (disp.sujetalibros) estanteria.add(libros.crearSujetalibros(posicionLibro(disp.sujetalibros, disp.huecos, disp.baldas), matMueble.laton));
+  if (disp.sujetalibros) estanteria.add(libros.crearSujetalibros(posicionLibro(disp.sujetalibros, disp.huecos, disp.baldas), matMueble.pata));
   scene.add(estanteria);
   ultimoHueco = huecos;
 }
@@ -78,8 +93,8 @@ function encuadrar(primeraVez = false) {
   cam.mediaAltura = cam.dist * tan;
   const cabecera = document.querySelector('.cabecera').getBoundingClientRect().bottom;
   const mPorPx = (2 * cam.mediaAltura) / h;
-  cam.yMax = dims.alto + 0.02 - cam.mediaAltura + cabecera * mPorPx;    // arriba: el remate con la placa queda justo bajo la cabecera
-  cam.yMin = cam.mediaAltura - 0.04;                                     // abajo: se ve el zócalo y un poco de suelo
+  cam.yMax = dims.alto + 0.09 - cam.mediaAltura + cabecera * mPorPx;    // arriba: el cartel queda justo bajo la cabecera
+  cam.yMin = cam.mediaAltura - ISLA.alto - 0.16;                         // abajo: se ve la isla entera con su corte de tierra y agua
   if (cam.yMin > cam.yMax) cam.yMin = cam.yMax = dims.alto / 2;
   if (primeraVez) cam.y = cam.objetivoY = cam.yMax;
   cam.objetivoY = Math.min(cam.yMax, Math.max(cam.yMin, cam.objetivoY));

@@ -153,15 +153,16 @@ export function dibujarCantos(w = 64, h = 256) {
 /** Lomo «Nuevo álbum»: hueco disponible con contorno dorado discontinuo, «+» en un círculo y el texto en vertical. Fondo transparente. */
 export function dibujarLomoNuevo(ancho = 160) {
   const { w, h } = tamLomo(ancho), c = lienzo(w, h), ctx = c.getContext('2d');
-  ctx.strokeStyle = 'rgba(232,201,140,.85)'; ctx.lineWidth = w * 0.03; ctx.setLineDash([w * 0.12, w * 0.08]);
+  ctx.fillStyle = 'rgba(255,253,246,.55)'; ctx.beginPath(); ctx.roundRect(w * 0.08, w * 0.08, w * 0.84, h - w * 0.16, w * 0.16); ctx.fill();   // papel translúcido
+  ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = w * 0.035; ctx.setLineDash([w * 0.12, w * 0.08]);
   ctx.beginPath(); ctx.roundRect(w * 0.08, w * 0.08, w * 0.84, h - w * 0.16, w * 0.16); ctx.stroke();
   ctx.setLineDash([]);
   const cy = h * 0.2, r = w * 0.27;
-  ctx.fillStyle = 'rgba(232,201,140,.14)'; ctx.beginPath(); ctx.arc(w / 2, cy, r, 0, 2 * Math.PI); ctx.fill();
-  ctx.lineWidth = w * 0.035; ctx.strokeStyle = 'rgba(240,217,162,.95)'; ctx.stroke();
-  ctx.lineWidth = w * 0.05; ctx.lineCap = 'round';
+  ctx.fillStyle = '#6cbb52'; ctx.beginPath(); ctx.arc(w / 2, cy, r, 0, 2 * Math.PI); ctx.fill();
+  ctx.lineWidth = w * 0.035; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+  ctx.lineWidth = w * 0.06; ctx.lineCap = 'round'; ctx.strokeStyle = '#ffffff';
   ctx.beginPath(); ctx.moveTo(w / 2 - r * 0.5, cy); ctx.lineTo(w / 2 + r * 0.5, cy); ctx.moveTo(w / 2, cy - r * 0.5); ctx.lineTo(w / 2, cy + r * 0.5); ctx.stroke();
-  ctx.save(); ctx.fillStyle = 'rgba(240,217,162,.92)';
+  ctx.save(); ctx.fillStyle = '#5b4026';
   textoVertical(ctx, 'NUEVO ÁLBUM', w / 2, h * 0.6, w * 0.25, w * 0.06, SANS, h * 0.55);
   ctx.restore();
   return c;

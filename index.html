@@ -3,28 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#120b06">
+  <meta name="theme-color" content="#fbf6ea">
   <title>Mi biblioteca · Pokémon TCG Tracker</title>
   <meta name="description" content="Biblioteca personal de álbumes de cartas del JCC Pokémon.">
+  <link rel="stylesheet" href="web/diorama/diorama.css">
   <link rel="stylesheet" href="web/estanteria/css/estanteria.css">
 </head>
-<body>
+<body class="d-fondo">
   <canvas id="lienzo" tabindex="-1" aria-label="Estantería 3D con tus álbumes. Toca el lomo de un álbum para abrirlo; desliza arriba y abajo para recorrer las baldas."></canvas>
   <p class="cargando" id="cargando">Preparando la biblioteca…</p>
 
   <header class="cabecera">
-    <div class="titulo">
+    <div class="titulo d-panel">
       <h1>Mi biblioteca</h1>
-      <p id="contador">…</p>
+      <span class="d-chapa" id="contador">…</span>
     </div>
-    <a class="cuenta" href="web/cuenta.html">Cuenta</a>
+    <a class="d-boton" href="web/cuenta.html" aria-label="Mi cuenta">Cuenta</a>
   </header>
 
-  <p class="pista" id="pista">Toca un lomo para abrirlo<span id="desplazar" hidden> · desliza para ver más baldas</span></p>
-  <p class="aviso" id="aviso" role="status" aria-live="polite" hidden></p>
+  <p class="pista d-panel" id="pista">Toca un lomo para abrirlo<span id="desplazar" hidden> · desliza para ver más baldas</span></p>
+  <p class="aviso d-aviso" id="aviso" role="status" aria-live="polite" hidden></p>
 
   <!-- Los mismos álbumes que la estantería, como enlaces: lector de pantalla, teclado (Tab) y respaldo si no hay WebGL -->
-  <nav class="lista-albumes" aria-label="Álbumes de la biblioteca">
+  <nav class="lista-albumes d-panel" aria-label="Álbumes de la biblioteca">
     <ul id="lista-albumes"><li><a href="web/prueba-3d/index.html">Teselia — Llama Blanca · Fulgor Negro</a></li></ul>
   </nav>
 

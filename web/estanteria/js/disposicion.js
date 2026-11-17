@@ -26,7 +26,8 @@ export function huecosPorBalda(aspecto) {
   if (!(aspecto > 0)) return 6;
   const baldasVisibles = altoVisibleEnBaldas(aspecto);                      // cuántas baldas caben en alto
   const altoVisible = baldasVisibles * (ALTO_HUECO + MUEBLE.balda);
-  const anchoUtil = altoVisible * aspecto * (aspecto < 0.8 ? 0.94 : 0.8) - 2 * (MUEBLE.lateral + MUEBLE.margen);
+  // en horizontal el mueble ocupa ~la mitad del ancho: alrededor se ve la isla, los árboles y el recorte del diorama sobre el papel
+  const anchoUtil = altoVisible * aspecto * (aspecto < 0.8 ? 0.94 : 0.5) - 2 * (MUEBLE.lateral + MUEBLE.margen);
   return Math.max(4, Math.min(18, Math.floor(anchoUtil / PASO)));
 }
 

@@ -250,3 +250,77 @@ body[data-vidrio="ligero"] .barra, body[data-vidrio="ligero"] h1, body[data-vidr
   -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
 }
 body[data-tema="claro"][data-vidrio="ligero"] { --vidrio: rgba(255, 255, 255, 0.92); --vidrio-fuerte: rgba(255, 255, 255, 0.97); }
+
+/* =====================================================================================================================================
+   TEMA «DIORAMA» (3.9, por defecto): la misma ilustración que la estantería. Fondo de papel crema (la isla 3D flota encima, recortada en arco),
+   paneles de papel, botones de juguete (verde = acción, azul = navegar, madera = volver) y tipografía redondeada.
+   Colores y componentes de web/diorama/diorama.css. Sin desenfoques (rendimiento en iPhone). Solo cambia el aspecto, no tamaños ni lógica.
+   ===================================================================================================================================== */
+/* «‹ Biblioteca»: vuelve a la estantería (en todos los temas) */
+.volver { pointer-events: auto; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; margin: 0 0 6px; border-radius: 999px;
+  color: var(--texto); text-decoration: none; font-weight: 700; font-size: 0.92rem; background: var(--panel); border: 1px solid var(--borde); }
+body[data-tema="diorama"] {
+  --fondo: var(--d-papel); --texto: var(--d-tinta); --suave: var(--d-tinta-suave); --acento: var(--d-hierba); --panel: var(--d-papel); --borde: var(--d-papel-borde);
+  --azul: var(--d-cielo); --ok: var(--d-hierba);
+  font-family: var(--d-fuente); font-weight: 600;
+  background-color: var(--d-papel);
+  background-image:
+    radial-gradient(70% 60% at 50% 42%, rgba(255, 255, 255, .85), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(120% 90% at 50% 100%, rgba(214, 186, 140, .35), rgba(214, 186, 140, 0) 60%),
+    repeating-radial-gradient(circle at 30% 20%, rgba(120, 90, 50, .025) 0 1px, transparent 1px 3px);
+}
+body[data-tema="diorama"] .cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; pointer-events: none; }
+body[data-tema="diorama"] .volver { margin: 0; min-height: 44px; padding: 0 16px; font: 800 0.95rem/1 var(--d-fuente); color: #fff8ec;
+  background: linear-gradient(180deg, #dca56a, var(--d-madera)); border: 2px solid #e8bf8c; box-shadow: 0 4px 0 var(--d-madera-sombra), 0 8px 16px rgba(110, 60, 20, .22);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .2); -webkit-tap-highlight-color: transparent; }
+body[data-tema="diorama"] .volver:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--d-madera-sombra); }
+body[data-tema="diorama"] .volver:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+/* en pantallas estrechas solo «‹» (44 px): la cabecera mantiene dos filas y el encuadre del álbum no cambia */
+@media (max-width: 520px) { .volver { min-width: 44px; justify-content: center; padding: 0 !important; font-size: 1.3rem !important; } .volver-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
+/* diorama en móvil: la página ya se lee en el selector de la barra; el estado se queda para el lector de pantalla (aria-live) y la cabecera ocupa una fila */
+@media (max-width: 520px) { body[data-tema="diorama"] #estado { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); padding: 0; border: 0; } }
+body[data-tema="diorama"] h1 { display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 7px 8px 7px 16px; font: 800 1.05rem/1.1 var(--d-fuente-titulo);
+  color: var(--d-tinta); background: linear-gradient(180deg, #fffdf6, var(--d-papel)); border: 2px solid var(--d-papel-borde); border-radius: 999px; box-shadow: var(--d-sombra); }
+body[data-tema="diorama"] h1 small { margin: 0; padding: 3px 11px; color: #fff; background: var(--d-cielo); border-radius: 999px; font-weight: 800; font-size: 0.84rem; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .14); }
+body[data-tema="diorama"] #estado { flex-basis: auto; margin: 0; padding: 4px 12px; color: var(--d-tinta-suave); font-size: 0.82rem; font-weight: 800;
+  background: rgba(251, 246, 234, .92); border: 2px solid var(--d-papel-borde); border-radius: 999px; }
+body[data-tema="diorama"] .cargando, body[data-tema="diorama"] .aviso { background: var(--d-papel); color: var(--d-tinta); border: 2px solid var(--d-papel-borde); border-radius: 20px; box-shadow: var(--d-sombra); }
+body[data-tema="diorama"] .aviso { border-color: var(--d-rojo); }
+
+body[data-tema="diorama"] .barra { gap: 8px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: none; }
+body[data-tema="diorama"] button, body[data-tema="diorama"] select {
+  min-height: 48px; padding: 0 16px; font: 800 1rem/1 var(--d-fuente); color: var(--d-tinta);
+  background: linear-gradient(180deg, #fffdf6, var(--d-papel-2)); border: 2px solid var(--d-papel-borde); border-radius: 999px;
+  box-shadow: 0 4px 0 #d8c296, 0 8px 16px rgba(80, 55, 30, .14); transition: transform .08s ease, box-shadow .08s ease; }
+body[data-tema="diorama"] button:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #d8c296, 0 3px 8px rgba(80, 55, 30, .14); }
+body[data-tema="diorama"] button:disabled { opacity: .5; filter: saturate(.6); }
+body[data-tema="diorama"] button:focus-visible, body[data-tema="diorama"] select:focus-visible { outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 6px var(--d-cielo); }
+body[data-tema="diorama"] button.principal { color: #fff; background: linear-gradient(180deg, #86cf66, var(--d-hierba)); border-color: #a9e08c;
+  box-shadow: 0 4px 0 var(--d-hierba-sombra), 0 8px 16px rgba(50, 100, 40, .25); text-shadow: 0 1px 0 rgba(0, 0, 0, .18); }
+body[data-tema="diorama"] button.principal:active:not(:disabled) { box-shadow: 0 1px 0 var(--d-hierba-sombra); }
+body[data-tema="diorama"] #b-ant, body[data-tema="diorama"] #b-sig { min-width: 48px; padding: 0; color: #fff; font-size: 1.5rem; background: linear-gradient(180deg, #74c3f2, var(--d-cielo));
+  border-color: #a8dbf7; box-shadow: 0 4px 0 var(--d-cielo-sombra), 0 8px 16px rgba(30, 90, 140, .25); text-shadow: 0 1px 0 rgba(0, 0, 0, .18); }
+body[data-tema="diorama"] #b-ant:active:not(:disabled), body[data-tema="diorama"] #b-sig:active:not(:disabled) { box-shadow: 0 1px 0 var(--d-cielo-sombra); }
+body[data-tema="diorama"] #b-salto { text-overflow: ellipsis; max-width: 46vw; }
+
+body[data-tema="diorama"] .ficha-fondo { background: rgba(60, 40, 20, .14); }
+body[data-tema="diorama"] .ficha { color: var(--d-tinta); background: linear-gradient(180deg, #fffdf6, var(--d-papel)); border: 2px solid var(--d-papel-borde); border-bottom: 0;
+  border-radius: 28px 28px 0 0; box-shadow: 0 -6px 0 rgba(216, 194, 150, .45), 0 -16px 40px rgba(80, 55, 30, .18); }
+body[data-tema="diorama"] .ficha[data-estado="conseguida"] { border-color: #a9e08c; }
+body[data-tema="diorama"] .ficha-cerrar { color: var(--d-tinta); width: 44px; min-height: 44px; padding: 0; top: 10px; border-radius: 50%; }
+body[data-tema="diorama"] .ficha-imagen { background: #fff; border: 5px solid #fff; border-radius: 14px; box-shadow: 0 0 0 2px var(--d-papel-borde), 0 10px 18px rgba(80, 55, 30, .22); transform: rotate(-1.5deg); }
+body[data-tema="diorama"] .ficha-sin-imagen { color: var(--d-tinta-suave); border-color: var(--d-papel-borde); }
+body[data-tema="diorama"] .ficha-sin-imagen strong { color: var(--d-tinta); } body[data-tema="diorama"] .ficha-sin-imagen em { color: var(--d-hierba-sombra); }
+body[data-tema="diorama"] .ficha h2 { font: 800 1.4rem/1.15 var(--d-fuente-titulo); }
+body[data-tema="diorama"] .ficha-exp { color: var(--d-tinta); } body[data-tema="diorama"] .ficha-num, body[data-tema="diorama"] .ficha-precio { color: var(--d-tinta-suave); }
+body[data-tema="diorama"] .ficha-precio a { color: var(--d-cielo-sombra); font-weight: 800; }
+body[data-tema="diorama"] .ficha-total strong { font-size: 2.6rem; color: var(--d-hierba-sombra); } body[data-tema="diorama"] .ficha-total span { color: var(--d-tinta-suave); }
+body[data-tema="diorama"] .paso { border-radius: 20px; font-size: 2.1rem; }
+body[data-tema="diorama"] .paso-mas { color: #fff; background: linear-gradient(180deg, #86cf66, var(--d-hierba)); border-color: #a9e08c; box-shadow: 0 4px 0 var(--d-hierba-sombra), 0 8px 16px rgba(50, 100, 40, .25); }
+body[data-tema="diorama"] .ficha-error { color: #c2412d; }
+@media (min-width: 760px) { body[data-tema="diorama"] .ficha { border: 2px solid var(--d-papel-borde); border-radius: 28px; box-shadow: var(--d-sombra); } }
+@media (orientation: landscape) and (max-height: 520px) {
+  body[data-tema="diorama"] h1 { padding: 5px 6px 5px 12px; font-size: 0.95rem; } body[data-tema="diorama"] h1 small { font-size: 0.78rem; }
+  body[data-tema="diorama"] .volver { min-height: 38px; padding: 0 12px; font-size: 0.85rem; }
+  body[data-tema="diorama"] button, body[data-tema="diorama"] select { min-height: 46px; padding: 0 10px; }
+}
