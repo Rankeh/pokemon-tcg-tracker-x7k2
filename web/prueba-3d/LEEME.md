@@ -350,3 +350,6 @@ El mínimo por idioma NO existe como dato en ninguna fuente gratuita: la guía d
 
 ### 3.7.32 — Enlace a Cardmarket arreglado y precios etiquetados como «guía»
 Dos fallos de 3.7.31: (1) la URL de pokemontcg.io era un REDIRECTOR y el `?language=4` se perdía en la redirección; ahora el script construye el redirector él mismo (sin API, sin límites de peticiones: antes solo salieron 37/158 enlaces por el rate limit) y le lee la cabecera `Location` sin seguirla, guardando el enlace DIRECTO a cardmarket.com con el filtro de español. La web además oculta los enlaces-redirector viejos. (2) La ficha dice ahora «guía Cardmarket + fecha»: es la guía diaria (vía TCGdex), no el precio en vivo, y su «mín.» cuenta cualquier condición e idioma (por eso puede diferir del «De» de la web). Para regenerar: `python herramientas/precios/descargar_precios.py` + add/commit/push del JSON.
+
+## Imágenes de cartas en GitHub Pages
+La app nunca pide imágenes a servidores externos: lee `assets/cartas/manifiesto.json` + `mini/` y `grande/` (rutas relativas, válidas bajo `/pokemon-tcg-tracker-x7k2/`). Esa carpeta debe estar en el repo: genérala con `python herramientas/texturas/descargar_cartas.py` (o `java herramientas/texturas/PrepararTexturas.java`), y haz `git add web/prueba-3d/assets/cartas`. Nombres siempre en minúsculas. Sin manifiesto se ven marcadores y la consola avisa.

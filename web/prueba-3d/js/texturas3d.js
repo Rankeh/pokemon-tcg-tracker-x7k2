@@ -40,7 +40,7 @@ export function crearProductores({ manifiesto, rutaBase = 'assets/cartas/', anis
 export async function cargarManifiesto(url = 'assets/cartas/manifiesto.json') {
   try {
     const r = await fetch(url, { cache: 'no-cache' });
-    if (!r.ok) return null;
+    if (!r.ok) { console.warn('[cartas] no hay ' + url + ' (' + r.status + '): se muestran marcadores. Genera las imágenes con herramientas/texturas/descargar_cartas.py y súbelas al repositorio.'); return null; }
     const m = await r.json();
     return m && m.cartas ? m : null;
   } catch { return null; }
