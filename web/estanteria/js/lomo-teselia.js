@@ -69,7 +69,7 @@ export function dibujarLomoEditorial(ancho = 160, d = LOMO_TESELIA) {
   // pie: marca marfil/negro de Teselia, código y número de cartas
   const m = w * 0.46, ym = h * 0.83;
   if (d.marca === 'paleta') {                                       // artista: tres tonos de acuarela suave
-    ['#f4c7c3', '#c9e4d6', '#c9d8f2'].forEach((c, i) => { L.color.fillStyle = c; L.color.fillRect((w - m) / 2, ym + (i * m) / 3, m, m / 3 + 0.5); });
+    (Array.isArray(d.colores) && d.colores.length === 3 ? d.colores : ['#f4c7c3', '#c9e4d6', '#c9d8f2']).forEach((c, i) => { L.color.fillStyle = c; L.color.fillRect((w - m) / 2, ym + (i * m) / 3, m, m / 3 + 0.5); });
   } else {                                                          // Teselia: mitad marfil (Llama Blanca), mitad negra (Fulgor Negro)
     L.color.fillStyle = '#e9e4da'; L.color.fillRect((w - m) / 2, ym, m / 2, m);
     L.color.fillStyle = '#2b2b2b'; L.color.fillRect(w / 2, ym, m / 2, m);

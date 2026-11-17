@@ -75,7 +75,7 @@ test('3.15 · toda carta sin imagen oficial en el manifiesto tiene arte descarga
   const { ARTE, rutasArte, rutaProxy } = await import('../js/proxies.js');
   const base = new URL('../', import.meta.url), raiz = new URL('../../../', import.meta.url);
   const manifiesto = JSON.parse(await readFile(new URL('assets/cartas/manifiesto.json', base), 'utf8')).cartas;
-  for (const cat of ['coleccion-teselia.json', 'coleccion-asako-ito.json']) {
+  for (const cat of ['coleccion-teselia.json', 'coleccion-asako-ito.json', 'coleccion-osare.json']) {
     for (const c of JSON.parse(await readFile(new URL('datos/catalogo/' + cat, raiz), 'utf8')).cartas) {
       if (manifiesto[c.id]) continue;
       const rutas = [...rutasArte(c.id), rutaProxy(c.id)].filter(Boolean);

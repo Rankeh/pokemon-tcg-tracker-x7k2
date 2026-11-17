@@ -25,7 +25,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
-export const FASE = '3.16';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.19';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -277,6 +277,13 @@ botones.informe.onclick = async () => {
 };
 addEventListener('keydown', (e) => {
   if (ctrl?.fichaAbierta) { if (e.key === 'Escape') cerrarFicha(); return; }
+  // 3.19 · Esc por capas: ficha → menú ⋯ → ventana de confirmación → (nada abierto) vuelve a la biblioteca
+  if (e.key === 'Escape') {
+    if (e.defaultPrevented || document.querySelector('dialog[open]') || !$('menu-album').hidden || e.target.closest?.('select, input, textarea')) return;
+    e.preventDefault();
+    location.href = $('b-biblioteca').href;
+    return;
+  }
   if (e.key === 'ArrowRight') siguiente(); else if (e.key === 'ArrowLeft') anterior();
 });
 

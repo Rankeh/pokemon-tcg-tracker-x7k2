@@ -1,0 +1,570 @@
+{
+ "generado": "2026-11-17",
+ "fuente": "TCGdex (datos MIT), ilustrador = «osare» (coincidencia exacta)",
+ "ilustrador": "osare",
+ "totales": {
+  "total": 19,
+  "imagenEspanol": 19,
+  "imagenOtroIdioma": 0,
+  "sinImagen": 0,
+  "excluidas": [
+   {
+    "id": "B1a-032",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B2-164",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B1-229",
+    "motivo": "TCG Pocket (digital)"
+   }
+  ]
+ },
+ "cartas": [
+  {
+   "id": "sv08-020",
+   "categoriaColeccion": "comun",
+   "nombre": "Castform Forma Sol",
+   "numero": "020",
+   "expansion": "sv08",
+   "nombreExpansion": "Chispas Fulgurantes",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv08/020/high.webp",
+   "dexId": [
+    351
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv06.5-027",
+   "categoriaColeccion": "comun",
+   "nombre": "Zubat",
+   "numero": "027",
+   "expansion": "sv06.5",
+   "nombreExpansion": "Fabula Sombría",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06.5/027/high.webp",
+   "dexId": [
+    41
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv06-034",
+   "categoriaColeccion": "comun",
+   "nombre": "Darumaka",
+   "numero": "034",
+   "expansion": "sv06",
+   "nombreExpansion": "Mascarada Crepuscular",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06/034/high.webp",
+   "dexId": [
+    554
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me03-046",
+   "categoriaColeccion": "comun",
+   "nombre": "Hawlucha",
+   "numero": "046",
+   "expansion": "me03",
+   "nombreExpansion": "Equilibrio Perfecto",
+   "serie": "me",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/me/me03/046/high.webp",
+   "dexId": [
+    701
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv10.5w-057",
+   "categoriaColeccion": "comun",
+   "nombre": "Scraggy",
+   "numero": "057",
+   "expansion": "sv10.5w",
+   "nombreExpansion": "Llama Blanca",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv10.5w/057/high.webp",
+   "dexId": [
+    559
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv10.5w-058",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Scrafty",
+   "numero": "058",
+   "expansion": "sv10.5w",
+   "nombreExpansion": "Llama Blanca",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv10.5w/058/high.webp",
+   "dexId": [
+    560
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me02-059",
+   "categoriaColeccion": "comun",
+   "nombre": "Sableye",
+   "numero": "059",
+   "expansion": "me02",
+   "nombreExpansion": "Fuegos Fantasmales",
+   "serie": "me",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/me/me02/059/high.webp",
+   "dexId": [
+    302
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv09-088",
+   "categoriaColeccion": "comun",
+   "nombre": "Toedscool",
+   "numero": "088",
+   "expansion": "sv09",
+   "nombreExpansion": "Juntos de Aventuras",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv09/088/high.webp",
+   "dexId": [
+    948
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me01-091",
+   "categoriaColeccion": "comun",
+   "nombre": "Shroodle",
+   "numero": "091",
+   "expansion": "me01",
+   "nombreExpansion": "Megaevolución",
+   "serie": "me",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/me/me01/091/high.webp",
+   "dexId": [
+    944
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv07-099",
+   "categoriaColeccion": "comun",
+   "nombre": "Klink",
+   "numero": "099",
+   "expansion": "sv07",
+   "nombreExpansion": "Corona Astral",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv07/099/high.webp",
+   "dexId": [
+    599
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv10.5b-109",
+   "categoriaColeccion": "ir",
+   "nombre": "Cubchoo",
+   "numero": "109",
+   "expansion": "sv10.5b",
+   "nombreExpansion": "Fulgor Negro",
+   "serie": "sv",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv10.5b/109/high.webp",
+   "dexId": [
+    613
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv05-110",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Forretress",
+   "numero": "110",
+   "expansion": "sv05",
+   "nombreExpansion": "Fuerzas Temporales",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv05/110/high.webp",
+   "dexId": [
+    205
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me02.5-130",
+   "categoriaColeccion": "comun",
+   "nombre": "Zigzagoon de Galar",
+   "numero": "130",
+   "expansion": "me02.5",
+   "nombreExpansion": "Héroes Ascendentes",
+   "serie": "me",
+   "rareza": "Común",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/me/me02.5/130/high.webp",
+   "dexId": [
+    263
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-146",
+   "categoriaColeccion": "ir",
+   "nombre": "Maushold",
+   "numero": "146",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/146/high.webp",
+   "dexId": [
+    925
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv08.5-163",
+   "categoriaColeccion": "sir",
+   "nombre": "Pecharunt ex",
+   "numero": "163",
+   "expansion": "sv08.5",
+   "nombreExpansion": "Evoluciones Prismáticas",
+   "serie": "sv",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv08.5/163/high.webp",
+   "dexId": [
+    1025
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "me01-185",
+   "categoriaColeccion": "sir",
+   "nombre": "Oferta del Teniente Surge",
+   "numero": "185",
+   "expansion": "me01",
+   "nombreExpansion": "Megaevolución",
+   "serie": "me",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/me/me01/185/high.webp",
+   "dexId": null,
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv06-186",
+   "categoriaColeccion": "ir",
+   "nombre": "Tatsugiri",
+   "numero": "186",
+   "expansion": "sv06",
+   "nombreExpansion": "Mascarada Crepuscular",
+   "serie": "sv",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06/186/high.webp",
+   "dexId": [
+    978
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv08-236",
+   "categoriaColeccion": "sir",
+   "nombre": "Durant ex",
+   "numero": "236",
+   "expansion": "sv08",
+   "nombreExpansion": "Chispas Fulgurantes",
+   "serie": "sv",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv08/236/high.webp",
+   "dexId": [
+    632
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "me02.5-240",
+   "categoriaColeccion": "ir",
+   "nombre": "Hitmontop",
+   "numero": "240",
+   "expansion": "me02.5",
+   "nombreExpansion": "Héroes Ascendentes",
+   "serie": "me",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "osare",
+   "imagen": "https://assets.tcgdex.net/es/me/me02.5/240/high.webp",
+   "dexId": [
+    237
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  }
+ ]
+}

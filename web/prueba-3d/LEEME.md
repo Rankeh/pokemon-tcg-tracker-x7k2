@@ -397,3 +397,10 @@ En álbumes cuyo catálogo no trae variantes (Teselia), las ilustraciones raras 
 por sí (`holoImplicito` en web/js/variantes.js): a toda la carta en las IR/SIR, sobre la ilustración en las promos. Solo en las cartas que tienes.
 Modo oscuro: halo de luz detrás del libro (biblioteca y álbum), luces de contorno más fuertes (y una segunda por el otro lado en la biblioteca),
 suelo grafito más claro que el fondo y luces del tema editorial casi neutras (antes teñían la escena de marrón): el álbum negro ya no se funde.
+
+## 3.19 — Esc vuelve a la biblioteca · álbum de artista «osare»
+**Esc** dentro de un álbum va por capas: cierra la ficha, el menú ⋯ o la ventana de confirmación si hay alguno abierto; si no hay nada
+abierto, vuelve a la biblioteca (`‹ Biblioteca`).
+**osare**: 19 cartas físicas según TCGdex (de Escarlata y Púrpura a Megaevolución; se excluyen 3 de TCG Pocket), todas con imagen en español,
+con variantes (normal/reverse; holo en sus 7 IR/SIR). Portada con Tatsugiri y Pecharunt ex; lomo con marca rosa/amarillo/cian (`lomo.colores`).
+Modelo de 2 hojas (`album-2h.glb`). Está en `datos/albumes-artista.json`, así que también recibe cada lunes sus cartas nuevas.

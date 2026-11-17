@@ -53,9 +53,10 @@ test('encuadre: el libro de cara ocupa ~la mitad del alto; en vertical caben la 
   assert.ok(LIBRO.alto / altoVisible(iphone) > 0.3, 'iPhone: el libro no queda diminuto');
 });
 
-test('álbumes: Teselia (primero, ruta de siempre) y Asako Ito (?album=asako-ito)', async () => {
+test('álbumes: Teselia (primero, ruta de siempre), Asako Ito y osare (?album=<id>)', async () => {
   const lista = await listarAlbumes();
-  assert.deepEqual(lista.map((a) => a.id), ['teselia', 'asako-ito']);
+  assert.deepEqual(lista.map((a) => a.id), ['teselia', 'asako-ito', 'osare']);
+  assert.equal(albumPorId('osare').ruta, 'web/prueba-3d/index.html?album=osare');
   assert.equal(lista[1].ruta, 'web/prueba-3d/index.html?album=asako-ito');
   assert.equal(albumPorId('asako-ito').nombre, 'Asako Ito');
   assert.equal(albumPorId('no-existe').id, 'teselia', 'id desconocido → Teselia (los enlaces viejos siguen funcionando)');

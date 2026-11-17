@@ -942,6 +942,96 @@
    "mini": "mini/sm12-146.webp",
    "grande": "grande/sm12-146.webp",
    "origen": "https://assets.tcgdex.net/es/sm/sm12/146/high.webp"
+  },
+  "sv08-020": {
+   "mini": "mini/sv08-020.webp",
+   "grande": "grande/sv08-020.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv08/020/high.webp"
+  },
+  "sv06.5-027": {
+   "mini": "mini/sv06.5-027.webp",
+   "grande": "grande/sv06.5-027.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv06.5/027/high.webp"
+  },
+  "sv06-034": {
+   "mini": "mini/sv06-034.webp",
+   "grande": "grande/sv06-034.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv06/034/high.webp"
+  },
+  "me03-046": {
+   "mini": "mini/me03-046.webp",
+   "grande": "grande/me03-046.webp",
+   "origen": "https://assets.tcgdex.net/es/me/me03/046/high.webp"
+  },
+  "sv10.5w-057": {
+   "mini": "mini/sv10.5w-057.webp",
+   "grande": "grande/sv10.5w-057.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv10.5w/057/high.webp"
+  },
+  "sv10.5w-058": {
+   "mini": "mini/sv10.5w-058.webp",
+   "grande": "grande/sv10.5w-058.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv10.5w/058/high.webp"
+  },
+  "me02-059": {
+   "mini": "mini/me02-059.webp",
+   "grande": "grande/me02-059.webp",
+   "origen": "https://assets.tcgdex.net/es/me/me02/059/high.webp"
+  },
+  "sv09-088": {
+   "mini": "mini/sv09-088.webp",
+   "grande": "grande/sv09-088.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv09/088/high.webp"
+  },
+  "me01-091": {
+   "mini": "mini/me01-091.webp",
+   "grande": "grande/me01-091.webp",
+   "origen": "https://assets.tcgdex.net/es/me/me01/091/high.webp"
+  },
+  "sv07-099": {
+   "mini": "mini/sv07-099.webp",
+   "grande": "grande/sv07-099.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv07/099/high.webp"
+  },
+  "sv05-110": {
+   "mini": "mini/sv05-110.webp",
+   "grande": "grande/sv05-110.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv05/110/high.webp"
+  },
+  "me02.5-130": {
+   "mini": "mini/me02.5-130.webp",
+   "grande": "grande/me02.5-130.webp",
+   "origen": "https://assets.tcgdex.net/es/me/me02.5/130/high.webp"
+  },
+  "30th-146": {
+   "mini": "mini/30th-146.webp",
+   "grande": "grande/30th-146.webp",
+   "origen": "https://assets.tcgdex.net/es/me/30th/146/high.webp"
+  },
+  "sv08.5-163": {
+   "mini": "mini/sv08.5-163.webp",
+   "grande": "grande/sv08.5-163.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv08.5/163/high.webp"
+  },
+  "me01-185": {
+   "mini": "mini/me01-185.webp",
+   "grande": "grande/me01-185.webp",
+   "origen": "https://assets.tcgdex.net/es/me/me01/185/high.webp"
+  },
+  "sv06-186": {
+   "mini": "mini/sv06-186.webp",
+   "grande": "grande/sv06-186.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv06/186/high.webp"
+  },
+  "sv08-236": {
+   "mini": "mini/sv08-236.webp",
+   "grande": "grande/sv08-236.webp",
+   "origen": "https://assets.tcgdex.net/es/sv/sv08/236/high.webp"
+  },
+  "me02.5-240": {
+   "mini": "mini/me02.5-240.webp",
+   "grande": "grande/me02.5-240.webp",
+   "origen": "https://assets.tcgdex.net/es/me/me02.5/240/high.webp"
   }
  }
 }

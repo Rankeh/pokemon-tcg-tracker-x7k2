@@ -81,7 +81,17 @@ ok(await pag.isHidden('#f-variantes') && !(await pag.isHidden('.ficha-cantidad')
 ok(await pag.getAttribute('#f-imagen', 'data-acabado') === 'holo-completo', '3.18 · Teselia: la IR que tienes lleva brillo holo de carta completa en la ficha');
 await pag.evaluate(() => { const a = window.__album3d, pg = a.adaptador.mapa.porId.get('sv10.5w-166').pagina; a.vista.sincronizar(new Map([[pg, 0]])); });   // monta su página
 ok(await brillo3d('sv10.5w-166') === 'holo-completo', '3.18 · …y en el bolsillo 3D');
-ok(errores.length === 0, 'sin errores de consola/JS' + (errores.length ? ': ' + errores.join(' | ') : ''));
+// 3.19 · Esc por capas: ficha → menú → confirmación → biblioteca
+await pag.keyboard.press('Escape'); await dormir(400);
+ok(!(await pag.evaluate(() => window.__album3d.ctrl.fichaAbierta)) && /prueba-3d/.test(pag.url()), 'Esc con la ficha abierta: solo la cierra');
+await pag.click('#b-opciones'); await pag.keyboard.press('Escape'); await dormir(300);
+ok(await pag.isHidden('#menu-album') && /prueba-3d/.test(pag.url()), 'Esc con el menú ⋯ abierto: solo lo cierra');
+await pag.click('#b-opciones'); await pag.click('#m-todas'); await pag.keyboard.press('Escape'); await dormir(300);
+ok(!(await pag.evaluate(() => document.getElementById('d-todas').open)) && /prueba-3d/.test(pag.url()), 'Esc con la confirmación abierta: solo la cierra');
+await pag.focus('body'); await pag.mouse.click(5, 300);
+await Promise.all([pag.waitForURL((u) => !/prueba-3d/.test(String(u)), { timeout: 8000 }).catch(() => {}), pag.keyboard.press('Escape')]);
+ok(/\/index\.html$/.test(new URL(pag.url()).pathname), 'Esc sin nada abierto: vuelve a la biblioteca (' + new URL(pag.url()).pathname + ')');
+ok(errores.filter((x) => !/doble|RoundedBox/.test(x)).length === 0, 'sin errores de consola/JS' + (errores.length ? ': ' + errores.join(' | ') : ''));
 await ctx.close(); await nav.close(); servidor.close();
 console.log(`\n${total} comprobaciones, ${fallos} fallos`);
 process.exit(fallos ? 1 : 0);

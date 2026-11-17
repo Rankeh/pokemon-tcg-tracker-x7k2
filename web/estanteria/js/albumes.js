@@ -11,7 +11,7 @@ export const MATERIALES_LOMO = ['cuero', 'tela'];
  * @typedef {{ titulo: string, subtitulo: string, arribaIzq: string, arribaDer: string, pie: string, banda: string, bandaCodigo: string,
  *             cartas: string[] }} Portada   — textos de la portada impresa y las dos cartas que hacen de «foto»
  * @typedef {{ diseno: string, material: string, color: string, titulo: string, subtitulo: string, codigo: string, cifra: string,
- *             marca: 'teselia' | 'paleta' }} Lomo
+ *             marca: 'teselia' | 'paleta', colores?: string[] }} Lomo   — `colores`: los 3 tonos de la marca «paleta»
  * @typedef {{ id: string, nombre: string, subtitulo: string, descripcion: string, expansiones: string[], meta: string, ruta: string,
  *             serie: string, nombreSerie: string, cartas: number, catalogo: string, precios: string, portada: Portada, lomo: Lomo,
  *             orden: number }} Album
@@ -58,6 +58,25 @@ const ALBUMES = [
     lomo: { diseno: 'editorial', material: 'cuero', color: '#11141b', titulo: 'ASAKO ITO', subtitulo: 'COLECCIÓN DE ARTISTA',
       codigo: 'ARTISTA', cifra: '{n}', marca: 'paleta' },
     orden: 1,
+  },
+  {
+    id: 'osare',
+    nombre: 'osare',                                // así firma la artista (en minúsculas)
+    subtitulo: 'Colección de artista',
+    descripcion: 'Todas las cartas físicas ilustradas por osare según TCGdex (de Escarlata y Púrpura a Megaevolución), sin las de TCG Pocket.',
+    expansiones: [],
+    meta: 'Artista · {n} cartas · desde 2024',
+    serie: 'artistas',
+    nombreSerie: 'Artistas',
+    cartas: 19,                                     // respaldo si no se puede leer el catálogo; la cifra real sale del catálogo
+    catalogo: 'datos/catalogo/coleccion-osare.json',
+    precios: 'datos/catalogo/precios-osare.json',
+    ruta: 'web/prueba-3d/index.html?album=osare',
+    portada: { titulo: 'osare', subtitulo: 'Colección de artista', arribaIzq: 'Pokémon TCG', arribaDer: 'Artista',
+      pie: 'Desde Escarlata y Púrpura · {n} cartas', banda: 'osare', bandaCodigo: 'ARTISTA', cartas: ['sv06-186', 'sv08.5-163'] },
+    lomo: { diseno: 'editorial', material: 'cuero', color: '#11141b', titulo: 'OSARE', subtitulo: 'COLECCIÓN DE ARTISTA',
+      codigo: 'ARTISTA', cifra: '{n}', marca: 'paleta', colores: ['#ff5fa2', '#ffd23f', '#2fb8f0'] },   // pop: rosa, amarillo y cian de sus ilustraciones
+    orden: 2,
   },
 ];
 

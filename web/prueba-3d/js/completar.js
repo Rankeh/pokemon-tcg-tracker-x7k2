@@ -66,7 +66,8 @@ export function montarMenu(el, acciones) {
   const mostrar = () => { if (dialogo.showModal) dialogo.showModal(); else dialogo.setAttribute('open', ''); cancelar.focus(); };
   boton.addEventListener('click', (e) => { e.stopPropagation(); abrir(menu.hidden); });
   document.addEventListener('click', (e) => { if (!menu.hidden && !menu.contains(e.target)) abrir(false); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { abrir(false); boton.focus(); } });
+  // Esc cierra el menú y marca la tecla como usada: así el álbum no la toma también como «volver a la biblioteca»
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { e.preventDefault(); abrir(false); boton.focus(); } });
 
   todas.addEventListener('click', () => {
     abrir(false); accion = 'completar';
