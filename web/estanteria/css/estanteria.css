@@ -70,3 +70,8 @@ body.lista .cargando, body.sin-3d .cargando { opacity: 0; }
   .pie p { white-space: nowrap; }
 }
 @media (prefers-reduced-motion: reduce) { #lienzo, .velo, .cargando { transition: none; } }
+
+/* 3.18 · modo oscuro: halo de luz detrás del libro elegido (el fondo casi negro se comía los álbumes de tela negra) */
+:root:not([data-modo="claro"]) body.e-fondo {
+  background: radial-gradient(42vmax 32vmax at 50% var(--y-centro, 45%), #383939 0%, #29292a 38%, #1e1e1e 70%, #191919 100%);
+}

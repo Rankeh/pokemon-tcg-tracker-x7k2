@@ -6,7 +6,7 @@
 // y solo añade la traducción  página/posición del catálogo  ⇄  nodo 3D ("Hoja_i_F|D_Bolsillo_k").
 import { distribuir, POR_PAGINA } from '../../js/album/distribucion.js';
 import { validarCatalogo, MAX_COPIAS } from '../../js/coleccion.js';
-import { aMostrar } from '../../js/variantes.js';
+import { aMostrar, holoImplicito, esArteCompleto } from '../../js/variantes.js';
 
 /**
  * Cada hoja del álbum 3D tiene dos caras con 9 bolsillos. Páginas del catálogo en orden de lectura de un libro:
@@ -114,7 +114,7 @@ export class AdaptadorColeccion {
              pagina: b.pagina, posicion: b.posicion, cantidad: this.cantidad(c.id), url: urlTextura(c, 'high'), urlMiniatura: urlTextura(c, 'low'),
              // 3.16: variantes del catálogo (normal, reverse, holo…) y el desglose guardado; sin variantes en el catálogo, la ficha es la de siempre
              variantes: Array.isArray(c.variantes) && c.variantes.length ? c.variantes : null, registro: this.registro(c.id),
-             visible: this.acabado(c.id), arteCompleto: Boolean(c.arteCompleto) };
+             visible: this.acabado(c.id), arteCompleto: esArteCompleto(c) };
   }
 
   /** 3.16 · Registro con variantes ({ cantidad, variantes, mostrar }). */
@@ -123,7 +123,8 @@ export class AdaptadorColeccion {
   /** 3.16 · Variante que se ve en el álbum para esta carta (null: sin variantes, o solo copias sin clasificar). */
   acabado(id) {
     const c = this.mapa.cartaPorId.get(id);
-    if (!c || !Array.isArray(c.variantes) || !c.variantes.length || !(this.cantidad(id) > 0)) return null;
+    if (!c || !(this.cantidad(id) > 0)) return null;
+    if (!Array.isArray(c.variantes) || !c.variantes.length) return holoImplicito(c) ? 'holo' : null;      // 3.18: IR/SIR/promos de Teselia
     return aMostrar(this.registro(id), c.variantes.map((v) => v.id));
   }
 

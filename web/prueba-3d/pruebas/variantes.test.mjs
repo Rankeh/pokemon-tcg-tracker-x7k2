@@ -67,3 +67,23 @@ test('doble de almacén: variantes persistidas en la fila y el total coherente t
   await a.sumar('x', -2);
   assert.equal(a.filas.has('x'), false);
 });
+
+import { holoImplicito, esArteCompleto, tipoBrillo } from '../../js/variantes.js';
+test('3.18 · holo implícito: en catálogos sin variantes, IR/SIR/partidarios (arte completo) y promos (marco normal) son holo', () => {
+  for (const cat of ['ir', 'sir', 'partidario']) {
+    const c = { categoriaColeccion: cat };
+    assert.ok(holoImplicito(c) && esArteCompleto(c), cat);
+    assert.equal(tipoBrillo('holo', esArteCompleto(c)), 'holo-completo');
+  }
+  const promo = { categoriaColeccion: 'promo' };
+  assert.ok(holoImplicito(promo)); assert.equal(tipoBrillo('holo', esArteCompleto(promo)), 'holo-arte');
+  assert.ok(!holoImplicito({ categoriaColeccion: 'comun' }));
+  assert.ok(!holoImplicito({ categoriaColeccion: 'ir', variantes: [{ id: 'holo' }] }), 'con variantes manda la variante elegida, no la regla');
+  assert.ok(esArteCompleto({ categoriaColeccion: 'rara', arteCompleto: true }), 'galerías GG/TG marcadas por el catálogo');
+});
+
+test('3.18 · todas las cartas de Teselia tienen brillo holo (catálogo real)', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const cat = JSON.parse(await readFile(new URL('../../../datos/catalogo/coleccion-teselia.json', import.meta.url), 'utf8'));
+  assert.ok(cat.cartas.every(holoImplicito), 'las 158');
+});

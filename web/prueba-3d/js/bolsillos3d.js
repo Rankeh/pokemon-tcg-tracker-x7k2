@@ -12,7 +12,7 @@ const salida = (t) => 1 - Math.pow(1 - t, 3);
 
 // 3.16 · Brillo de la variante visible: capa iridiscente que se SUMA a la carta (no la tapa). Zonas en fracción de la carta (arriba = 0):
 // la ventana de la ilustración de una carta normal; «holo» brilla ahí (o en toda la carta si es de arte completo), «reverse» en todo lo demás.
-import { VENTANA_ARTE, tipoBrillo } from '../../js/variantes.js';
+import { VENTANA_ARTE, tipoBrillo, esArteCompleto } from '../../js/variantes.js';
 export { VENTANA_ARTE, tipoBrillo };
 const materialesBrillo = new Map();                 // un material por tipo, compartido por todos los bolsillos
 function materialBrillo(tipo) {
@@ -115,7 +115,7 @@ export class VistaBolsillos {
   _ponerBrillo(b) {
     if (!b.tarjeta) return;
     if (b.brillo) { b.tarjeta.remove(b.brillo); b.brillo = null; }
-    const tipo = typeof document === 'undefined' || !this.adaptador.acabado ? null : tipoBrillo(this.adaptador.acabado(b.carta.id), b.carta.arteCompleto);
+    const tipo = typeof document === 'undefined' || !this.adaptador.acabado ? null : tipoBrillo(this.adaptador.acabado(b.carta.id), esArteCompleto(b.carta));
     b.tipoBrillo = tipo;
     if (!tipo) return;
     const m = new THREE.Mesh(this.album.geomCarta[b.cara], materialBrillo(tipo));

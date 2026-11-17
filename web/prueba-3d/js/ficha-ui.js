@@ -70,10 +70,11 @@ export class FichaUI {
   /** 3.16 · Variantes: una fila por variante (−/+ y precio), «se ve en el álbum» y copias sin clasificar. Sin variantes, la ficha de siempre. */
   _variantes(d) {
     const caja = this.el.variantes, conVariantes = Boolean(d.variantes && caja && this.alVariante);
+    // brillo de la carta que tienes: variante visible, o holo implícito de IR/SIR/promos (3.18) en álbumes sin variantes
+    if (this.el.imagen && this.el.imagen.dataset) this.el.imagen.dataset.acabado = (d.cantidad > 0 && tipoBrillo(d.visible, d.arteCompleto)) || '';
     if (!caja) return;                                             // ficha sin zona de variantes (pruebas antiguas): la de siempre, intacta
     const cantidadClasica = this.el.raiz.querySelector?.('.ficha-cantidad');
     if (cantidadClasica) cantidadClasica.hidden = conVariantes;
-    if (this.el.imagen && this.el.imagen.dataset) this.el.imagen.dataset.acabado = (conVariantes && tipoBrillo(d.visible, d.arteCompleto)) || '';
     caja.hidden = !conVariantes;
     if (!conVariantes) { caja.replaceChildren(); return; }
     const r = d.registro, libres = sinClasificar(r), pv = (precioDe(this.precios, d.id) || {}).variantes || {};

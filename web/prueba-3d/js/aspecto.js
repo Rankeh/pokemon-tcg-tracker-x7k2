@@ -292,9 +292,9 @@ TEMAS.editorial = {
   paleta: { cubierta: 0x40597a, pagina: 0x2e2e2e, lomo: 0x36495f, soldadura: 0x4a4a4a, funda: 0xffffff, mesa: 0x222222 },
   luces: {
     hemi: { cielo: 0xffffff, suelo: 0x101010, intensidad: 0.6 },
-    principal: { color: 0xfff4e8, intensidad: 2.4, pos: [-0.6, 0.62, 0.5] },
+    principal: { color: 0xfffaf5, intensidad: 2.4, pos: [-0.6, 0.62, 0.5] },
     relleno: { color: 0xd8e0ff, intensidad: 0.35, pos: [0.8, 0.3, 0.35] },
-    contorno: { color: 0xffe0d0, intensidad: 1.4, pos: [0.3, 0.5, -0.85] },
+    contorno: { color: 0xf2f4ff, intensidad: 2.2, pos: [0.3, 0.5, -0.85] },      // 3.18: más fuerte, recorta la tapa negra sobre el fondo oscuro
   },
   cantos: { cubierta: { canto: [1.4, 1.4, 1.4] }, pagina: { canto: [1.5, 1.5, 1.5] }, lomo: { curvatura: 0.6 } },
   exposicion: 1.05, sheen: 0xd0d6e2, aro: 0xe5432f, sombraOpacidad: 0.55,
@@ -302,7 +302,7 @@ TEMAS.editorial = {
   entorno: { arriba: 0x2a2a2a, horizonte: 0x161616, abajo: 0x080808, ventana: 0xffffff, ganancia: 1.6, aro: 0xffd8c8, ganancia2: 0.4 },
   acabado: 'editorial',                                             // tela de la tapa por defecto con este tema (?tapa= sigue mandando)
   // 3.11 · modos claro/oscuro: solo cambian el suelo (se funde con el fondo de la página) y la exposición; el álbum es el mismo objeto
-  modos: { oscuro: { suelo: 0x1d1e20, exposicion: 1.05 }, claro: { suelo: 0xe6e4df, exposicion: 1.1 } },
+  modos: { oscuro: { suelo: 0x2f3032, exposicion: 1.08 }, claro: { suelo: 0xe6e4df, exposicion: 1.1 } },     // 3.18: suelo oscuro más claro que el fondo: el álbum negro destaca
 };
 export const NOMBRES_TEMA = Object.keys(TEMAS);
 export const TEMA_DEFECTO = 'editorial';

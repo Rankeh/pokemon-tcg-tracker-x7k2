@@ -78,6 +78,9 @@ await pag.goto(`${base}/web/prueba-3d/index.html?bd=${bd}`);
 await pag.waitForFunction(() => window.__album3d && document.getElementById('cargando').hidden, null, { timeout: 30000 });
 ok(await abrir('sv10.5w-166'), 'Teselia: se abre la ficha');
 ok(await pag.isHidden('#f-variantes') && !(await pag.isHidden('.ficha-cantidad')), 'Teselia: ficha clásica (sin filas de variantes)');
+ok(await pag.getAttribute('#f-imagen', 'data-acabado') === 'holo-completo', '3.18 · Teselia: la IR que tienes lleva brillo holo de carta completa en la ficha');
+await pag.evaluate(() => { const a = window.__album3d, pg = a.adaptador.mapa.porId.get('sv10.5w-166').pagina; a.vista.sincronizar(new Map([[pg, 0]])); });   // monta su página
+ok(await brillo3d('sv10.5w-166') === 'holo-completo', '3.18 · …y en el bolsillo 3D');
 ok(errores.length === 0, 'sin errores de consola/JS' + (errores.length ? ': ' + errores.join(' | ') : ''));
 await ctx.close(); await nav.close(); servidor.close();
 console.log(`\n${total} comprobaciones, ${fallos} fallos`);

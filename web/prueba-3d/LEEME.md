@@ -391,3 +391,9 @@ siguen leyendo las v1. Pruebas: `variantes.test.mjs` y `ejecutar-variantes.mjs` 
 `.github/workflows/actualizar-artistas.yml` ejecuta `herramientas/catalogo-ilustrador/actualizar.py`: regenera el catálogo desde TCGdex, baja
 las imágenes nuevas y, si el álbum necesita más hojas, genera `album-<n>h.glb`; si algo cambió, hace un commit. Las cifras («37 cartas» del
 lomo, la portada y la ficha) salen del catálogo (`{n}` en el registro), así que crecen solas. Tu colección no se toca: lo nuevo sale pendiente.
+
+## 3.18 — Brillo holo en Teselia y más contraste en modo oscuro
+En álbumes cuyo catálogo no trae variantes (Teselia), las ilustraciones raras (IR/SIR y partidarios SIR) y las promos llevan brillo holo de
+por sí (`holoImplicito` en web/js/variantes.js): a toda la carta en las IR/SIR, sobre la ilustración en las promos. Solo en las cartas que tienes.
+Modo oscuro: halo de luz detrás del libro (biblioteca y álbum), luces de contorno más fuertes (y una segunda por el otro lado en la biblioteca),
+suelo grafito más claro que el fondo y luces del tema editorial casi neutras (antes teñían la escena de marrón): el álbum negro ya no se funde.

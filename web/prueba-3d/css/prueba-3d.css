@@ -472,3 +472,11 @@ body[data-tema="editorial"] .v-nota { color: var(--e-rojo); }
   body[data-tema="editorial"] h1 small { letter-spacing: .06em; font-size: .64rem; margin-left: 4px; }
   body[data-tema="editorial"] .cabecera { gap: 8px; }
 }
+
+/* 3.18 · modo oscuro: halo detrás del álbum (la tapa negra casi se fundía con el fondo) */
+:root:not([data-modo="claro"]) body[data-tema="editorial"] { background: radial-gradient(48vmax 38vmax at 50% 48%, #363738 0%, #28292a 40%, #1e1e1e 72%, #191919 100%); }
+/* el título usa flex con hueco: «Álbum» y el nombre van juntos (antes se veía un hueco doble) */
+body[data-tema="editorial"] h1 { gap: 0; }
+body[data-tema="editorial"] .h1-pre { margin-right: .28em; }       /* el espacio final de «Álbum » desaparece dentro de flex */
+body[data-tema="editorial"] h1 small { margin-left: 10px; }
+@media (max-width: 520px) { body[data-tema="editorial"] h1 small { margin-left: 4px; } }

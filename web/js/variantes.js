@@ -16,6 +16,11 @@ const suma = (vs) => Object.values(vs).reduce((s, n) => s + n, 0);
 /** Zona de la ilustración en una carta normal (fracciones; arriba = 0) y tipo de brillo según la variante visible. «holo» brilla en la
  *  ilustración (o en toda la carta si es de arte completo); «reverse» en todo lo demás. Lo usan el bolsillo 3D y la ficha. */
 export const VENTANA_ARTE = { x0: 0.08, x1: 0.92, y0: 0.105, y1: 0.53 };
+/** 3.18 · Catálogos SIN variantes (Teselia): las ilustraciones raras (IR/SIR, partidarios SIR) y las promos son holo de por sí. */
+export const CATEGORIAS_HOLO = ["ir", "sir", "partidario", "promo"];
+export const holoImplicito = (carta) => !(Array.isArray(carta.variantes) && carta.variantes.length) && CATEGORIAS_HOLO.includes(carta.categoriaColeccion);
+/** Ilustración a sangre: el brillo holo cubre toda la carta (IR/SIR y partidarios SIR, o lo que marque el catálogo: galerías GG/TG). */
+export const esArteCompleto = (carta) => Boolean(carta.arteCompleto) || ["ir", "sir", "partidario"].includes(carta.categoriaColeccion);
 export const tipoBrillo = (variante, arteCompleto) => (variante === "holo" ? (arteCompleto ? "holo-completo" : "holo-arte") : variante === "reverse" ? "reverse" : null);
 
 /** PURO · normaliza una fila guardada (o undefined) a { cantidad, variantes, mostrar }. Nunca lanza: lo inválido se descarta. */

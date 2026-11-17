@@ -37,7 +37,8 @@ const camara = new THREE.PerspectiveCamera(24, 1, 0.05, 20);
 const recursos = [];
 scene.add(new THREE.HemisphereLight(0xffffff, 0x101010, 0.55));
 const principal = new THREE.DirectionalLight(0xfff4e8, 2.6); principal.position.set(-0.5, 0.9, 1.6); scene.add(principal);   // foco frontal, algo cenital
-const contorno = new THREE.DirectionalLight(0xffe0d0, 1.2); contorno.position.set(0.8, 0.6, -1); scene.add(contorno);          // recorta los cantos sobre el negro
+const contorno = new THREE.DirectionalLight(0xffe0d0, 2.4); contorno.position.set(0.8, 0.6, -1); scene.add(contorno);          // recorta los cantos sobre el negro
+const contorno2 = new THREE.DirectionalLight(0xdfe6ff, 1.5); contorno2.position.set(-0.9, 0.4, -0.8); scene.add(contorno2);     // 3.18: y por el otro lado (lomos y tapas negras se separan del fondo)
 if (calidad.entorno) {        // estudio oscuro con un softbox: brillo en el oro del lomo y en la lámina de la portada
   const tam = 64, t = new THREE.DataTexture(generarEntorno(tam, { arriba: 0x2a2a2a, horizonte: 0x161616, abajo: 0x080808, ventana: 0xffffff, ganancia: 1.6, aro: 0xffd8c8, ganancia2: 0.4 }), tam, tam / 2, THREE.RGBAFormat);
   t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true;
