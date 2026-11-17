@@ -374,3 +374,20 @@ el arte real en español de limitlesstcg.com, guardado en `assets/proxies/arte/s
 mayúsculas). `proxies.js` tiene ahora una lista `ARTE` para cartas con arte descargado que no necesitan proxy; el bolsillo 3D y la ficha siguen
 la cadena oficial → arte → proxy → marcador (y el 3D carga cada imagen una sola vez). `herramientas/proxies/descargar_arte.py` la descarga
 también (lista `EXTRA`). Una prueba comprueba que, en todos los álbumes, toda carta sin imagen oficial tiene arte o proxy en disco.
+
+## 3.16 — Variantes de carta (álbum Asako Ito) y cartas futuras
+**Variantes.** Las cartas cuyo catálogo trae `variantes` (hoy, el álbum de Asako Ito) muestran en la ficha una fila por variante —Normal,
+Reverse holo, Holo (con sello, p. ej. 30.º aniversario)— con su contador −/+, su precio de Cardmarket y un selector **Se ve en el álbum**.
+La variante visible lleva su brillo en el bolsillo 3D y en la ficha: *holo* sobre la ilustración (toda la carta si es de arte completo, como
+las Rara Ilustración o la Galería de Galar) y *reverse* en todo lo demás. En Sol y Luna TCGdex no registra el reverse de comunes, infrecuentes y
+raras: se añade marcado como **deducida**. Teselia (sin variantes en su catálogo) conserva la ficha de siempre.
+
+**Datos.** Sin cambiar el esquema ni la versión de IndexedDB: la fila de cada carta guarda `variantes` y `mostrar` junto a `cantidad`, que
+sigue siendo el total (web/js/variantes.js). Las copias de antes quedan «sin clasificar» y se pueden asignar a una variante desde la ficha.
+`sumar`, «añadir/eliminar todas», importar y deshacer conservan el desglose; las copias de seguridad pasan a v2 (sección `variantes`) y se
+siguen leyendo las v1. Pruebas: `variantes.test.mjs` y `ejecutar-variantes.mjs` (IndexedDB real).
+
+**Cartas futuras.** `datos/albumes-artista.json` lista los álbumes de artista. Cada lunes (y a mano desde la pestaña *Actions* de GitHub)
+`.github/workflows/actualizar-artistas.yml` ejecuta `herramientas/catalogo-ilustrador/actualizar.py`: regenera el catálogo desde TCGdex, baja
+las imágenes nuevas y, si el álbum necesita más hojas, genera `album-<n>h.glb`; si algo cambió, hace un commit. Las cifras («37 cartas» del
+lomo, la portada y la ficha) salen del catálogo (`{n}` en el registro), así que crecen solas. Tu colección no se toca: lo nuevo sale pendiente.

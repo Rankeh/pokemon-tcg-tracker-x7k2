@@ -1,16 +1,21 @@
 // Copias de seguridad en JSON: crear, validar y preparar la importación (sin tocar nada hasta confirmar).
 import { esCantidadValida, MAX_COPIAS } from "./coleccion.js";
+import { normalizar } from "./variantes.js";
 
 export const FORMATO = "coleccion-teselia-copia";
-export const VERSION_COPIA = 1;
+export const VERSION_COPIA = 2;   // 3.16: v2 añade la sección opcional "variantes" (desglose normal/reverse/holo y variante visible); se siguen leyendo las v1
 
-/** Crea el contenido de la copia. Solo se guardan las cartas con 1 o más copias. */
-export function crearCopia(mapa, infoCatalogo = {}) {
-  const copias = {};
+/** Crea el contenido de la copia. Solo se guardan las cartas con 1 o más copias.
+ *  3.16: `registros` (opcional, Map id -> { variantes, mostrar }) añade el desglose por variantes de las cartas que lo tengan. */
+export function crearCopia(mapa, infoCatalogo = {}, registros = null) {
+  const copias = {}, variantes = {};
   for (const id of [...mapa.keys()].sort()) {
     if (mapa.get(id) > 0) copias[id] = mapa.get(id);
+    const r = registros && registros.get(id);
+    if (copias[id] && r && Object.keys(r.variantes || {}).length) variantes[id] = { variantes: { ...r.variantes }, ...(r.mostrar ? { mostrar: r.mostrar } : {}) };
   }
   return {
+    ...(Object.keys(variantes).length ? { variantes } : {}),
     formato: FORMATO,
     version: VERSION_COPIA,
     creado: new Date().toISOString(),
@@ -71,7 +76,17 @@ export function validarCopia(obj, idsCatalogo = null) {
   if (desconocidas.length > 0) {
     avisos.push(`${desconocidas.length} cartas de la copia no están en el catálogo actual; se conservan por si vuelven: ${desconocidas.slice(0, 5).join(", ")}`);
   }
-  return { ok: errores.length === 0, errores, avisos, copias: errores.length === 0 ? copias : new Map(), desconocidas };
+  // 3.16 · desglose por variantes (v2, opcional): solo de cartas que están en la copia; lo que no cuadre se descarta con aviso
+  const extras = new Map();
+  if (errores.length === 0 && obj.variantes !== undefined) {
+    if (!esObjetoPlano(obj.variantes)) avisos.push("La sección 'variantes' no tiene el formato esperado (se ignora)");
+    else for (const [id, e] of Object.entries(obj.variantes)) {
+      const r = normalizar({ cantidad: copias.get(id) ?? 0, ...(esObjetoPlano(e) ? e : {}) });
+      if (copias.has(id) && r.cantidad === copias.get(id) && Object.keys(r.variantes).length) extras.set(id, { variantes: r.variantes, mostrar: r.mostrar });
+      else avisos.push(`Variantes de ${id} ignoradas (no cuadran con sus copias)`);
+    }
+  }
+  return { ok: errores.length === 0, errores, avisos, copias: errores.length === 0 ? copias : new Map(), desconocidas, extras };
 }
 
 /** Lee el texto del archivo, lo valida y calcula qué cambiaría. No guarda nada. */

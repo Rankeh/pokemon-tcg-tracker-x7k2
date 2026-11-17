@@ -44,6 +44,31 @@ export class Controlador {
     }
   }
 
+  /** 3.16 · Operaciones por variante sobre la carta abierta: misma regla (guardar → confirmar → ficha y 3D). `op` = (adaptador, id) => Promise. */
+  async _variante(op) {
+    const sel = this.seleccion;
+    if (!sel) return null;
+    this.pendientes++;
+    this.ficha.guardando?.(true);
+    try {
+      const res = await op(this.adaptador, sel.id);
+      this.vista.aplicarTransicion(sel.id, res);
+      this.vista.actualizarAcabado?.(sel.id);                        // el brillo (holo / reverse) de la variante visible
+      if (this.seleccion && this.seleccion.id === sel.id) this.ficha.actualizar(this.adaptador.fichaDe(sel.nombre));
+      return res;
+    } catch (e) {
+      this.ficha.error?.('No se pudo guardar el cambio: ' + (e && e.message || e));
+      if (this.seleccion && this.seleccion.id === sel.id) this.ficha.actualizar(this.adaptador.fichaDe(sel.nombre));
+      return null;
+    } finally {
+      this.pendientes--;
+      if (this.pendientes === 0) this.ficha.guardando?.(false);
+    }
+  }
+  cambiarVariante(variante, delta) { return this._variante((a, id) => a.cambiarVariante(id, variante, delta)); }
+  clasificar(variante) { return this._variante((a, id) => a.clasificar(id, variante)); }
+  fijarVisible(variante) { return this._variante((a, id) => a.fijarVisible(id, variante)); }
+
   anadir() { return this.cambiar(+1); }
   retirar() { return this.cambiar(-1); }
 

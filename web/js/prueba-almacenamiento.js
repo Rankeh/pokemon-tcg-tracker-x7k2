@@ -8,7 +8,7 @@ const $ = (id) => document.getElementById(id);
 const usarFixture = new URLSearchParams(location.search).get("catalogo") === "pruebas";
 const URL_CATALOGO = usarFixture ? "pruebas/catalogo-prueba.json" : "../datos/catalogo/coleccion-teselia.json";
 
-let almacen, catalogo, cartas, cantidades;
+let almacen, catalogo, cartas, cantidades, registros = null;
 
 function mensaje(texto) {
   $("mensaje").textContent = texto;
@@ -86,12 +86,13 @@ function pintarLista() {
 
 async function recargarTodo() {
   cantidades = await almacen.leerTodas();
+  registros = await almacen.leerRegistros();
   pintarLista();
   pintarProgreso();
 }
 
 function exportar() {
-  const copia = crearCopia(cantidades, { generado: catalogo.generado, cartas: cartas.length });
+  const copia = crearCopia(cantidades, { generado: catalogo.generado, cartas: cartas.length }, registros);   // 3.16: con el desglose por variantes
   const blob = new Blob([JSON.stringify(copia, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -117,7 +118,7 @@ async function importarArchivo(archivo) {
       mensaje("Importación cancelada: tu colección no ha cambiado.");
       return;
     }
-    await almacen.importar(plan.copias, dialogo.returnValue);
+    await almacen.importar(plan.copias, dialogo.returnValue, plan.extras);
     await recargarTodo();
     mensaje(`Importación aplicada (${dialogo.returnValue}).`);
   }, { once: true });

@@ -430,3 +430,36 @@ body[data-tema="editorial"] .confirmar p { color: var(--e-suave); font-size: .92
   body[data-tema="editorial"] h1 small { margin-left: 6px; }
   body[data-tema="editorial"] .volver, body[data-tema="editorial"] .opciones { flex: none; }
 }
+
+/* =====================================================================================================================================
+   3.16 · Variantes en la ficha (normal / reverse holo / holo…) y brillo de la variante visible sobre la imagen de la carta.
+   ===================================================================================================================================== */
+.ficha-variantes { grid-column: 1 / -1; display: grid; gap: 2px; margin-top: 2px; }
+.v-cabecera { display: flex; justify-content: space-between; margin: 0 0 2px; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--suave); }
+.variante { display: grid; grid-template-columns: minmax(0, 1fr) 44px 32px 44px 32px; align-items: center; gap: 8px; min-height: 48px; border-top: 1px solid var(--borde); }
+.v-nombre { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; font-size: .92rem; }
+.v-nota { font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--acento); }
+.v-precio { font-size: .78rem; color: var(--suave); font-variant-numeric: tabular-nums; }
+.variante button { min-height: 44px; width: 44px; padding: 0; font-size: 1.2rem; }
+.v-n { text-align: center; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.variante[data-tiene="0"] .v-n { opacity: .45; }
+.v-radio { width: 20px; height: 20px; justify-self: center; accent-color: var(--acento); }
+.v-libres { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid var(--borde); font-size: .82rem; color: var(--suave); }
+.v-chip { min-height: 34px; padding: 0 10px; font-size: .78rem; }
+body[data-tema="editorial"] .variante button { font: 300 1.2rem/1 var(--e-fuente); letter-spacing: 0; }
+body[data-tema="editorial"] .v-chip { font: 600 .66rem/1 var(--e-fuente); letter-spacing: .1em; text-transform: uppercase; min-height: 34px; }
+body[data-tema="editorial"] .v-nota { color: var(--e-rojo); }
+
+/* brillo sobre la imagen de la ficha (las mismas zonas que en el bolsillo 3D: web/js/variantes.js VENTANA_ARTE) */
+.ficha-imagen { position: relative; }
+.ficha-imagen[data-acabado]:not([data-acabado=""])::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: color-dodge; opacity: .5;
+  background: linear-gradient(125deg, #ff6b6b 0%, #ffd93d 16%, #6bff95 32%, #4fc3ff 48%, #b46bff 64%, #ff6bd5 80%, #ff6b6b 100%);
+  background-size: 220% 220%; animation: brillo-holo 6s ease-in-out infinite alternate;
+}
+.ficha-imagen[data-acabado="holo-arte"]::after { clip-path: inset(10.5% 8% 47% 8%); }
+.ficha-imagen[data-acabado="reverse"]::after { clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, 8% 10.5%, 8% 53%, 92% 53%, 92% 10.5%, 8% 10.5%); }
+@keyframes brillo-holo { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
+@media (prefers-reduced-motion: reduce) { .ficha-imagen::after { animation: none !important; } }
+/* 3.16 · editorial en pantallas grandes: la ficha queda DENTRO del marco negro (antes el marco tapaba su borde derecho e inferior) */
+@media (min-width: 900px) { body[data-tema="editorial"] .ficha { right: calc(var(--e-marco-ancho) + 20px); bottom: calc(var(--e-marco-ancho) + 20px); max-height: calc(100vh - 2 * var(--e-marco-ancho) - 100px); } }

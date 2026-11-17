@@ -4,7 +4,7 @@
 // No abre IndexedDB: los álbumes vienen de albumes.js (solo lectura).
 import * as THREE from 'three';
 import { elegirCalidad, generarEntorno } from '../../prueba-3d/js/aspecto.js';
-import { listarAlbumes } from './albumes.js';
+import { listarAlbumes, conCifras } from './albumes.js';
 import { LIBRO } from './disposicion.js';
 import { poses, mover, elementos, series, altoVisible, CARRUSEL } from './carrusel.js';
 import { crearFabricaLibros } from './libros.js';
@@ -242,7 +242,10 @@ reducir.addEventListener?.('change', pedirFrame);
 
 // ------------------------------------------------------------------ arranque
 async function iniciar() {
-  albumes = await listarAlbumes();
+  // 3.16 · nº de cartas real de cada álbum (leído de su catálogo): los álbumes que crecen no tienen cifras escritas a mano
+  albumes = await Promise.all((await listarAlbumes()).map(async (a) => {
+    try { return conCifras(a, (await (await fetch(a.catalogo)).json()).cartas.length); } catch { return conCifras(a, a.cartas); }
+  }));
   $('lista-albumes').replaceChildren(...albumes.map((a) => { const li = document.createElement('li'), enl = document.createElement('a'); enl.href = a.ruta; enl.textContent = `${a.nombre} — ${a.subtitulo}`; li.append(enl); return li; }));
   const cartas = albumes.reduce((s, a) => s + (a.cartas || 0), 0);
   $('contador').textContent = `${albumes.length} ${albumes.length === 1 ? 'álbum' : 'álbumes'} · ${cartas} cartas`;

@@ -41,6 +41,48 @@ def categoria(rareza_en):
     return CATEGORIAS.get(r, 'otra')
 
 
+SELLOS = {'30th-anniversary': 'sello 30.º aniversario'}
+NOMBRES = {'normal': 'Normal', 'holo': 'Holo', 'reverse': 'Reverse holo', 'firstEdition': '1.ª edición', 'wPromo': 'Sello W'}
+import re
+EXPANSION_PRINCIPAL_SM = re.compile(r'^sm\d+$')        # sm1..sm12: en Sol y Luna las comunes, infrecuentes y raras salían también en reverse
+
+
+def variantes(en, cat):
+    """Variantes de la carta según TCGdex (variants_detailed; si falta, variants) + el reverse que TCGdex no registra en Sol y Luna."""
+    lista, vistos = [], set()
+    for v in en.get('variants_detailed') or []:
+        t = v.get('type')
+        if not t or t in vistos: continue
+        vistos.add(t)
+        e = {'id': t, 'nombre': NOMBRES.get(t, t)}
+        sellos = [SELLOS.get(x, x) for x in (v.get('stamp') or [])]
+        if sellos: e['nombre'] += ' · ' + ', '.join(sellos); e['sello'] = v['stamp']
+        lista.append(e)
+    if not lista:
+        lista = [{'id': t, 'nombre': NOMBRES.get(t, t)} for t, si in (en.get('variants') or {}).items() if si]
+    if (EXPANSION_PRINCIPAL_SM.match(en['set']['id']) and cat in ('comun', 'infrecuente', 'rara')
+            and 'reverse' not in {x['id'] for x in lista}):
+        lista.append({'id': 'reverse', 'nombre': 'Reverse holo', 'deducida': True})
+    orden = {'normal': 0, 'reverse': 1, 'holo': 2}
+    return sorted(lista, key=lambda x: orden.get(x['id'], 9))
+
+
+def precio_variantes(fuente):
+    """Precio Cardmarket por variante (variants_detailed[].pricing.cardmarket)."""
+    out = {}
+    for v in fuente.get('variants_detailed') or []:
+        cm = (v.get('pricing') or {}).get('cardmarket') or {}
+        t = cm.get('trend', cm.get('trend-holo')); b = cm.get('low', cm.get('low-holo'))
+        if v.get('type') and (t is not None or b is not None):
+            out[v['type']] = {k: x for k, x in {'tendencia': t, 'bajo': b}.items() if x is not None}
+    return out
+
+
+def arte_completo(en, cat):
+    """Ilustración a sangre (el brillo holo cubre toda la carta): ilustraciones raras y galerías (GG/TG)."""
+    return cat in ('ir', 'sir') or bool(re.match(r'^(GG|TG)\d', en.get('localId') or ''))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--ilustrador', required=True)
@@ -81,12 +123,16 @@ def main():
             'idiomaImagen': idioma if imagen else None,
             'imagenCarga': bool(imagen),
             'origenImagen': 'TCGdex (campo image)' if imagen else None,
+            'variantes': variantes(en, categoria(en.get('rarity'))),
+            'arteCompleto': arte_completo(en, categoria(en.get('rarity'))),
         })
         cm = ((es or en).get('pricing') or {}).get('cardmarket') or {}
         v = {'tendencia': cm.get('trend', cm.get('trend-holo')), 'bajo': cm.get('low', cm.get('low-holo')),
              'medio30': cm.get('avg30', cm.get('avg30-holo')), 'actualizado': cm.get('updated')}
-        if v['tendencia'] is not None or v['bajo'] is not None:
+        pv = precio_variantes(en)
+        if v['tendencia'] is not None or v['bajo'] is not None or pv:
             precios[en['id']] = {k: x for k, x in v.items() if x is not None}
+            if pv: precios[en['id']]['variantes'] = pv
         print('%3d/%d %-16s %-14s %s' % (i, len(lista), en['id'], cartas[-1]['nombre'][:14], idioma))
         time.sleep(0.1)
 
@@ -95,6 +141,11 @@ def main():
              'imagenOtroIdioma': sum(c['idiomaImagen'] == 'en' for c in cartas), 'sinImagen': sum(not c['imagenCarga'] for c in cartas),
              'excluidas': [{'id': x, 'motivo': m} for x, m in fuera]}
     destino = RAIZ / 'datos/catalogo' / ('coleccion-%s.json' % a.id)
+    try:                                                   # sin cambios en las cartas: se conserva la fecha (no hay commits vacíos)
+        previo = json.loads(destino.read_text(encoding='utf-8'))
+        if previo.get('cartas') == cartas and previo.get('totales') == total: hoy = previo.get('generado', hoy)
+    except FileNotFoundError:
+        pass
     destino.write_text(json.dumps({'generado': hoy, 'fuente': 'TCGdex (datos MIT), ilustrador = «%s» (coincidencia exacta)' % a.ilustrador,
                                    'ilustrador': a.ilustrador, 'totales': total, 'cartas': cartas}, ensure_ascii=False, indent=1), encoding='utf-8')
     (RAIZ / 'datos/catalogo' / ('precios-%s.json' % a.id)).write_text(json.dumps({

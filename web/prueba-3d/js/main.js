@@ -11,7 +11,7 @@ import { crearGeometria } from './logica.js';
 import { Resaltado } from './resaltado.js';
 import { Metricas } from './metricas.js';
 import { Aspecto, elegirCalidad, elegirTema, elegirAcabado, TEMAS } from './aspecto.js';
-import { albumPorId } from '../../estanteria/js/albumes.js';
+import { albumPorId, conCifras } from '../../estanteria/js/albumes.js';
 import { montarMenu, copiasParaCompletar, copiasSinAlbum, compartidasCon } from './completar.js';
 import { listarAlbumes } from '../../estanteria/js/albumes.js';
 import { fijarTemaMarcadores } from './marcadores.js';
@@ -25,7 +25,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
-export const FASE = '3.14';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.16';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -435,6 +435,7 @@ async function arrancar() {
   const t0 = performance.now();
   const catalogo = await (await fetch('../../' + albumActual.catalogo)).json();
   const mapa = crearMapa(catalogo);
+  aspecto.disenoPortada = conCifras(albumActual, mapa.cartas.length).portada;     // 3.16: la portada con el nº real de cartas
   // Persistencia: LA MISMA base de datos de la app original ('coleccion-teselia'). ?bd=otro-nombre solo para pruebas con datos ajenos.
   let modelo, soloLectura = false, almacen = null;
   try {
@@ -468,9 +469,11 @@ async function arrancar() {
     productores: crearProductores({ manifiesto, anisotropia: Math.min(4, renderer.capabilities.getMaxAnisotropy()) }) });
   vista.animandoTurno = () => album.estado.animando;
 
-  ficha = new FichaUI({ raiz: $('ficha'), fondo: $('f-fondo'), imagen: $('f-imagen'), nombre: $('f-nombre'), expansion: $('f-exp'), numero: $('f-num'), precio: $('f-precio'), cardmarket: $('f-cardmarket'), cantidad: $('f-cant'),
+  ficha = new FichaUI({ raiz: $('ficha'), fondo: $('f-fondo'), imagen: $('f-imagen'), variantes: $('f-variantes'), nombre: $('f-nombre'), expansion: $('f-exp'), numero: $('f-num'), precio: $('f-precio'), cardmarket: $('f-cardmarket'), cantidad: $('f-cant'),
     estadoTxt: $('f-estado-txt'), error: $('f-error'), cerrar: $('f-cerrar'), anadir: $('f-mas'), retirar: $('f-menos') },
-  { manifiesto, precios, alCerrar: cerrarFicha, alAnadir: () => { cambioAMano(); ctrl.anadir(); }, alRetirar: () => { cambioAMano(); ctrl.retirar(); } });
+  { manifiesto, precios, alCerrar: cerrarFicha, alAnadir: () => { cambioAMano(); ctrl.anadir(); }, alRetirar: () => { cambioAMano(); ctrl.retirar(); },
+    // 3.16 · variantes (normal / reverse / holo): solo en álbumes cuyo catálogo las trae (Asako Ito)
+    alVariante: (v, d) => { cambioAMano(); ctrl.cambiarVariante(v, d); }, alClasificar: (v) => { cambioAMano(); ctrl.clasificar(v); }, alVisible: (v) => { cambioAMano(); ctrl.fijarVisible(v); } });
   if (soloLectura) { $('f-mas').disabled = $('f-menos').disabled = true; }
   const fichaConProgreso = Object.create(ficha); // tras cada cambio confirmado se refresca el contador de progreso
   fichaConProgreso.actualizar = (d) => { ficha.actualizar(d); pintarProgreso(); };

@@ -1,10 +1,12 @@
 // Ficha de carta (DOM): panel inferior en móvil y tarjeta lateral en escritorio. Solo muestra datos y avisa de los botones; no guarda nada.
 import { rutasArte, rutaProxy } from './proxies.js';
-import { lineaPrecio, enlaceCardmarket } from './precios.js';
+import { lineaPrecio, enlaceCardmarket, precioDe, eur } from './precios.js';
+import { sinClasificar, tipoBrillo } from '../../js/variantes.js';
 export const SALIDA_MS = 220;
 export class FichaUI {
-  constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', precios = null, alCerrar, alAnadir, alRetirar }) {
+  constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', precios = null, alCerrar, alAnadir, alRetirar, alVariante = null, alClasificar = null, alVisible = null }) {
     this.el = el; this.manifiesto = manifiesto; this.rutaBase = rutaBase; this.precios = precios;
+    this.alVariante = alVariante; this.alClasificar = alClasificar; this.alVisible = alVisible;          // 3.16: variantes
     el.cerrar.onclick = () => alCerrar();
     el.anadir.onclick = () => alAnadir();
     el.retirar.onclick = () => alRetirar();
@@ -62,6 +64,45 @@ export class FichaUI {
     this.el.raiz.dataset.estado = d.cantidad > 0 ? 'conseguida' : 'pendiente';
     this.el.retirar.disabled = d.cantidad <= 0;
     this.el.anadir.disabled = d.cantidad >= 999;
+    this._variantes(d);
+  }
+
+  /** 3.16 · Variantes: una fila por variante (−/+ y precio), «se ve en el álbum» y copias sin clasificar. Sin variantes, la ficha de siempre. */
+  _variantes(d) {
+    const caja = this.el.variantes, conVariantes = Boolean(d.variantes && caja && this.alVariante);
+    if (!caja) return;                                             // ficha sin zona de variantes (pruebas antiguas): la de siempre, intacta
+    const cantidadClasica = this.el.raiz.querySelector?.('.ficha-cantidad');
+    if (cantidadClasica) cantidadClasica.hidden = conVariantes;
+    if (this.el.imagen && this.el.imagen.dataset) this.el.imagen.dataset.acabado = (conVariantes && tipoBrillo(d.visible, d.arteCompleto)) || '';
+    caja.hidden = !conVariantes;
+    if (!conVariantes) { caja.replaceChildren(); return; }
+    const r = d.registro, libres = sinClasificar(r), pv = (precioDe(this.precios, d.id) || {}).variantes || {};
+    const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+    const cab = el('p', 'v-cabecera');
+    cab.append(el('span', null, d.cantidad === 1 ? '1 copia' : `${d.cantidad} copias`), el('span', 'v-ver', 'Se ve en el álbum'));
+    const filas = d.variantes.map((v) => {
+      const n = r.variantes[v.id] || 0, fila = el('div', 'variante'); fila.dataset.variante = v.id; fila.dataset.tiene = n > 0 ? '1' : '0';
+      const nombre = el('div', 'v-nombre'); nombre.append(el('span', null, v.nombre));
+      if (v.deducida) { const s = el('small', 'v-nota', 'deducida'); s.title = 'TCGdex no registra esta variante; en esta expansión salió en reverse holo'; nombre.append(s); }
+      const p = pv[v.id]; if (p && p.tendencia != null) nombre.append(el('small', 'v-precio', '≈ ' + eur(p.tendencia)));
+      const menos = el('button', 'v-menos', '−'); menos.type = 'button'; menos.disabled = n === 0; menos.setAttribute('aria-label', `Retirar una ${v.nombre}`);
+      const cuenta = el('strong', 'v-n', String(n));
+      const mas = el('button', 'v-mas', '+'); mas.type = 'button'; mas.disabled = d.cantidad >= 999; mas.setAttribute('aria-label', `Añadir una ${v.nombre}`);
+      const ver = el('input', 'v-radio'); ver.type = 'radio'; ver.name = 'f-visible-' + d.id; ver.checked = d.visible === v.id; ver.disabled = n === 0 || d.variantes.length < 2;
+      ver.setAttribute('aria-label', `Mostrar ${v.nombre} en el álbum`);
+      menos.onclick = () => this.alVariante(v.id, -1); mas.onclick = () => this.alVariante(v.id, +1);
+      ver.onchange = () => ver.checked && this.alVisible && this.alVisible(v.id);
+      fila.append(nombre, menos, cuenta, mas, ver);
+      return fila;
+    });
+    const extra = [];
+    if (libres > 0) {                                              // copias de antes de las variantes (o de «añadir todas»): se pueden clasificar
+      const f = el('div', 'v-libres'); f.append(el('span', null, libres === 1 ? '1 copia sin clasificar · es:' : `${libres} copias sin clasificar · una es:`));
+      for (const v of d.variantes) { const b = el('button', 'v-chip', v.nombre); b.type = 'button'; b.onclick = () => this.alClasificar && this.alClasificar(v.id); f.append(b); }
+      const quitar = el('button', 'v-chip v-quitar', 'Quitar una'); quitar.type = 'button'; quitar.onclick = () => this.el.retirar.onclick(); f.append(quitar);
+      extra.push(f);
+    }
+    caja.replaceChildren(cab, ...filas, ...extra);
   }
 
   error(msg) { this.el.error.textContent = msg; }

@@ -1,0 +1,32 @@
+# Cada lunes (y cuando lo lances a mano desde la pestaña Actions) busca cartas nuevas de las artistas de datos/albumes-artista.json
+# en TCGdex, descarga sus imágenes y, si un álbum necesita más hojas, genera su modelo 3D. Si algo cambió, hace un commit a main.
+# Tu colección (IndexedDB en tu navegador) no se toca: las cartas nuevas aparecen como pendientes.
+name: Actualizar álbumes de artistas
+on:
+  schedule:
+    - cron: '23 5 * * 1'            # lunes 05:23 UTC
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: actualizar-artistas
+  cancel-in-progress: false
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Catálogos, imágenes y modelos
+        run: python herramientas/catalogo-ilustrador/actualizar.py
+      - name: Commit si hay cambios
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add datos/catalogo web/prueba-3d/assets/cartas web/prueba-3d/modelo
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git commit -m "Álbumes de artista: cartas nuevas, imágenes y precios (TCGdex)"
+          git push

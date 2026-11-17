@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { LIBRO } from '../js/disposicion.js';
 import { poses, mover, elementos, series, altoVisible, CARRUSEL } from '../js/carrusel.js';
-import { listarAlbumes, validarAlbum, normalizarAlbumes, albumPorId } from '../js/albumes.js';
+import { listarAlbumes, validarAlbum, normalizarAlbumes, albumPorId, conCifras } from '../js/albumes.js';
 import { readFile, access } from 'node:fs/promises';
 import { validarCatalogo } from '../../js/coleccion.js';
 import { crearMapa } from '../../prueba-3d/js/adaptador-coleccion.js';
@@ -81,7 +81,9 @@ test('cada álbum: su catálogo existe, es válido, cabe en su modelo 3D, coinci
   for (const a of await listarAlbumes()) {
     const cat = await leerJson(a.catalogo);
     assert.ok(validarCatalogo(cat).ok, a.id + ': catálogo válido');
-    assert.equal(cat.cartas.length, a.cartas, a.id + ': nº de cartas del registro = catálogo');
+    const c = conCifras(a, cat.cartas.length);                                                // las cifras salen del catálogo, no del registro
+    assert.ok(!JSON.stringify(c).includes('{n}'), a.id + ': no quedan marcas {n} sin rellenar');
+    assert.equal(c.cartas, cat.cartas.length);
     const mapa = crearMapa(cat), modelo = mapa.hojas === 9 ? 'album.glb' : `album-${mapa.hojas}h.glb`;
     await access(new URL('web/prueba-3d/modelo/' + modelo, raiz));                         // el visor elige este modelo por nº de hojas
     for (const id of a.portada.cartas) assert.ok(cat.cartas.some((c) => c.id === id), `${a.id}: carta de portada ${id} en el catálogo`);
@@ -99,4 +101,21 @@ test('Asako Ito: todas las cartas son suyas (coincidencia exacta), físicas (sin
   }
   assert.equal(new Set(cat.cartas.map((c) => c.id)).size, cat.cartas.length);
   assert.ok(cat.totales.excluidas.every((e) => /Pocket/.test(e.motivo)), 'solo se excluye TCG Pocket');
+});
+
+test('conCifras: un álbum que crece cambia sus cifras sin tocar el registro (portada, lomo y ficha)', () => {
+  const a = albumPorId('asako-ito'), c = conCifras(a, 41);
+  assert.equal(c.lomo.cifra, '41'); assert.ok(c.portada.pie.includes('41 cartas')); assert.ok(c.meta.includes('41 cartas'));
+  assert.equal(a.lomo.cifra, '{n}', 'no modifica el registro original');
+});
+
+test('actualización automática: configuración de artistas coherente con el registro y workflow semanal presente', async () => {
+  const artistas = await leerJson('datos/albumes-artista.json');
+  for (const x of artistas) {
+    const a = albumPorId(x.id);
+    assert.equal(a.id, x.id, x.id + ' está en el registro de álbumes');
+    assert.equal((await leerJson(a.catalogo)).ilustrador, x.ilustrador);
+  }
+  const wf = await readFile(new URL('.github/workflows/actualizar-artistas.yml', raiz), 'utf8');
+  assert.ok(/schedule:/.test(wf) && /workflow_dispatch:/.test(wf) && /actualizar\.py/.test(wf) && /contents: write/.test(wf));
 });

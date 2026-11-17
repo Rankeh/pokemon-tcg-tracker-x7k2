@@ -10,6 +10,30 @@ const Y_FANTASMA = 0.0003;                  // la placa «pendiente» queda just
 
 const salida = (t) => 1 - Math.pow(1 - t, 3);
 
+// 3.16 · Brillo de la variante visible: capa iridiscente que se SUMA a la carta (no la tapa). Zonas en fracción de la carta (arriba = 0):
+// la ventana de la ilustración de una carta normal; «holo» brilla ahí (o en toda la carta si es de arte completo), «reverse» en todo lo demás.
+import { VENTANA_ARTE, tipoBrillo } from '../../js/variantes.js';
+export { VENTANA_ARTE, tipoBrillo };
+const materialesBrillo = new Map();                 // un material por tipo, compartido por todos los bolsillos
+function materialBrillo(tipo) {
+  if (materialesBrillo.has(tipo)) return materialesBrillo.get(tipo);
+  const w = 256, h = 358, c = document.createElement('canvas'); c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, w, h);                // arcoíris en diagonal, en franjas suaves (como la lámina holográfica)
+  for (let i = 0; i <= 12; i++) g.addColorStop(i / 12, `hsla(${(i * 47) % 360}, 90%, 62%, ${i % 2 ? 0.55 : 0.25})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  let sem = 3; const azar = () => { sem = (sem * 16807) % 2147483647; return sem / 2147483647; };
+  for (let i = 0; i < 260; i++) { ctx.fillStyle = `rgba(255,255,255,${0.15 + azar() * 0.5})`; ctx.fillRect(azar() * w, azar() * h, 1 + azar() * 1.5, 1 + azar() * 1.5); }   // destellos
+  const V = VENTANA_ARTE, vx = V.x0 * w, vy = V.y0 * h, vw = (V.x1 - V.x0) * w, vh = (V.y1 - V.y0) * h;
+  if (tipo === 'reverse') ctx.clearRect(vx, vy, vw, vh);
+  else if (tipo === 'holo-arte') { const arte = ctx.getImageData(vx, vy, vw, vh); ctx.clearRect(0, 0, w, h); ctx.putImageData(arte, vx, vy); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const m = new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false,
+    polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  materialesBrillo.set(tipo, m);
+  return m;
+}
+
 export class VistaBolsillos {
   constructor({ album, adaptador, cache, productores, reducirMovimiento = () => false, materialCarta = null }) {
     // `materialCarta(color, rugosidad)`: lo aporta Aspecto (3.7.2a). Por defecto, el material iluminado de siempre.
@@ -82,14 +106,34 @@ export class VistaBolsillos {
     if (b.tarjeta) return;
     const m = this._malla(b, 0xd9d4c8, 0.55);
     b.tarjeta = m; b.nodo.add(m);
+    this._ponerBrillo(b);
     // imagen local; si no existe o falla, marcador reconocible (nombre, expansión, número). Nunca se queda sin textura ni lanza error.
     this._pedir(b, m, 'mini:' + b.carta.id, this.prod.mini(b.carta), prio, () => this._pedir(b, m, 'marcador:' + b.carta.id, this.prod.marcador(b.carta), 0));
+  }
+
+  /** 3.16 · Capa de brillo según la variante visible (hija de la tarjeta: se mueve con ella en las animaciones). */
+  _ponerBrillo(b) {
+    if (!b.tarjeta) return;
+    if (b.brillo) { b.tarjeta.remove(b.brillo); b.brillo = null; }
+    const tipo = typeof document === 'undefined' || !this.adaptador.acabado ? null : tipoBrillo(this.adaptador.acabado(b.carta.id), b.carta.arteCompleto);
+    b.tipoBrillo = tipo;
+    if (!tipo) return;
+    const m = new THREE.Mesh(this.album.geomCarta[b.cara], materialBrillo(tipo));
+    m.userData = { tipo: 'vista-carta' }; m.renderOrder = 2;
+    b.brillo = m; b.tarjeta.add(m);
+  }
+
+  /** 3.16 · La variante visible de una carta cambió: rehace solo su brillo. */
+  actualizarAcabado(id) {
+    const b = this.porId.get(id);
+    if (b && b.activo) { this._ponerBrillo(b); this.album.onCambio?.(); }
   }
 
   _quitar(b, que) {
     const m = b[que];
     if (!m) return;
     b.nodo.remove(m); m.material.dispose();                      // el material es de la carta; la textura la gestiona la caché (recuento)
+    if (que === 'tarjeta' && b.brillo) { b.brillo = null; b.tipoBrillo = null; }   // el brillo iba dentro de la tarjeta (su material es compartido)
     for (const k of b.claves.get(m) || []) this.cache.liberar(k);
     b.claves.delete(m); b[que] = null;
   }
@@ -134,7 +178,7 @@ export class VistaBolsillos {
     for (const b of this.bolsillos.values()) {
       if (!b.activo) continue;
       this._terminar(b);
-      if (this.adaptador.cantidad(b.carta.id) > 0) { this._ponerTarjeta(b, 0); this._quitar(b, 'fantasma'); }
+      if (this.adaptador.cantidad(b.carta.id) > 0) { this._ponerTarjeta(b, 0); this._ponerBrillo(b); this._quitar(b, 'fantasma'); }
       else { this._quitar(b, 'tarjeta'); this._ponerFantasma(b, 0); }
     }
     this.album.onCambio?.();

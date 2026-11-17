@@ -6,6 +6,7 @@
 // y solo añade la traducción  página/posición del catálogo  ⇄  nodo 3D ("Hoja_i_F|D_Bolsillo_k").
 import { distribuir, POR_PAGINA } from '../../js/album/distribucion.js';
 import { validarCatalogo, MAX_COPIAS } from '../../js/coleccion.js';
+import { aMostrar } from '../../js/variantes.js';
 
 /**
  * Cada hoja del álbum 3D tiene dos caras con 9 bolsillos. Páginas del catálogo en orden de lectura de un libro:
@@ -110,8 +111,44 @@ export class AdaptadorColeccion {
     if (!b || !b.carta) return null;
     const c = b.carta;
     return { id: c.id, nombre: c.nombre, nombreExpansion: c.nombreExpansion, expansion: c.expansion, numero: c.numero, rareza: c.rareza,
-             pagina: b.pagina, posicion: b.posicion, cantidad: this.cantidad(c.id), url: urlTextura(c, 'high'), urlMiniatura: urlTextura(c, 'low') };
+             pagina: b.pagina, posicion: b.posicion, cantidad: this.cantidad(c.id), url: urlTextura(c, 'high'), urlMiniatura: urlTextura(c, 'low'),
+             // 3.16: variantes del catálogo (normal, reverse, holo…) y el desglose guardado; sin variantes en el catálogo, la ficha es la de siempre
+             variantes: Array.isArray(c.variantes) && c.variantes.length ? c.variantes : null, registro: this.registro(c.id),
+             visible: this.acabado(c.id), arteCompleto: Boolean(c.arteCompleto) };
   }
+
+  /** 3.16 · Registro con variantes ({ cantidad, variantes, mostrar }). */
+  registro(id) { return this.modelo.registro ? this.modelo.registro(id) : { cantidad: this.cantidad(id), variantes: {}, mostrar: null }; }
+
+  /** 3.16 · Variante que se ve en el álbum para esta carta (null: sin variantes, o solo copias sin clasificar). */
+  acabado(id) {
+    const c = this.mapa.cartaPorId.get(id);
+    if (!c || !Array.isArray(c.variantes) || !c.variantes.length || !(this.cantidad(id) > 0)) return null;
+    return aMostrar(this.registro(id), c.variantes.map((v) => v.id));
+  }
+
+  /** 3.16 · Operación sobre una variante, encadenada en la misma cola que cambiar (los toques rápidos no se pisan). */
+  _operarVariante(id, variante, fn) {
+    const op = this._cola.then(async () => {
+      const c = this.mapa.cartaPorId.get(id);
+      if (!c) throw new RangeError('La carta ' + JSON.stringify(id) + ' no está en el catálogo');
+      if (!Array.isArray(c.variantes) || (variante !== null && !c.variantes.some((v) => v.id === variante))) throw new RangeError('La carta no tiene la variante ' + JSON.stringify(variante));
+      const antes = this.modelo.cantidad(id);
+      await fn();
+      const despues = this.modelo.cantidad(id);
+      const res = { id, antes, despues, transicion: antes === despues ? 'acabado' : clasificarTransicion(antes, despues), variante };
+      for (const f of this._oyentes) f(res);
+      return res;
+    });
+    this._cola = op.catch(() => {});
+    return op;
+  }
+  cambiarVariante(id, variante, delta) {
+    if (!Number.isInteger(delta) || Math.abs(delta) !== 1) return Promise.reject(new RangeError('Solo se añade o retira una copia cada vez'));
+    return this._operarVariante(id, variante, () => this.modelo.cambiarVariante(id, variante, delta));
+  }
+  clasificar(id, variante) { return this._operarVariante(id, variante, () => this.modelo.clasificar(id, variante)); }
+  fijarVisible(id, variante) { return this._operarVariante(id, variante, () => this.modelo.fijarVisible(id, variante)); }
 
   /** Cambia la cantidad de UNA carta del catálogo. Rechaza ids que no existan (no hay cartas arbitrarias). */
   cambiar(id, delta) {

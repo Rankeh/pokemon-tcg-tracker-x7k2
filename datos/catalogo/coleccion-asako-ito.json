@@ -52,7 +52,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sv05-003",
@@ -71,7 +82,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm10-6",
@@ -90,7 +112,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm5-10",
@@ -109,7 +143,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "me05-015",
@@ -128,7 +174,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh8-18",
@@ -147,7 +204,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh11-018",
@@ -166,7 +234,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "30th-027",
@@ -185,7 +264,17 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm1-30",
@@ -204,7 +293,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm3-34",
@@ -223,7 +324,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm9-39",
@@ -242,7 +354,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm7-44",
@@ -261,7 +385,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm3-44",
@@ -280,7 +416,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm5-51",
@@ -299,7 +446,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm10-53",
@@ -318,7 +477,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm12-58",
@@ -337,7 +508,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh4-72",
@@ -356,7 +539,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh12-081",
@@ -375,7 +569,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh12-083",
@@ -394,7 +599,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh1-87",
@@ -413,7 +629,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh5-89",
@@ -432,7 +659,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh3-89",
@@ -451,7 +689,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sv06-091",
@@ -470,7 +719,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm2-94",
@@ -489,7 +749,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm8-101",
@@ -508,7 +780,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm7-105",
@@ -527,7 +811,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh12.5-109",
@@ -546,7 +842,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh8-111",
@@ -565,7 +872,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm8-111",
@@ -584,7 +902,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm11-112",
@@ -603,7 +933,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm7-117",
@@ -622,7 +964,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sv09-120",
@@ -641,7 +995,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "swsh6-121",
@@ -660,7 +1025,18 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm11-143",
@@ -679,7 +1055,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sm12-146",
@@ -698,7 +1086,19 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
   },
   {
    "id": "sv10.5b-151",
@@ -717,7 +1117,14 @@
    "estadoImagen": "espanol-verificada",
    "idiomaImagen": "es",
    "imagenCarga": true,
-   "origenImagen": "TCGdex (campo image)"
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
   },
   {
    "id": "swsh12.5gg-GG19",
@@ -736,7 +1143,14 @@
    "estadoImagen": "sin-imagen",
    "idiomaImagen": null,
    "imagenCarga": false,
-   "origenImagen": null
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
   }
  ]
 }

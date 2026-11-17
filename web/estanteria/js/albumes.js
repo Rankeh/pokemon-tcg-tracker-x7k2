@@ -46,17 +46,17 @@ const ALBUMES = [
     subtitulo: 'Colección de artista',
     descripcion: 'Todas las cartas físicas ilustradas por Asako Ito según TCGdex (de Sol y Luna a Megaevolución), sin las de TCG Pocket.',
     expansiones: [],
-    meta: 'Ilustradora · 37 cartas · 2017–2026',
+    meta: 'Ilustradora · {n} cartas · desde 2017',       // {n} = nº de cartas del catálogo (crece solo cuando salen cartas nuevas)
     serie: 'artistas',
     nombreSerie: 'Artistas',
-    cartas: 37,
+    cartas: 37,                                     // respaldo si no se puede leer el catálogo; la cifra real sale del catálogo
     catalogo: 'datos/catalogo/coleccion-asako-ito.json',
     precios: 'datos/catalogo/precios-asako-ito.json',
     ruta: 'web/prueba-3d/index.html?album=asako-ito',
     portada: { titulo: 'Asako Ito', subtitulo: 'Colección de artista', arribaIzq: 'Pokémon TCG', arribaDer: 'Ilustradora',
-      pie: 'Sol y Luna – Megaevolución · 37 cartas', banda: 'Asako Ito', bandaCodigo: 'ARTISTA', cartas: ['sv10.5b-151', '30th-027'] },
+      pie: 'Desde Sol y Luna · {n} cartas', banda: 'Asako Ito', bandaCodigo: 'ARTISTA', cartas: ['sv10.5b-151', '30th-027'] },
     lomo: { diseno: 'editorial', material: 'cuero', color: '#11141b', titulo: 'ASAKO ITO', subtitulo: 'COLECCIÓN DE ARTISTA',
-      codigo: 'ARTISTA', cifra: '37', marca: 'paleta' },
+      codigo: 'ARTISTA', cifra: '{n}', marca: 'paleta' },
     orden: 1,
   },
 ];
@@ -85,6 +85,16 @@ export function normalizarAlbumes(lista) {
 /** Álbumes de la biblioteca, ya validados y ordenados. Asíncrona a propósito: en la Fase 4 leerá de IndexedDB sin cambiar a quien la llama. */
 export async function listarAlbumes() {
   return normalizarAlbumes(ALBUMES).map((a) => structuredClone(a));
+}
+
+/** PURO · copia del álbum con `{n}` sustituido por el nº real de cartas del catálogo (portada, lomo y ficha) y `cartas` = n.
+ *  Así un álbum que crece (cartas nuevas de una artista) no tiene cifras escritas a mano que se queden viejas. */
+export function conCifras(album, n) {
+  const c = structuredClone(album), f = (t) => (typeof t === 'string' ? t.replaceAll('{n}', String(n)) : t);
+  c.cartas = n; c.meta = f(c.meta);
+  for (const k of Object.keys(c.portada || {})) c.portada[k] = f(c.portada[k]);
+  for (const k of Object.keys(c.lomo || {})) c.lomo[k] = f(c.lomo[k]);
+  return c;
 }
 
 /** Álbum por id (síncrono, para el visor 3D, que lo necesita antes de montar la escena). Si el id no existe, el primero (Teselia). */
