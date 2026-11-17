@@ -1,4 +1,4 @@
-// 3.13 · Prueba de navegador de «Añadir todas las cartas» con IndexedDB REAL (Chromium, base de datos desechable) y Three.js simulado.
+// 3.13–3.14 · Prueba de navegador de «Añadir todas» y «Eliminar todas las cartas» con IndexedDB REAL (Chromium, base de datos desechable) y Three.js simulado.
 // Comprueba: confirmación, que lo que ya tenías no baja, que se completa el álbum, el deshacer exacto y que tras un cambio a mano no se ofrece.
 // Uso:  node web/prueba-3d/pruebas/ejecutar-completar.mjs
 import http from 'node:http';
@@ -79,6 +79,34 @@ await pag.evaluate(() => document.dispatchEvent(new Event('visibilitychange', { 
 await dormir(500);
 await pag.click('#b-opciones');
 ok(await pag.isHidden('#m-deshacer'), 'tras releer la colección ya no se ofrece «Deshacer» (pisaría cambios posteriores)');
+// ------------------------------------------------------------------ 3.14 · Eliminar todas las cartas
+await pag.click('body', { position: { x: 5, y: 400 } });                          // cerrar el menú
+await pag.evaluate(async (bd) => { const { Almacen } = await import('/web/js/almacen.js'); const a = await Almacen.abrir(bd);
+  await a.importar(new Map([['sv10.5b-151', 3], ['30th-027', 1], ['sv10.5w-166', 2]]), 'reemplazar'); a.cerrar(); }, bd);
+await pag.evaluate(() => document.dispatchEvent(new Event('visibilitychange', { bubbles: true }))); await dormir(500);
+await pag.click('#b-opciones');
+ok(/tienes 2/.test(await pag.textContent('#m-quitar')), 'el menú dice cuántas tienes: ' + (await pag.textContent('#m-quitar')));
+await pag.click('#m-quitar');
+await pag.waitForFunction(() => !document.getElementById('d-aceptar').disabled, null, { timeout: 5000 });
+const aviso = await pag.textContent('#d-todas-txt');
+ok(/2 cartas/.test(aviso) && /4 copias/.test(aviso), 'la confirmación cuenta cartas y copias: ' + aviso);
+ok(/«Teselia»/.test(aviso), 'avisa de que Audino también está en Teselia');
+ok(await pag.evaluate(() => document.getElementById('d-aceptar').classList.contains('peligro')), 'botón de confirmar en rojo (acción destructiva)');
+await pag.click('#d-cancelar'); await dormir(200);
+ok(Object.keys(await leer()).length === 3, 'Cancelar no elimina nada');
+await pag.click('#b-opciones'); await pag.click('#m-quitar');
+await pag.waitForFunction(() => !document.getElementById('d-aceptar').disabled, null, { timeout: 5000 });
+await pag.click('#d-aceptar'); await dormir(800);
+m = await leer();
+ok(JSON.stringify(m) === JSON.stringify({ 'sv10.5w-166': 2 }), 'solo se quitan las cartas del álbum; el resto con su cantidad exacta: ' + JSON.stringify(m));
+ok(/0 de 37/.test(await pag.textContent('#progreso')), 'la cabecera vuelve a 0 de 37');
+ok(/2 cartas eliminadas/.test(await pag.textContent('#aviso')), 'aviso: ' + (await pag.textContent('#aviso')));
+await pag.click('#b-opciones');
+ok(await pag.isDisabled('#m-quitar'), '«Eliminar todas» desactivado: no queda ninguna');
+await pag.click('#m-deshacer'); await dormir(800);
+m = await leer();
+ok(JSON.stringify(m) === JSON.stringify({ '30th-027': 1, 'sv10.5b-151': 3, 'sv10.5w-166': 2 }), 'deshacer recupera exactamente lo eliminado (Audino con 3): ' + JSON.stringify(m));
+
 ok(errores.length === 0, 'sin errores de consola/JS' + (errores.length ? ': ' + errores.join(' | ') : ''));
 
 await ctx.close(); await nav.close(); servidor.close();

@@ -12,7 +12,8 @@ import { Resaltado } from './resaltado.js';
 import { Metricas } from './metricas.js';
 import { Aspecto, elegirCalidad, elegirTema, elegirAcabado, TEMAS } from './aspecto.js';
 import { albumPorId } from '../../estanteria/js/albumes.js';
-import { montarMenu, cartasPendientes, copiasParaCompletar } from './completar.js';
+import { montarMenu, copiasParaCompletar, copiasSinAlbum, compartidasCon } from './completar.js';
+import { listarAlbumes } from '../../estanteria/js/albumes.js';
 import { fijarTemaMarcadores } from './marcadores.js';
 import { Diagnostico } from './diagnostico.js';
 import { CacheTexturas } from './texturas.js';
@@ -24,7 +25,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
-export const FASE = '3.13';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.14';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -60,8 +61,8 @@ let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl
 let sucioHasta = 0, continuo = false, forzarDibujo = false, claveNav = '';
 const pedirFrame = (ms = 500) => { sucioHasta = Math.max(sucioHasta, performance.now() + ms); };
 const avisar = (t) => { $('aviso').textContent = t || ''; $('aviso').hidden = !t; };
-let menuAlbum = null;                                           // 3.13 · «Añadir todas las cartas» (completar.js)
-const cambioAMano = () => menuAlbum?.invalidarDeshacer();         // tras un cambio a mano ya no se ofrece deshacer «añadir todas»
+let menuAlbum = null;                                           // 3.13–3.14 · añadir / eliminar todas las cartas (completar.js)
+const cambioAMano = () => menuAlbum?.invalidarDeshacer();         // tras un cambio a mano ya no se ofrece deshacer el cambio en bloque
 
 // ------------------------------------------------------------------ cámara cinematográfica (Fase 3.7.1)
 // El encuadre NO usa distancias fijas: se calcula con calcularEncuadre() a partir del viewport, la proporción, la elevación, las dimensiones reales
@@ -481,14 +482,19 @@ async function arrancar() {
     const primera = mapa.paginas[p - 1].bolsillos.find(Boolean);
     sel.append(new Option(`Página ${p} · ${primera ? primera.nombre : ''}`, String(p)));
   }
-  // 3.13 · menú «⋯»: añadir todas las cartas del álbum (con confirmación y deshacer)
+  // 3.13–3.14 · menú «⋯»: añadir / eliminar todas las cartas del álbum (con confirmación y deshacer)
   const releer = async () => { await adaptador.cargar(); vista.refrescar(); pintarProgreso(); pedirFrame(); };
   let idAviso = 0;
-  menuAlbum = montarMenu({ boton: $('b-opciones'), menu: $('menu-album'), todas: $('m-todas'), deshacer: $('m-deshacer'), dialogo: $('d-todas'),
-    texto: $('d-todas-txt'), aceptar: $('d-aceptar'), cancelar: $('d-cancelar') }, {
-    nombre: albumActual.nombre, total: mapa.cartas.length, soloLectura,
-    pendientes: () => cartasPendientes(mapa.cartas, (id) => modelo.cantidad(id)),
+  let otrosAlbumes = null;                                        // catálogos de los demás álbumes (solo para avisar de cartas compartidas)
+  const cargarOtros = async () => otrosAlbumes || (otrosAlbumes = await Promise.all((await listarAlbumes()).filter((a) => a.id !== albumActual.id)
+    .map(async (a) => ({ nombre: a.nombre, ids: (await (await fetch('../../' + a.catalogo)).json()).cartas.map((c) => c.id) }))));
+  menuAlbum = montarMenu({ boton: $('b-opciones'), menu: $('menu-album'), todas: $('m-todas'), quitar: $('m-quitar'), deshacer: $('m-deshacer'),
+    dialogo: $('d-todas'), titulo: $('d-todas-t'), texto: $('d-todas-txt'), aceptar: $('d-aceptar'), cancelar: $('d-cancelar') }, {
+    nombre: albumActual.nombre, total: mapa.cartas.length, soloLectura, cartas: mapa.cartas, cantidadDe: (id) => modelo.cantidad(id),
     completar: async (ids) => { if (ids.length) { await almacen.importar(copiasParaCompletar(ids), 'combinar'); } await releer(); },
+    // eliminar: se lee la colección ENTERA en el momento y se reescribe sin las cartas del álbum (todo lo demás, con su cantidad exacta)
+    vaciar: async (ids) => { if (ids.length) { await almacen.importar(copiasSinAlbum(await almacen.leerTodas(), mapa.cartas.map((c) => c.id)), 'reemplazar'); } await releer(); },
+    compartidas: async (ids) => compartidasCon(ids, await cargarOtros()),
     deshacer: async () => { await almacen.deshacerImportacion(); await releer(); },
     avisar: (t) => { avisar(t); const id = ++idAviso; setTimeout(() => { if (id === idAviso) avisar(''); }, 5000); },
   });

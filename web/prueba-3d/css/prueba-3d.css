@@ -416,7 +416,17 @@ body[data-tema="editorial"] .confirmar { border-radius: 0; background: var(--e-f
 body[data-tema="editorial"] .confirmar::backdrop { background: var(--e-velo); }
 body[data-tema="editorial"] .confirmar h2 { font: 300 1.5rem/1.15 var(--e-fuente); letter-spacing: -.01em; }
 body[data-tema="editorial"] .confirmar p { color: var(--e-suave); font-size: .92rem; }
+/* acción destructiva: botón rojo en la confirmación y opción de menú en rojo */
+.confirmar button.peligro, body[data-tema="editorial"] .confirmar button.principal.peligro { background: var(--e-rojo, #d9442f); border-color: var(--e-rojo, #d9442f); color: #fff; }
+.menu-album .m-peligro:not(:disabled), body[data-tema="editorial"] .menu-album .m-peligro:not(:disabled) { color: var(--e-rojo, #d9442f); }
 @media (min-width: 900px) { body[data-tema="editorial"] .menu-album { top: calc(var(--e-marco-ancho) + 56px); right: calc(var(--e-marco-ancho) + 18px); } }
 /* el cambio de modo va en la cabecera en pantallas anchas y dentro del menú ⋯ en móvil (la cabecera cabe en una fila) */
 .m-modo { display: none; }
 @media (max-width: 520px) { body[data-tema="editorial"] .modo-album { display: none; } body[data-tema="editorial"] .m-modo { display: flex; } }
+/* 3.14 · móvil: la cabecera del tema editorial siempre en una fila (con precio, «2 de 37 · ≈ 51 €», el ⋯ se iba a otra línea) */
+@media (max-width: 520px) {
+  body[data-tema="editorial"] .cabecera { flex-wrap: nowrap; }
+  body[data-tema="editorial"] h1 { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; }
+  body[data-tema="editorial"] h1 small { margin-left: 6px; }
+  body[data-tema="editorial"] .volver, body[data-tema="editorial"] .opciones { flex: none; }
+}

@@ -25,10 +25,11 @@
 
   <div class="menu-album" id="menu-album" role="menu" aria-label="Opciones del álbum" hidden>
     <button type="button" role="menuitem" id="m-todas">Añadir todas las cartas</button>
-    <button type="button" role="menuitem" id="m-deshacer" hidden>Deshacer «añadir todas»</button>
+    <button type="button" role="menuitem" id="m-quitar" class="m-peligro">Eliminar todas las cartas</button>
+    <button type="button" role="menuitem" id="m-deshacer" hidden>Deshacer el último cambio en bloque</button>
     <button type="button" role="menuitem" class="m-modo" data-alternar-modo data-con-texto>Modo claro</button>
   </div>
-  <dialog class="confirmar" id="d-todas" aria-labelledby="d-todas-t" aria-describedby="d-todas-txt">
+  <dialog class="confirmar" id="d-todas" aria-labelledby="d-todas-t" aria-describedby="d-todas-txt" role="alertdialog">
     <h2 id="d-todas-t">Añadir todas las cartas</h2>
     <p id="d-todas-txt"></p>
     <div class="confirmar-botones"><button type="button" id="d-cancelar">Cancelar</button><button type="button" class="principal" id="d-aceptar">Añadir</button></div>

@@ -360,3 +360,10 @@ las que ya tienes no cambian (nunca baja una cantidad) y las de otros álbumes n
 antes una foto de la colección: **Deshacer «añadir todas»** (mismo menú) vuelve exactamente a como estaba. El deshacer solo se ofrece hasta el
 siguiente cambio a mano o hasta releer la colección, porque volver a la foto pisaría esos cambios. En móvil el cambio de modo claro/oscuro
 también está en este menú. Prueba con IndexedDB real: `node web/prueba-3d/pruebas/ejecutar-completar.mjs`.
+
+## 3.14 — Eliminar todas las cartas de un álbum
+Menú **⋯** → **Eliminar todas las cartas (tienes N)** (en rojo). Deja a 0 las cartas DEL ÁLBUM abierto; el resto de la colección queda con su
+cantidad exacta (se lee la colección entera y se reescribe sin las cartas del álbum con `Almacen.importar(…, 'reemplazar')`, que guarda antes la
+foto para deshacer). Como las copias se guardan por carta, una carta que está también en otro álbum desaparece de los dos: la confirmación lo
+avisa con el nombre del otro álbum (p. ej. Audino de Fulgor Negro está en Asako Ito y en Teselia) y su botón es rojo.
+**Deshacer el último cambio en bloque** (mismo menú) recupera exactamente lo eliminado, cantidades incluidas, hasta tu próximo cambio a mano.
