@@ -2,14 +2,89 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Álbum Teselia</title>
-  <!-- Portada de GitHub Pages: lleva directamente al álbum 3D (conserva ?parámetros y #ancla). -->
-  <meta http-equiv="refresh" content="0; url=web/prueba-3d/index.html">
-  <script>location.replace("web/prueba-3d/index.html" + location.search + location.hash);</script>
-  <style>body{background:#222426;color:#efe6d4;font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0}a{color:#d3b47f}</style>
+  <meta name="description" content="Álbum de colección de las expansiones Llama Blanca (White Flare) y Fulgor Negro (Black Bolt) del JCC Pokémon.">
+  <meta name="theme-color" content="#0b0d12">
+  <link rel="stylesheet" href="web/css/tokens.css">
+  <link rel="stylesheet" href="web/css/portada.css">
 </head>
 <body>
-  <p>Abriendo el álbum… <a href="web/prueba-3d/index.html">Entrar al álbum</a> · <a href="web/cuenta.html">Cuenta</a></p>
+<main class="portada">
+
+  <!-- ===== Llama Blanca / White Flare ===== -->
+  <section class="lado lado--blanca" aria-labelledby="t-blanca">
+    <div class="aura" aria-hidden="true"></div>
+    <div class="brasas" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="lado__contenido">
+      <p class="antetitulo">Expansión · <span>sv10.5w</span></p>
+      <h2 id="t-blanca" class="lado__titulo">Llama<br>Blanca</h2>
+      <p class="lado__original" lang="en">White Flare</p>
+      <div class="abanico" aria-hidden="true">
+        <img src="web/prueba-3d/assets/cartas/grande/sv10.5w-165.webp" alt="" loading="lazy" decoding="async">
+        <img src="web/prueba-3d/assets/cartas/grande/sv10.5w-166.webp" alt="" decoding="async">
+        <img src="web/prueba-3d/assets/cartas/grande/sv10.5w-167.webp" alt="" loading="lazy" decoding="async">
+      </div>
+      <div class="progreso" data-expansion="sv10.5w">
+        <div class="progreso__cifra"><strong data-campo="conseguidas">–</strong> / <span data-campo="total">77</span> cartas</div>
+        <div class="progreso__barra" role="progressbar" aria-label="Progreso de Llama Blanca" aria-valuemin="0" aria-valuemax="77" aria-valuenow="0"><span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Fulgor Negro / Black Bolt ===== -->
+  <section class="lado lado--negra" aria-labelledby="t-negra">
+    <div class="aura" aria-hidden="true"></div>
+    <svg class="rayos" aria-hidden="true" viewBox="0 0 400 600" preserveAspectRatio="none">
+      <path d="M300 0 L262 140 L300 150 L238 330 L270 336 L215 520"/>
+      <path d="M90 60 L70 170 L96 176 L60 300"/>
+    </svg>
+    <div class="lado__contenido">
+      <p class="antetitulo">Expansión · <span>sv10.5b</span></p>
+      <h2 id="t-negra" class="lado__titulo">Fulgor<br>Negro</h2>
+      <p class="lado__original" lang="en">Black Bolt</p>
+      <div class="abanico" aria-hidden="true">
+        <img src="web/prueba-3d/assets/cartas/grande/sv10.5b-165.webp" alt="" loading="lazy" decoding="async">
+        <img src="web/prueba-3d/assets/cartas/grande/sv10.5b-166.webp" alt="" decoding="async">
+        <img src="web/prueba-3d/assets/cartas/grande/sv10.5b-164.webp" alt="" loading="lazy" decoding="async">
+      </div>
+      <div class="progreso" data-expansion="sv10.5b">
+        <div class="progreso__cifra"><strong data-campo="conseguidas">–</strong> / <span data-campo="total">76</span> cartas</div>
+        <div class="progreso__barra" role="progressbar" aria-label="Progreso de Fulgor Negro" aria-valuemin="0" aria-valuemax="76" aria-valuenow="0"><span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Centro: el álbum que une las dos ===== -->
+  <header class="centro">
+    <div class="sello" aria-hidden="true">
+      <svg viewBox="0 0 100 100">
+        <defs>
+          <linearGradient id="g-sello" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ff9a4d"/><stop offset=".5" stop-color="#d3b47f"/><stop offset="1" stop-color="#4fc3ff"/>
+          </linearGradient>
+        </defs>
+        <circle cx="50" cy="50" r="46" fill="none" stroke="url(#g-sello)" stroke-width="2"/>
+        <path d="M50 4 A46 46 0 0 0 50 96 A23 23 0 0 0 50 50 A23 23 0 0 1 50 4Z" fill="#f4efe6"/>
+        <path d="M50 4 A46 46 0 0 1 50 96 A23 23 0 0 1 50 50 A23 23 0 0 0 50 4Z" fill="#11141b"/>
+        <circle cx="50" cy="27" r="6" fill="#11141b"/>
+        <circle cx="50" cy="73" r="6" fill="#f4efe6"/>
+      </svg>
+    </div>
+    <h1>Álbum Teselia</h1>
+    <p class="lema">Llama Blanca y Fulgor Negro, carta a carta, en un solo álbum.</p>
+    <p class="total" data-total-general>158 cartas · <span data-campo="porcentaje">0</span>% completado</p>
+    <nav class="acciones">
+      <a class="boton boton--principal" href="web/prueba-3d/index.html">Abrir el álbum</a>
+      <a class="boton" href="web/cuenta.html">Mi cuenta</a>
+    </nav>
+    <p class="detalle">76 Fulgor Negro · 77 Llama Blanca · 5 promociones</p>
+  </header>
+
+</main>
+<footer class="pie">
+  Proyecto personal sin ánimo de lucro. Imágenes de cartas vía TCGdex · Pokémon y sus ilustraciones © The Pokémon Company, Nintendo, Creatures y GAME FREAK.
+</footer>
+<script type="module" src="web/js/portada.js"></script>
 </body>
 </html>
