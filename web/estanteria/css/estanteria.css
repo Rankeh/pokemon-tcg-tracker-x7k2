@@ -59,9 +59,11 @@ body.lista .cargando, body.sin-3d .cargando { opacity: 0; }
 
 /* móvil: cabecera en dos columnas (el contador pasa al pie), pie compacto */
 @media (max-width: 600px) {
-  .cabecera { grid-template-columns: auto 1fr; }
+  /* 3.17 · una sola fila: Cuenta · marca · botón de modo (antes el botón caía a una 2.ª fila y lo tapaban las pestañas) */
+  .cabecera { grid-template-columns: auto 1fr auto; }
   .cabecera .contador { display: none; }
-  .cabecera > :nth-child(2) { justify-self: end; }
+  .cabecera > :nth-child(2) { justify-self: center; }
+  .marca-texto span:last-child { display: none; }
   .pie .ayuda { display: none; }
   .flecha { display: none; }                                   /* en móvil se elige deslizando: las flechas tapaban el libro */
   .pie { grid-template-columns: auto 1fr; }

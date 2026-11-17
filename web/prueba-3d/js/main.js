@@ -32,7 +32,7 @@ const params = new URLSearchParams(location.search);
 // 3.12 · qué álbum se abre: ?album=<id> del registro de la biblioteca (sin parámetro, Teselia: los enlaces antiguos siguen igual)
 const albumActual = albumPorId(params.get('album'));
 document.title = 'Álbum ' + albumActual.nombre;
-{ const h1 = document.querySelector('h1'); if (h1 && h1.firstChild && h1.firstChild.nodeType === 3) h1.firstChild.nodeValue = 'Álbum ' + albumActual.nombre + ' '; }
+{ const n = document.getElementById('h1-nombre'); if (n) n.textContent = albumActual.nombre; }   // «Álbum » va aparte: en móvil se oculta para que quepa el progreso
 const mq = matchMedia('(prefers-reduced-motion: reduce)');
 let reducirMovimiento = mq.matches;
 mq.addEventListener?.('change', () => { reducirMovimiento = mq.matches; });
