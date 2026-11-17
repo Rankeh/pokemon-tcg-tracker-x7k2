@@ -14,9 +14,34 @@
   --e-panel: #232323;
   --e-fuente: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", Inter, Roboto, system-ui, sans-serif;
   --e-marco-ancho: clamp(0px, 3vw, 40px);
+  --e-sobre: #111111;                         /* texto sobre un control relleno */
+  --e-control: rgba(28, 28, 28, .6);          /* fondo de los controles sobre la escena 3D */
+  --e-ficha: #1f1f1f;
+  --e-velo: rgba(0, 0, 0, .35);
+  --e-barra: rgba(20, 20, 20, .85);
+  --e-error: #ff8a78;
+  color-scheme: dark;
+}
+/* MODO CLARO: el mismo catálogo impreso en papel. Mismo rojo, misma retícula; solo se invierten fondo, texto y líneas. */
+:root[data-modo="claro"] {
+  --e-fondo: #efede8;
+  --e-marco: #ffffff;
+  --e-texto: #141414;
+  --e-suave: rgba(20, 20, 20, .6);
+  --e-tenue: rgba(20, 20, 20, .38);
+  --e-linea: rgba(20, 20, 20, .2);
+  --e-panel: #ffffff;
+  --e-sobre: #f2f2f2;
+  --e-control: rgba(255, 255, 255, .72);
+  --e-ficha: #ffffff;
+  --e-velo: rgba(0, 0, 0, .12);
+  --e-barra: rgba(239, 237, 232, .9);
+  --e-error: #c2412d;
+  color-scheme: light;
 }
 
 .e-fondo {
+  transition: background-color .3s ease, color .3s ease;
   background: var(--e-fondo); color: var(--e-texto); font-family: var(--e-fuente);
   -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1;
 }
@@ -39,7 +64,11 @@
 .e-caja:hover { border-color: var(--e-texto); }
 .e-caja:focus-visible { outline: 2px solid var(--e-rojo); outline-offset: 2px; }
 .e-caja:disabled { opacity: .3; cursor: default; }
-.e-caja[aria-pressed="true"], .e-caja.e-llena { background: var(--e-texto); color: #111; border-color: var(--e-texto); }
+.e-caja[aria-pressed="true"], .e-caja.e-llena { background: var(--e-texto); color: var(--e-sobre); border-color: var(--e-texto); }
+/* botón de modo: solo icono (círculo medio relleno); no se marca como «pulsado» */
+.e-modo { width: 32px; padding: 0; }
+.e-modo[aria-pressed] { background: transparent; color: var(--e-texto); border-color: var(--e-linea); }
+.e-modo svg { width: 14px; height: 14px; display: block; }
 
 /* pestañas pegadas (filtros) */
 .e-pestanas { display: inline-flex; }

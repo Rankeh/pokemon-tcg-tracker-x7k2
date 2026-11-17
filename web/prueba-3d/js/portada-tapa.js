@@ -1,26 +1,18 @@
-// 3.8 · Diseño impreso de la tapa: lámina «Llama Blanca / Fulgor Negro» sobre el panel de la portada y el título en la banda junto al lomo.
-// Se dibuja con Canvas 2D en tiempo de ejecución (sin imágenes nuevas en el repo): mitad marfil con brillo de fuego (sv10.5w, White Flare) y mitad
-// negra con rayos (sv10.5b, Black Bolt), separadas por una costura diagonal; Reshiram ex y Zekrom ex (Rara Ilustración Especial de cada
-// expansión) se toman de las copias locales del álbum. Si esas imágenes no están, el diseño se dibuja igual sin ellas.
+// 3.11 · Diseño impreso de la tapa, dirección EDITORIAL (la misma que la biblioteca): portada negra como la carátula de una edición de
+// coleccionista. Arriba, una línea de datos en versalitas; en el centro, las dos cartas estrella (Reshiram ex de Llama Blanca y Zekrom ex de
+// Fulgor Negro) como «foto» de portada; abajo, el título en grotesca fina, las expansiones en rojo y el sello rojo «TCG».
+// La banda junto al lomo repite el sello y el título en vertical. Se dibuja con Canvas 2D; sin las ilustraciones locales se dibuja igual.
 
 export const PORTADA = {
-  margen: 0.004,               // m de panel que quedan a la vista alrededor de la lámina (se sigue viendo el canto y la costura del panel)
+  margen: 0.004,               // m de panel que quedan a la vista alrededor de la lámina
   margenBanda: 0.003,
-  emision: 0.22,               // fracción del dibujo que se emite (no depende de la luz): mantiene negros profundos y colores vivos
-  radio: 0.045,                // radio de las esquinas de la lámina, en fracción del ancho
-  costura: [0.66, 0.34],       // x (fracción del ancho) de la costura arriba y abajo
+  emision: 0.22,               // fracción del dibujo que se emite (no depende de la luz): negros profundos y colores vivos
+  radio: 0.03,                 // radio de las esquinas de la lámina, en fracción del ancho
   cartas: { blanca: 'sv10.5w-166', negra: 'sv10.5b-166' },     // Reshiram ex · Zekrom ex
 };
 
-const C = {
-  marfil: '#f3ede2', marfilSombra: '#e6dccb', tinta: '#2a1d14', brasa: '#b0441a', llama: '#ff7a2f', llamaClara: '#ffb36b',
-  noche: '#0c0f15', nocheClara: '#18202e', luz: '#eef3ff', rayo: '#4fc3ff', rayoClaro: '#b4e8ff', laton: '#d3b47f',
-};
-const SERIF = '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif';
-const SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-
-/** PURO · x de la costura a la altura y (0..1), en fracción del ancho. */
-export const xCostura = (y, [a, b] = PORTADA.costura) => a + (b - a) * y;
+export const TINTA = { negro: '#111111', papel: '#f2f2f2', suave: 'rgba(242,242,242,.58)', tenue: 'rgba(242,242,242,.3)', rojo: '#e5432f' };
+const SANS = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", Inter, Roboto, system-ui, sans-serif';
 
 /** PURO · tamaño del lienzo (px) para una lámina de `ancho` × `alto` metros con `lado` px de ancho. */
 export const tamLienzo = (ancho, alto, lado) => ({ w: lado, h: Math.round(lado * alto / ancho) });
@@ -44,163 +36,95 @@ function rectRedondo(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 
-function zonaNegra(ctx, W, H) {
-  ctx.beginPath();
-  ctx.moveTo(xCostura(0) * W, 0); ctx.lineTo(W, 0); ctx.lineTo(W, H); ctx.lineTo(xCostura(1) * W, H); ctx.closePath();
+/** Texto en versalitas con espaciado (las letras se colocan una a una). */
+export function versalitas(ctx, texto, x, y, cuerpo, espacio, alinear = 'left', peso = 600) {
+  ctx.font = `${peso} ${cuerpo}px ${SANS}`; ctx.textBaseline = 'alphabetic';
+  const letras = [...texto.toUpperCase()], anchos = letras.map((c) => ctx.measureText(c).width);
+  const total = anchos.reduce((a, b) => a + b, 0) + espacio * (letras.length - 1);
+  let cx = alinear === 'right' ? x - total : alinear === 'center' ? x - total / 2 : x;
+  ctx.textAlign = 'left';
+  letras.forEach((c, i) => { ctx.fillText(c, cx, y); cx += anchos[i] + espacio; });
+  return total;
 }
 
-/** Rayo quebrado reproducible (semilla fija): la portada sale igual en cada carga. */
-function rayo(ctx, x0, y0, x1, y1, pasos, amplitud, semilla) {
-  let s = semilla;
-  const azar = () => { s = (s * 16807) % 2147483647; return s / 2147483647 - 0.5; };
-  ctx.beginPath(); ctx.moveTo(x0, y0);
-  for (let i = 1; i < pasos; i++) { const t = i / pasos; ctx.lineTo(x0 + (x1 - x0) * t + azar() * amplitud, y0 + (y1 - y0) * t + azar() * amplitud * 0.3); }
-  ctx.lineTo(x1, y1);
+/** Grano de impresión: puntos muy tenues, deterministas. */
+function grano(ctx, W, H, n, alfa = 0.05) {
+  let s = 7;
+  const azar = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  for (let i = 0; i < n; i++) { ctx.fillStyle = azar() < 0.5 ? `rgba(255,255,255,${alfa})` : `rgba(0,0,0,${alfa * 1.6})`; ctx.fillRect(azar() * W, azar() * H, 1.4, 1.4); }
 }
 
-function carta(ctx, img, cx, cy, w, giro, sombra) {
-  const h = w * (img ? img.naturalHeight / img.naturalWidth : 825 / 600), r = w * 0.045;
+/** Sello rojo «TCG» (la «editorial» de la colección). */
+export function sello(ctx, x, y, lado) {
+  ctx.fillStyle = TINTA.rojo; ctx.fillRect(x, y, lado, lado);
+  ctx.fillStyle = '#ffffff'; ctx.font = `800 ${lado * 0.36}px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('TCG', x + lado / 2, y + lado * 0.54);
+}
+
+function carta(ctx, img, cx, cy, w, giro) {
+  const h = w * (img.naturalHeight / img.naturalWidth), r = w * 0.045;
   ctx.save();
   ctx.translate(cx, cy); ctx.rotate(giro);
-  ctx.shadowColor = sombra; ctx.shadowBlur = w * 0.12; ctx.shadowOffsetY = w * 0.05;
+  ctx.shadowColor = 'rgba(0,0,0,.75)'; ctx.shadowBlur = w * 0.14; ctx.shadowOffsetY = w * 0.06;
   rectRedondo(ctx, -w / 2, -h / 2, w, h, r); ctx.fillStyle = '#000'; ctx.fill();
   ctx.shadowColor = 'transparent';
   ctx.clip(); ctx.drawImage(img, -w / 2, -h / 2, w, h);
   ctx.restore();
-  ctx.save(); ctx.translate(cx, cy); ctx.rotate(giro);
-  rectRedondo(ctx, -w / 2, -h / 2, w, h, r); ctx.lineWidth = w * 0.008; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.stroke();
-  ctx.restore();
 }
 
-function textoEspaciado(ctx, texto, x, y, espacio, alinear = 'left') {
-  const anchos = [...texto].map((c) => ctx.measureText(c).width);
-  const total = anchos.reduce((a, b) => a + b, 0) + espacio * (texto.length - 1);
-  let cx = alinear === 'right' ? x - total : alinear === 'center' ? x - total / 2 : x;
-  ctx.textAlign = 'left';
-  [...texto].forEach((c, i) => { ctx.fillText(c, cx, y); cx += anchos[i] + espacio; });
-}
-
-/** Sello circular blanco/negro (las dos expansiones unidas). */
-function sello(ctx, cx, cy, r) {
-  ctx.save();
-  ctx.shadowColor = 'rgba(79,195,255,.55)'; ctx.shadowBlur = r * 0.6;
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fillStyle = C.noche; ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.beginPath(); ctx.arc(cx, cy, r * 0.9, -Math.PI / 2, Math.PI / 2, true); ctx.arc(cx, cy + r * 0.45, r * 0.45, Math.PI / 2, -Math.PI / 2, false);
-  ctx.arc(cx, cy - r * 0.45, r * 0.45, Math.PI / 2, -Math.PI / 2, true); ctx.closePath(); ctx.fillStyle = C.marfil; ctx.fill();
-  ctx.beginPath(); ctx.arc(cx, cy - r * 0.45, r * 0.13, 0, 2 * Math.PI); ctx.fillStyle = C.noche; ctx.fill();
-  ctx.beginPath(); ctx.arc(cx, cy + r * 0.45, r * 0.13, 0, 2 * Math.PI); ctx.fillStyle = C.marfil; ctx.fill();
-  const g = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
-  g.addColorStop(0, C.llama); g.addColorStop(0.5, C.laton); g.addColorStop(1, C.rayo);
-  ctx.beginPath(); ctx.arc(cx, cy, r * 0.95, 0, 2 * Math.PI); ctx.lineWidth = r * 0.07; ctx.strokeStyle = g; ctx.stroke();
-  ctx.restore();
-}
-
-/** Dibuja la lámina completa en `ctx` (W × H px). `cartas` = { blanca, negra } (Image o null). */
+/** Portada editorial completa en `ctx` (W × H px). `cartas` = { blanca, negra } (Image o null). */
 export function dibujarPortada(ctx, W, H, cartas = {}) {
   ctx.clearRect(0, 0, W, H);
   ctx.save();
   rectRedondo(ctx, 0, 0, W, H, W * PORTADA.radio); ctx.clip();
+  ctx.fillStyle = TINTA.negro; ctx.fillRect(0, 0, W, H);
+  // foco de luz detrás de las cartas (la «foto» de portada)
+  const g = ctx.createRadialGradient(W * 0.5, H * 0.42, 0, W * 0.5, H * 0.42, W * 0.7);
+  g.addColorStop(0, 'rgba(255,255,255,.10)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
-  // --- mitad Llama Blanca: marfil con brillo de fuego y brasas
-  ctx.fillStyle = C.marfil; ctx.fillRect(0, 0, W, H);
-  let g = ctx.createRadialGradient(W * 0.28, H * 0.5, 0, W * 0.28, H * 0.5, W * 0.62);
-  g.addColorStop(0, 'rgba(255,122,47,.42)'); g.addColorStop(0.55, 'rgba(255,179,107,.16)'); g.addColorStop(1, 'rgba(255,179,107,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(176,68,26,.12)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  const hash = (n) => { const v = Math.sin(n * 12.9898) * 43758.5453; return v - Math.floor(v); };
-  for (let i = 0; i < 30; i++) {                         // brasas: posiciones fijas (hash), solo en la mitad marfil y fuera de los títulos
-    const yf = 0.28 + hash(i + 0.5) * 0.66, x = hash(i * 3.7 + 1.3) * (xCostura(yf) - 0.06) * W, y = yf * H, r = W * (0.003 + hash(i * 7.1) * 0.007);
-    const b = ctx.createRadialGradient(x, y, 0, x, y, r * 3); b.addColorStop(0, 'rgba(255,179,107,.95)'); b.addColorStop(0.35, 'rgba(255,122,47,.6)'); b.addColorStop(1, 'rgba(255,122,47,0)');
-    ctx.fillStyle = b; ctx.beginPath(); ctx.arc(x, y, r * 3, 0, 2 * Math.PI); ctx.fill();
+  const m = W * 0.075;
+  // --- línea de datos arriba
+  ctx.fillStyle = TINTA.suave; versalitas(ctx, 'Pokémon TCG', m, H * 0.06, W * 0.026, W * 0.008);
+  ctx.fillStyle = TINTA.rojo; versalitas(ctx, 'Escarlata y Púrpura', W - m, H * 0.06, W * 0.026, W * 0.008, 'right');
+  ctx.fillStyle = TINTA.tenue; ctx.fillRect(m, H * 0.075, W - 2 * m, Math.max(1, W * 0.002));
+
+  // --- las dos cartas estrella (sin imágenes: dos planos marfil/negro)
+  const ancho = W * 0.44;
+  if (cartas.blanca || cartas.negra) {
+    if (cartas.blanca) carta(ctx, cartas.blanca, W * 0.37, H * 0.39, ancho, -0.07);
+    if (cartas.negra) carta(ctx, cartas.negra, W * 0.63, H * 0.43, ancho, 0.07);
+  } else {
+    const h = ancho * 825 / 600;
+    ctx.fillStyle = '#e9e4da'; ctx.fillRect(W * 0.15, H * 0.39 - h / 2, ancho, h);
+    ctx.fillStyle = '#2a2a2a'; ctx.fillRect(W * 0.41, H * 0.43 - h / 2, ancho, h);
   }
 
-  // --- mitad Fulgor Negro: noche con brillo eléctrico y rayos
-  ctx.save();
-  zonaNegra(ctx, W, H); ctx.clip();
-  ctx.fillStyle = C.noche; ctx.fillRect(0, 0, W, H);
-  g = ctx.createRadialGradient(W * 0.72, H * 0.5, 0, W * 0.72, H * 0.5, W * 0.6);
-  g.addColorStop(0, 'rgba(79,195,255,.38)'); g.addColorStop(0.5, 'rgba(60,110,255,.12)'); g.addColorStop(1, 'rgba(60,110,255,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  ctx.lineJoin = 'miter'; ctx.lineCap = 'round';
-  for (const [x0, y0, x1, y1, a, s, grosor] of [[0.93, 0.13, 0.8, 0.42, 0.08, 7, 0.006], [0.99, 0.22, 0.9, 0.6, 0.06, 19, 0.004], [0.72, 0.06, 0.66, 0.3, 0.05, 31, 0.003]]) {
-    rayo(ctx, x0 * W, y0 * H, x1 * W, y1 * H, 9, a * W, s);
-    ctx.shadowColor = C.rayo; ctx.shadowBlur = W * 0.03; ctx.lineWidth = W * grosor * 2.2; ctx.strokeStyle = 'rgba(79,195,255,.45)'; ctx.stroke();
-    ctx.shadowBlur = W * 0.012; ctx.lineWidth = W * grosor; ctx.strokeStyle = C.rayoClaro; ctx.stroke();
-  }
-  ctx.shadowColor = 'transparent';
-  ctx.restore();
+  // --- bloque de título abajo
+  const yT = H * 0.84;
+  ctx.fillStyle = TINTA.rojo; ctx.fillRect(m, yT - W * 0.2, W * 0.08, Math.max(2, W * 0.006));
+  ctx.fillStyle = TINTA.papel; ctx.font = `300 ${W * 0.16}px ${SANS}`; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Teselia', m - W * 0.008, yT);
+  ctx.fillStyle = TINTA.rojo; versalitas(ctx, 'Llama Blanca · Fulgor Negro', m, yT + W * 0.06, W * 0.03, W * 0.009);
+  ctx.fillStyle = TINTA.tenue; ctx.fillRect(m, H * 0.915, W - 2 * m, Math.max(1, W * 0.002));
+  ctx.fillStyle = TINTA.suave; versalitas(ctx, 'SV10.5W · SV10.5B · 158 cartas', m, H * 0.955, W * 0.024, W * 0.007);
+  sello(ctx, W - m - W * 0.075, H * 0.925, W * 0.075);
 
-  // --- costura: línea de luz de fuego a electricidad
-  g = ctx.createLinearGradient(xCostura(0) * W, 0, xCostura(1) * W, H);
-  g.addColorStop(0, C.rayo); g.addColorStop(0.5, C.laton); g.addColorStop(1, C.llama);
-  ctx.save();
-  ctx.beginPath(); ctx.moveTo(xCostura(0) * W, 0); ctx.lineTo(xCostura(1) * W, H);
-  ctx.shadowColor = 'rgba(211,180,127,.9)'; ctx.shadowBlur = W * 0.02; ctx.lineWidth = W * 0.006; ctx.strokeStyle = g; ctx.stroke();
-  ctx.restore();
-
-  // --- las dos cartas estrella, cruzando la costura
-  const anchoCarta = W * 0.43;
-  if (cartas.blanca) carta(ctx, cartas.blanca, W * 0.31, H * 0.47, anchoCarta, -0.12, 'rgba(176,68,26,.55)');
-  if (cartas.negra) carta(ctx, cartas.negra, W * 0.69, H * 0.555, anchoCarta, 0.12, 'rgba(0,0,0,.75)');
-
-  // --- títulos
-  ctx.textBaseline = 'alphabetic';
-  const t = W * 0.125;
-  ctx.font = `${t}px ${SERIF}`;
-  g = ctx.createLinearGradient(0, H * 0.06, 0, H * 0.2); g.addColorStop(0, C.tinta); g.addColorStop(1, C.brasa);
-  ctx.fillStyle = g; ctx.textAlign = 'left';
-  ctx.fillText('Llama', W * 0.075, H * 0.035 + t); ctx.fillText('Blanca', W * 0.075, H * 0.035 + t * 1.88);
-  ctx.font = `600 ${W * 0.026}px ${SANS}`; ctx.fillStyle = C.llama;
-  textoEspaciado(ctx, 'WHITE FLARE', W * 0.08, H * 0.035 + t * 1.88 + W * 0.065, W * 0.012);
-
-  ctx.font = `${t}px ${SERIF}`;
-  g = ctx.createLinearGradient(0, H * 0.8, 0, H * 0.95); g.addColorStop(0, '#ffffff'); g.addColorStop(1, C.rayo);
-  ctx.fillStyle = g; ctx.textAlign = 'right';
-  const baseN = H - W * 0.075 - W * 0.065;
-  ctx.fillText('Fulgor', W * 0.925, baseN - t * 0.88); ctx.fillText('Negro', W * 0.925, baseN);
-  ctx.font = `600 ${W * 0.026}px ${SANS}`; ctx.fillStyle = C.rayo;
-  textoEspaciado(ctx, 'BLACK BOLT', W * 0.92, baseN + W * 0.065, W * 0.012, 'right');
-
-  // --- esquinas libres: sello (arriba, lado negro) y código de colección (abajo, lado marfil)
-  sello(ctx, W * 0.86, H * 0.075, W * 0.055);
-  ctx.font = `600 ${W * 0.02}px ${SANS}`; ctx.fillStyle = 'rgba(238,243,255,.75)';
-  textoEspaciado(ctx, 'TESELIA', W * 0.86, H * 0.075 + W * 0.095, W * 0.008, 'center');
-  ctx.font = `600 ${W * 0.021}px ${SANS}`; ctx.fillStyle = 'rgba(42,29,20,.6)';
-  textoEspaciado(ctx, 'sv10.5w · sv10.5b', W * 0.075, H - W * 0.075, W * 0.004);
-
-  ctx.restore();
-
-  // --- acabado laminado: brillo diagonal muy suave y filo claro
-  ctx.save();
-  rectRedondo(ctx, 0, 0, W, H, W * PORTADA.radio); ctx.clip();
-  g = ctx.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0.18, 'rgba(255,255,255,0)'); g.addColorStop(0.3, 'rgba(255,255,255,.07)'); g.addColorStop(0.42, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  rectRedondo(ctx, 0, 0, W, H, W * PORTADA.radio); ctx.lineWidth = W * 0.006; ctx.strokeStyle = 'rgba(211,180,127,.7)'; ctx.stroke();
+  grano(ctx, W, H, Math.round(W * H / 60));
   ctx.restore();
 }
 
-/** Banda junto al lomo: mitad marfil arriba, mitad negra abajo y «ÁLBUM TESELIA» en vertical (se lee de abajo arriba). */
+/** Banda junto al lomo: negra, sello rojo arriba y «TESELIA» en vertical (se lee de abajo arriba). */
 export function dibujarBanda(ctx, W, H) {
   ctx.clearRect(0, 0, W, H);
   ctx.save();
-  rectRedondo(ctx, 0, 0, W, H, W * 0.25); ctx.clip();
-  ctx.fillStyle = C.marfil; ctx.fillRect(0, 0, W, H);
-  ctx.beginPath(); ctx.moveTo(0, H * 0.56); ctx.lineTo(W, H * 0.44); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-  ctx.fillStyle = C.noche; ctx.fill();
-  ctx.beginPath(); ctx.moveTo(0, H * 0.56); ctx.lineTo(W, H * 0.44);
-  ctx.lineWidth = W * 0.06; ctx.strokeStyle = C.laton; ctx.stroke();
-
-  ctx.translate(W / 2, H / 2); ctx.rotate(-Math.PI / 2);
-  ctx.textBaseline = 'middle';
-  ctx.font = `600 ${W * 0.3}px ${SANS}`;
-  // tras girar -90°, +x apunta hacia ARRIBA del lienzo: lo positivo cae en la mitad marfil y lo negativo en la negra
-  ctx.fillStyle = C.tinta; textoEspaciado(ctx, 'LLAMA BLANCA', H * 0.09, 0, W * 0.1, 'left');
-  ctx.fillStyle = C.luz; textoEspaciado(ctx, 'FULGOR NEGRO', -H * 0.09, 0, W * 0.1, 'right');
+  rectRedondo(ctx, 0, 0, W, H, W * 0.12); ctx.clip();
+  ctx.fillStyle = TINTA.negro; ctx.fillRect(0, 0, W, H);
+  sello(ctx, W * 0.1, W * 0.1, W * 0.8);
+  ctx.translate(W / 2, H * 0.56); ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = TINTA.papel; versalitas(ctx, 'Teselia', 0, W * 0.12, W * 0.34, W * 0.12, 'center', 300);
   ctx.restore();
-  ctx.save();
-  rectRedondo(ctx, 0, 0, W, H, W * 0.25); ctx.lineWidth = W * 0.05; ctx.strokeStyle = 'rgba(211,180,127,.7)'; ctx.stroke();
-  ctx.restore();
+  ctx.save(); ctx.fillStyle = TINTA.rojo; ctx.translate(W / 2, H * 0.9); ctx.rotate(-Math.PI / 2);
+  versalitas(ctx, 'SV10.5', 0, W * 0.08, W * 0.2, W * 0.06, 'center'); ctx.restore();
+  grano(ctx, W, H, Math.round(W * H / 60));
 }

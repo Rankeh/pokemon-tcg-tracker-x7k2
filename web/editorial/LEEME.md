@@ -10,3 +10,15 @@ pestañas `.e-pestanas`, botón de icono `.e-redondo`) y avisos (`.e-aviso`).
 - Biblioteca (`index.html`): carrusel de lomos (ver `web/estanteria/LEEME.md`).
 - Álbum (`web/prueba-3d/`): tema `editorial`, por defecto desde la 3.10 (estudio oscuro, páginas grafito, aro rojo, «‹ Biblioteca»).
   Los demás temas siguen disponibles: `?tema=diorama`, `?tema=claro`, `?tema=acogedor`, `?tema=noche`.
+
+## Modo claro y modo oscuro (3.11)
+`modo.js` (script clásico en `<head>` de las dos páginas, antes del primer pintado) pone `<html data-modo="claro|oscuro">`. Por defecto sigue al
+sistema; el botón ◐ de la cabecera lo cambia y se recuerda (`localStorage`, clave `tcg.modo`, compartida entre biblioteca, álbum y pestañas).
+En claro, el mismo catálogo «impreso en papel»: se invierten fondo, texto y líneas (tokens `--e-*` en `:root[data-modo="claro"]`); el rojo y la
+retícula no cambian. En el álbum, `Aspecto.aplicarModo()` repinta el suelo para que se funda con el fondo y ajusta la exposición, sin recargar.
+
+## Tapa y lomo editoriales (3.11)
+El álbum es una edición de coleccionista: tela negra (acabado `editorial`, el del tema), portada negra con las dos cartas estrella como foto,
+título «Teselia» en grotesca fina, expansiones en rojo y sello rojo «TCG»; la banda junto al lomo repite sello y título. En la biblioteca, el lomo
+lleva el sello arriba, «TESELIA» en vertical con el subtítulo rojo en paralelo y, abajo, la marca marfil/negro, el código y el nº de cartas.
+Dibujo en `web/prueba-3d/js/portada-tapa.js` (portada y banda, compartidas) y `web/estanteria/js/lomo-teselia.js` (lomo).

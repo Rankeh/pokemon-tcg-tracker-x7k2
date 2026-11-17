@@ -31,6 +31,8 @@ export const ACABADOS = {
   cuero: { tipo: 'cuero', color: 0x6a4936, lomo: 0x5a3d2d, rugosidad: 0.52, relieve: 0.9, fuerza: 2.6, uv: 0.045, sheen: 0xd9b99c },
   tejido: { tipo: 'tejido', color: 0x40597a, lomo: 0x36495f, rugosidad: 0.86, relieve: 0.8, fuerza: 2.2, uv: 0.03, sheen: 0xa9c0de },
   acolchado: { tipo: 'acolchado', color: 0x30353d, lomo: 0x292d34, rugosidad: 0.5, relieve: 1.1, fuerza: 3.2, uv: 0.09, sheen: 0xaab2c0 },
+  // 3.11 · tela negra de edición de coleccionista (la del tema editorial): sarga fina casi negra, sin brillo de color
+  editorial: { tipo: 'tejido', color: 0x1b1b1b, lomo: 0x151515, rugosidad: 0.82, relieve: 0.55, fuerza: 1.8, uv: 0.028, sheen: 0x6a6a6a },
 };
 export const ACABADO_DEFECTO = 'tejido';          // el preferido del usuario (3.7.9); ?tapa=grafito sigue disponible
 export const elegirAcabado = (p) => (Object.prototype.hasOwnProperty.call(ACABADOS, (p || '').toLowerCase()) ? (p || '').toLowerCase() : ACABADO_DEFECTO);
@@ -298,6 +300,9 @@ TEMAS.editorial = {
   exposicion: 1.05, sheen: 0xd0d6e2, aro: 0xe5432f, sombraOpacidad: 0.55,
   escenario: { suelo: [0x1d1e20], tablones: false, alfombra: null, ladoSuelo: 3 },
   entorno: { arriba: 0x2a2a2a, horizonte: 0x161616, abajo: 0x080808, ventana: 0xffffff, ganancia: 1.6, aro: 0xffd8c8, ganancia2: 0.4 },
+  acabado: 'editorial',                                             // tela de la tapa por defecto con este tema (?tapa= sigue mandando)
+  // 3.11 · modos claro/oscuro: solo cambian el suelo (se funde con el fondo de la página) y la exposición; el álbum es el mismo objeto
+  modos: { oscuro: { suelo: 0x1d1e20, exposicion: 1.05 }, claro: { suelo: 0xe6e4df, exposicion: 1.1 } },
 };
 export const NOMBRES_TEMA = Object.keys(TEMAS);
 export const TEMA_DEFECTO = 'editorial';
@@ -491,6 +496,19 @@ export class Aspecto {
       contenedor.add(isla); this.recursos.push(...rec);
       this.alCambiar?.();
     }).catch((e) => console.warn('Isla del diorama no disponible:', e));
+  }
+
+  /** 3.11 · Modo claro/oscuro del tema (si lo tiene): repinta el suelo con el color del modo y ajusta la exposición. Sin reconstruir nada. */
+  aplicarModo(modo) {
+    const m = this.config && this.t.modos && this.t.modos[modo];
+    if (!m) return false;
+    this.modo = modo;
+    const t = this.mesa && this.mesa.material && this.mesa.material.map;
+    if (t && t.isDataTexture && t.image && t.image.data && t.image.width) {          // en los dobles de prueba la textura no publica `image`
+      t.image.data.set(generarSuelo(t.image.width, m.suelo, false)); t.needsUpdate = true;
+    }
+    this.renderer.toneMappingExposure = m.exposicion;
+    return true;
   }
 
   _montarSombra() {

@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#0b0b0b">
   <title>Biblioteca · Pokémon TCG Tracker</title>
   <meta name="description" content="Biblioteca personal de álbumes de cartas del JCC Pokémon.">
+  <script src="web/editorial/modo.js"></script>
   <link rel="stylesheet" href="web/editorial/editorial.css">
   <link rel="stylesheet" href="web/estanteria/css/estanteria.css">
 </head>
@@ -20,7 +21,10 @@
       <span class="marca-sello" aria-hidden="true">TCG</span>
       <span class="marca-texto"><span>Biblioteca</span><span>Pokémon TCG</span></span>
     </a>
-    <p class="contador e-etiqueta" id="contador">…</p>
+    <div class="derecha">
+      <p class="contador e-etiqueta" id="contador">…</p>
+      <button type="button" class="e-caja e-modo" data-alternar-modo aria-label="Cambiar de modo"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 1.75a6.25 6.25 0 0 1 0 12.5z" fill="currentColor"/></svg></button>
+    </div>
   </header>
 
   <nav class="filtros e-pestanas" id="filtros" aria-label="Filtrar por serie"></nav>
@@ -28,7 +32,7 @@
   <button type="button" class="flecha izq e-redondo" id="ant" aria-label="Álbum anterior">←</button>
   <button type="button" class="flecha der e-redondo" id="sig" aria-label="Álbum siguiente">→</button>
 
-  <section class="info" aria-live="polite">
+  <section class="info" id="info" aria-live="polite">
     <h2 id="i-titulo">…</h2>
     <p class="sub e-etiqueta e-rojo" id="i-sub"></p>
     <p class="meta e-etiqueta" id="i-meta"></p>

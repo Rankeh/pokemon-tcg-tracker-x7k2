@@ -222,7 +222,7 @@ for (const [consulta, esperado] of [['', 'editorial'], ['&tema=diorama', 'dioram
   await sesion({ width: 390, height: 844 }, async (pag) => {
     await pag.waitForTimeout(900);                                  // 3.7.5: las animaciones de entrada (0,7 s) y las transiciones de color deben haber terminado
     const r = await pag.evaluate(() => { const css = (sel, p) => getComputedStyle(document.querySelector(sel))[p];
-      return { tema: document.body.dataset.tema, boton: css('#b-sig', 'backgroundColor'), principal: css('#b-abrir', 'backgroundColor'), h1: css('h1', 'backgroundColor'), fuente: css('body', 'fontFamily'), escenario: !!window.__album3d.scene.children.find((o) => o.name === 'Alfombra'), isla: !!window.__album3d.scene.children.find((o) => o.name === 'Isla'), volver: !!document.querySelector('#b-biblioteca[href="../../index.html"]'), suelo: !!window.__album3d.scene.children.find((o) => o.name === 'Suelo'), aro: window.__album3d.resaltado.mat.color.v, ancho: document.documentElement.scrollWidth <= innerWidth }; });
+      return { tema: document.body.dataset.tema, boton: css('#b-sig', 'backgroundColor'), principal: css('#b-abrir', 'backgroundColor'), h1: css('h1', 'backgroundColor'), texto: css('h1', 'color'), modo: document.documentElement.dataset.modo, fuente: css('body', 'fontFamily'), escenario: !!window.__album3d.scene.children.find((o) => o.name === 'Alfombra'), isla: !!window.__album3d.scene.children.find((o) => o.name === 'Isla'), volver: !!document.querySelector('#b-biblioteca[href="../../index.html"]'), suelo: !!window.__album3d.scene.children.find((o) => o.name === 'Suelo'), aro: window.__album3d.resaltado.mat.color.v, ancho: document.documentElement.scrollWidth <= innerWidth }; });
     ok(r.tema === esperado, `tema «${esperado}»${consulta ? ' (' + consulta.slice(1) + ')' : ' por defecto'}`);
     if (esperado === 'claro') {
       ok(r.h1.startsWith('rgba(255, 255, 255, 0.9') && r.principal === 'rgb(10, 132, 255)', `claro: cabecera de vidrio blanco (ligero 3.7.26, alfa 0,92) y «Abrir» en azul sistema (${r.h1} / ${r.principal})`);
@@ -232,7 +232,7 @@ for (const [consulta, esperado] of [['', 'editorial'], ['&tema=diorama', 'dioram
       ok(/rounded|Nunito|Segoe|Trebuchet/i.test(r.fuente), 'acogedor: tipografía redondeada del sistema'); ok(r.escenario, 'acogedor: suelo y alfombra en la escena'); ok(r.aro === 0xf0701e, 'acogedor: aro de selección naranja');
     } else if (esperado === 'editorial') {
       ok(r.suelo && !r.isla && !r.escenario, 'editorial: suelo oscuro que se funde, sin isla ni alfombra'); ok(r.aro === 0xe5432f, 'editorial: aro de selección rojo');
-      ok(r.principal === 'rgb(242, 242, 242)', `editorial: «Abrir» relleno claro (${r.principal})`); ok(r.volver, 'editorial: botón para volver a la biblioteca');
+      ok(r.principal === r.texto, `editorial (modo ${r.modo}): «Abrir» relleno con el color del texto (${r.principal} / ${r.texto})`); ok(r.volver, 'editorial: botón para volver a la biblioteca');
     } else if (esperado === 'diorama') {
       ok(r.isla && !r.escenario, 'diorama: isla bajo el álbum, sin alfombra'); ok(r.aro === 0xffc94d, 'diorama: aro de selección amarillo sol');
       ok(/rounded|Nunito|Segoe|Trebuchet/i.test(r.fuente), 'diorama: tipografía redondeada'); ok(r.volver, 'diorama: botón para volver a la biblioteca');

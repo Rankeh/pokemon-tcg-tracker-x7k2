@@ -331,6 +331,7 @@ body[data-tema="diorama"] .ficha-error { color: #c2412d; }
    Sin desenfoques ni sombras pesadas. Solo cambia el aspecto, no tamaños que importen al encuadre ni la lógica.
    ===================================================================================================================================== */
 body[data-tema="editorial"] {
+  transition: background-color .3s ease;
   --fondo: var(--e-fondo); --texto: var(--e-texto); --suave: var(--e-suave); --acento: var(--e-rojo); --panel: var(--e-panel); --borde: var(--e-linea);
   --azul: var(--e-texto); --ok: #6fcf97;
   background: var(--e-fondo); font-family: var(--e-fuente); -webkit-font-smoothing: antialiased;
@@ -351,21 +352,21 @@ body[data-tema="editorial"] #estado { margin: 0; color: var(--e-suave); font: 60
 body[data-tema="editorial"] .cargando, body[data-tema="editorial"] .aviso { background: var(--e-panel); border: 1px solid var(--e-linea); border-radius: 0; color: var(--e-texto); }
 body[data-tema="editorial"] .aviso { border-color: var(--e-rojo); }
 
-body[data-tema="editorial"] .barra { gap: 8px; background: linear-gradient(transparent, rgba(20, 20, 20, .85) 35%); }
+body[data-tema="editorial"] .barra { gap: 8px; background: linear-gradient(transparent, var(--e-barra) 35%); }
 body[data-tema="editorial"] button, body[data-tema="editorial"] select {
-  min-height: 48px; padding: 0 14px; border: 1px solid var(--e-linea); border-radius: 0; background: rgba(28, 28, 28, .6); color: var(--e-texto);
+  min-height: 48px; padding: 0 14px; border: 1px solid var(--e-linea); border-radius: 0; background: var(--e-control); color: var(--e-texto);
   font: 600 .72rem/1 var(--e-fuente); letter-spacing: .14em; text-transform: uppercase; transition: background .15s, color .15s, border-color .15s; }
 body[data-tema="editorial"] button:hover:not(:disabled), body[data-tema="editorial"] select:hover { border-color: var(--e-texto); }
 body[data-tema="editorial"] button:active:not(:disabled) { background: rgba(242, 242, 242, .1); }
 body[data-tema="editorial"] button:disabled { opacity: .3; }
 body[data-tema="editorial"] button:focus-visible, body[data-tema="editorial"] select:focus-visible { outline: 2px solid var(--e-rojo); outline-offset: 2px; }
-body[data-tema="editorial"] button.principal { background: var(--e-texto); color: #111; border-color: var(--e-texto); }
+body[data-tema="editorial"] button.principal { background: var(--e-texto); color: var(--e-sobre); border-color: var(--e-texto); }
 body[data-tema="editorial"] #b-ant, body[data-tema="editorial"] #b-sig { min-width: 48px; padding: 0; border-color: transparent; background: transparent; font: 300 1.4rem/1 var(--e-fuente); letter-spacing: 0; }
 body[data-tema="editorial"] #b-ant:hover:not(:disabled), body[data-tema="editorial"] #b-sig:hover:not(:disabled) { border-color: var(--e-linea); }
 body[data-tema="editorial"] #b-salto { text-transform: none; letter-spacing: .02em; font-size: .85rem; font-weight: 500; max-width: 46vw; text-overflow: ellipsis; }
 
-body[data-tema="editorial"] .ficha-fondo { background: rgba(0, 0, 0, .35); }
-body[data-tema="editorial"] .ficha { color: var(--e-texto); background: #1f1f1f; border: 0; border-top: 1px solid var(--e-linea); border-radius: 0; box-shadow: 0 -20px 50px rgba(0, 0, 0, .45); }
+body[data-tema="editorial"] .ficha-fondo { background: var(--e-velo); }
+body[data-tema="editorial"] .ficha { color: var(--e-texto); background: var(--e-ficha); border: 0; border-top: 1px solid var(--e-linea); border-radius: 0; box-shadow: 0 -20px 50px rgba(0, 0, 0, .45); }
 body[data-tema="editorial"] .ficha[data-estado="conseguida"] { border-top-color: var(--e-rojo); }
 body[data-tema="editorial"] .ficha-cerrar { width: 44px; min-height: 44px; padding: 0; border-color: transparent; background: transparent; font: 300 1.2rem/1 var(--e-fuente); letter-spacing: 0; }
 body[data-tema="editorial"] .ficha-imagen { border: 0; border-radius: 4.5% / 3.3%; background: #111; box-shadow: 0 18px 40px rgba(0, 0, 0, .55); }
@@ -378,8 +379,13 @@ body[data-tema="editorial"] .ficha-precio a { color: var(--e-texto); text-underl
 body[data-tema="editorial"] .ficha-total strong { font: 200 2.8rem/1 var(--e-fuente); color: var(--e-texto); }
 body[data-tema="editorial"] .ficha-total span { color: var(--e-suave); font: 600 .62rem/1.4 var(--e-fuente); letter-spacing: .14em; text-transform: uppercase; }
 body[data-tema="editorial"] .paso { width: 60px; min-height: 60px; font: 200 1.9rem/1 var(--e-fuente); letter-spacing: 0; border-radius: 0; }
-body[data-tema="editorial"] .paso-mas { background: var(--e-texto); color: #111; border-color: var(--e-texto); }
-body[data-tema="editorial"] .ficha-error { color: #ff8a78; }
+body[data-tema="editorial"] .paso-mas { background: var(--e-texto); color: var(--e-sobre); border-color: var(--e-texto); }
+body[data-tema="editorial"] .ficha-error { color: var(--e-error); }
+/* botón de modo (claro/oscuro) a la derecha de la cabecera; fuera del tema editorial no se muestra */
+.modo-album { display: none; }
+body[data-tema="editorial"] .modo-album { display: inline-flex; align-items: center; justify-content: center; pointer-events: auto; margin-left: auto; width: 32px; min-height: 32px; padding: 0; }
+body[data-tema="editorial"] .modo-album[aria-pressed] { background: transparent; color: var(--e-texto); }
+.modo-album svg { width: 14px; height: 14px; display: block; }
 @media (min-width: 760px) { body[data-tema="editorial"] .ficha { border: 1px solid var(--e-linea); } }
 @media (max-width: 520px) { body[data-tema="editorial"] #estado { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
 @media (orientation: landscape) and (max-height: 520px) {

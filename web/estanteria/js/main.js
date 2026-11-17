@@ -97,12 +97,18 @@ function encuadrar() {
   const w = canvas.clientWidth, h = canvas.clientHeight, aspecto = w / h;
   camara.aspect = aspecto; camara.updateProjectionMatrix(); renderer.setSize(w, h, false);
   const tan = Math.tan(THREE.MathUtils.degToRad(camara.fov / 2));
-  cam.visH = altoVisible(aspecto); cam.dist = cam.visH / 2 / tan;
-  const centroLibro = LIBRO.alto / 2 + CARRUSEL.levante;
-  cam.yc = centroLibro - (aspecto < 0.8 ? 0.07 : 0.05) * cam.visH;        // el libro queda algo por encima del centro: debajo va la ficha
-  // la ficha empieza justo debajo de la base del libro (proyección de y = 0)
-  const yBase = (0.5 - (0 - cam.yc) / cam.visH) * h;
-  document.documentElement.style.setProperty('--y-info', `${Math.round(yBase + 18)}px`);
+  // Banda libre para el libro: entre las pestañas y (el pie menos la ficha). Así la ficha nunca pisa el pie, sea cual sea la pantalla.
+  const filtros = $('filtros').getBoundingClientRect(), pie = document.querySelector('.pie').getBoundingClientRect();
+  const altoFicha = $('info').getBoundingClientRect().height, AIRE = 18;
+  const arriba = filtros.bottom + 22, abajo = pie.top - altoFicha - AIRE - 20;
+  const banda = Math.max(120, abajo - arriba);
+  const altoLibro = LIBRO.alto + CARRUSEL.levante;
+  cam.visH = Math.max(altoVisible(aspecto), altoLibro * h / (banda * 0.97));   // el más restrictivo: ancho (portada + vecinos) o alto (banda)
+  cam.dist = cam.visH / 2 / tan;
+  const altoPx = altoLibro * h / cam.visH, techo = arriba + (banda - altoPx) / 2;   // el libro centrado en la banda
+  cam.yc = altoLibro - (0.5 - techo / h) * cam.visH;                    // y del mundo en el centro de la pantalla (en el plano del libro)
+  document.documentElement.style.setProperty('--y-info', `${Math.round(techo + altoPx + AIRE)}px`);
+  document.documentElement.style.setProperty('--y-centro', `${Math.round(techo + altoPx / 2)}px`);
   pedirFrame();
 }
 function colocarCamara() {
@@ -113,7 +119,7 @@ function colocarCamara() {
     camara.lookAt(0, cam.yc + (LIBRO.alto / 2 - cam.yc) * e, 0);
     return t < 1;
   }
-  camara.position.set(0, cam.yc + 0.03, z); camara.lookAt(0, cam.yc, 0);
+  camara.position.set(0, cam.yc, z); camara.lookAt(0, cam.yc, 0);       // de frente: la retícula de la página casa con el libro
   return false;
 }
 
@@ -243,6 +249,7 @@ async function iniciar() {
   pintarFiltros();
   construir();
   encuadrar();
+  new ResizeObserver(() => encuadrar()).observe($('info'));            // la ficha cambia de alto (título de otro álbum, fuentes que cargan)
   document.body.classList.add('lista');
   console.info(`Biblioteca · ${FASE} · calidad ${calidad.nivel} (${eleccion.origen}) · ${albumes.length} álbum(es)`);
   window.__biblioteca = { FASE, THREE, scene, camara, renderer, calidad, estado: () => ({ sel, items: items.map((i) => i.id), filtro }) };

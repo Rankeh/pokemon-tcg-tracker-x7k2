@@ -1,16 +1,13 @@
-// Lomo y tapas del álbum Teselia tal como se ve en la estantería (Canvas 2D).
-// Lomo: mitad marfil (Llama Blanca) arriba y mitad negra (Fulgor Negro) abajo, separadas por un rayo dorado; nervios, filetes y costuras en
-// latón/oro, sello de Teselia y títulos en vertical. Se generan tres capas a la vez: color, altura (→ relieve) y metal/rugosidad,
-// para que el oro brille y el cuero no. La tapa delantera reproduce la portada del álbum 3D (misma lámina de portada-tapa.js).
+// Lomo y tapas del álbum Teselia tal como se ven en la biblioteca (Canvas 2D), dirección editorial: negro mate, sello rojo «TCG», título en
+// grotesca fina. Se generan tres capas a la vez (color, altura → relieve, metal/rugosidad). La tapa delantera reproduce la del álbum 3D
+// (misma portada y banda de portada-tapa.js sobre la misma tela negra).
 import { LIBRO } from './disposicion.js';
 import { dibujarPortada, dibujarBanda } from '../../prueba-3d/js/portada-tapa.js';
 
-const SERIF = '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif';
-const SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+const SANS = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", Inter, Roboto, system-ui, sans-serif';
 const ROJO = '#e5432f';                                   // acento editorial (el mismo de la interfaz)
-export const COLORES = { marfil: '#ece3d2', marfilSombra: '#d6c9b1', noche: '#12151c', oro: '#caa25c', oroClaro: '#f0d9a2', tinta: '#2a1d14', tejido: '#40597a' };
+export const COLORES = { tejido: '#161616', papel: '#f2f2f2' };     // tela negra de las tapas (la del álbum en el tema editorial)
 // metal/rugosidad: G = rugosidad, B = metal (convención de Three para roughnessMap/metalnessMap)
-const MR = { cuero: 'rgb(0,150,0)', oro: 'rgb(0,72,255)', costura: 'rgb(0,190,0)' };
 
 const lienzo = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 
@@ -22,13 +19,6 @@ function capas(L, fn, estilo) {
   for (const k of ['color', 'alto', 'mr']) if (estilo[k] != null) { const ctx = L[k]; ctx.save(); fn(ctx, estilo[k]); ctx.restore(); }
 }
 
-function rayoCentral(ctx, w, y0, y1) {
-  ctx.beginPath();
-  ctx.moveTo(0, y0 + (y1 - y0) * 0.25); ctx.lineTo(w * 0.55, y0 + (y1 - y0) * 0.1); ctx.lineTo(w * 0.42, y0 + (y1 - y0) * 0.48);
-  ctx.lineTo(w, y0 + (y1 - y0) * 0.38); ctx.lineTo(w, y0 + (y1 - y0) * 0.7); ctx.lineTo(w * 0.45, y0 + (y1 - y0) * 0.9);
-  ctx.lineTo(w * 0.58, y0 + (y1 - y0) * 0.52); ctx.lineTo(0, y0 + (y1 - y0) * 0.62); ctx.closePath();
-}
-
 /** Texto en vertical centrado en (cx, cy). Si no cabe en `largo` px, reduce el cuerpo hasta que quepa. */
 function textoVertical(ctx, texto, cx, cy, tam, espacio, fuente, largo = Infinity) {
   ctx.translate(cx, cy); ctx.rotate(Math.PI / 2);                 // se lee de arriba abajo (con el libro tumbado con la portada hacia arriba, queda derecho)
@@ -36,7 +26,7 @@ function textoVertical(ctx, texto, cx, cy, tam, espacio, fuente, largo = Infinit
   const letras = [...texto];
   let anchos, total;
   for (let i = 0; i < 12; i++) {
-    ctx.font = `${tam}px ${fuente}`;
+    ctx.font = /^\d/.test(fuente) ? `${fuente.split(' ')[0]} ${tam}px ${fuente.slice(fuente.indexOf(' ') + 1)}` : `${tam}px ${fuente}`;
     anchos = letras.map((c) => ctx.measureText(c).width);
     total = anchos.reduce((a, b) => a + b, 0) + espacio * (letras.length - 1);
     if (total <= largo) break;
@@ -46,79 +36,47 @@ function textoVertical(ctx, texto, cx, cy, tam, espacio, fuente, largo = Infinit
   letras.forEach((c, i) => { ctx.fillText(c, x, 0); x += anchos[i] + espacio; });
 }
 
-function sello(ctx, cx, cy, r, claro, oscuro) {
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fillStyle = oscuro; ctx.fill();
-  ctx.beginPath(); ctx.arc(cx, cy, r * 0.88, -Math.PI / 2, Math.PI / 2, true); ctx.arc(cx, cy + r * 0.44, r * 0.44, Math.PI / 2, -Math.PI / 2, false);
-  ctx.arc(cx, cy - r * 0.44, r * 0.44, Math.PI / 2, -Math.PI / 2, true); ctx.closePath(); ctx.fillStyle = claro; ctx.fill();
-  ctx.beginPath(); ctx.arc(cx, cy - r * 0.44, r * 0.12, 0, 2 * Math.PI); ctx.fillStyle = oscuro; ctx.fill();
-  ctx.beginPath(); ctx.arc(cx, cy + r * 0.44, r * 0.12, 0, 2 * Math.PI); ctx.fillStyle = claro; ctx.fill();
-}
-
-/** Lomo Teselia. Devuelve { color, alto, mr } (lienzos w×h). */
+/** Lomo Teselia, dirección editorial (como el lomo de una edición de coleccionista): negro mate con grano, sello rojo «TCG» arriba,
+ *  título en vertical en grotesca fina, subtítulo rojo en paralelo y, abajo, la marca marfil/negro de Teselia y los datos.
+ *  Devuelve { color, alto, mr } (lienzos w×h): el relieve hunde un poco el título y el sello; nada es metálico. */
 export function dibujarLomoTeselia(ancho = 160) {
   const { w, h } = tamLomo(ancho);
   const C = { color: lienzo(w, h), alto: lienzo(w, h), mr: lienzo(w, h) };
   const L = { color: C.color.getContext('2d'), alto: C.alto.getContext('2d'), mr: C.mr.getContext('2d') };
-  const yMedio0 = h * 0.47, yMedio1 = h * 0.55;
+  const g = L.color.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, '#171717'); g.addColorStop(1, '#0e0e0e');
+  L.color.fillStyle = g; L.color.fillRect(0, 0, w, h);
+  L.alto.fillStyle = '#808080'; L.alto.fillRect(0, 0, w, h);
+  L.mr.fillStyle = 'rgb(0,170,0)'; L.mr.fillRect(0, 0, w, h);                      // mate, sin metal
 
-  // --- cuero base: marfil arriba, noche abajo
-  L.color.fillStyle = COLORES.marfil; L.color.fillRect(0, 0, w, h);
-  L.color.fillStyle = COLORES.noche; L.color.fillRect(0, yMedio0 + (yMedio1 - yMedio0) * 0.5, w, h);
-  L.alto.fillStyle = '#6a6a6a'; L.alto.fillRect(0, 0, w, h);
-  L.mr.fillStyle = MR.cuero; L.mr.fillRect(0, 0, w, h);
-  // grano del cuero (solo relieve) y variación de tono
-  for (let i = 0; i < w * h / 90; i++) {
-    const x = Math.random() * w, y = Math.random() * h, r = 0.6 + Math.random() * 1.4;
-    L.alto.fillStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '0,0,0'},.18)`; L.alto.beginPath(); L.alto.arc(x, y, r, 0, 2 * Math.PI); L.alto.fill();
-  }
-  // --- separación: rayo dorado en relieve
-  capas(L, (ctx, s) => { rayoCentral(ctx, w, yMedio0, yMedio1); ctx.fillStyle = s; ctx.fill(); }, { color: COLORES.oro, alto: '#e0e0e0', mr: MR.oro });
-  L.color.save(); rayoCentral(L.color, w, yMedio0, yMedio1); L.color.clip();
-  const g = L.color.createLinearGradient(0, yMedio0, w, yMedio1); g.addColorStop(0, COLORES.oroClaro); g.addColorStop(0.5, COLORES.oro); g.addColorStop(1, '#9b7434');
-  L.color.fillStyle = g; L.color.fillRect(0, yMedio0, w, yMedio1 - yMedio0); L.color.restore();
+  // sello rojo arriba (la «editorial» de la colección)
+  const lado = w * 0.7, x0 = (w - lado) / 2, y0 = w * 0.18;
+  capas(L, (ctx, s) => { ctx.fillStyle = s; ctx.fillRect(x0, y0, lado, lado); }, { color: ROJO, alto: '#9a9a9a', mr: 'rgb(0,120,0)' });
+  L.color.fillStyle = '#ffffff'; L.color.font = `800 ${lado * 0.34}px ${SANS}`; L.color.textAlign = 'center'; L.color.textBaseline = 'middle';
+  L.color.fillText('TCG', w / 2, y0 + lado * 0.54);
+  L.color.fillStyle = 'rgba(242,242,242,.25)'; L.color.fillRect(w * 0.15, y0 + lado + w * 0.22, w * 0.7, Math.max(1, w * 0.012));
 
-  // --- nervios (bandas en relieve) arriba y abajo, con filetes dorados
-  for (const y of [h * 0.045, h * 0.955]) {
-    capas(L, (ctx, s) => { ctx.fillStyle = s; ctx.fillRect(0, y - h * 0.012, w, h * 0.024); }, { color: y < h / 2 ? COLORES.marfilSombra : '#1d222c', alto: '#ffffff', mr: MR.cuero });
-    for (const d of [-h * 0.017, h * 0.017]) capas(L, (ctx, s) => { ctx.fillStyle = s; ctx.fillRect(0, y + d - 1.5, w, 3); }, { color: COLORES.oro, alto: '#c8c8c8', mr: MR.oro });
-  }
-  // filetes que enmarcan los títulos
-  for (const y of [h * 0.085, h * 0.215, h * 0.785, h * 0.915]) capas(L, (ctx, s) => { ctx.fillStyle = s; ctx.fillRect(w * 0.14, y - 1, w * 0.72, 2); }, { color: COLORES.oro, alto: '#bdbdbd', mr: MR.oro });
+  // título y subtítulo en vertical (de arriba abajo, como en los lomos de cine)
+  const y1 = y0 + lado + w * 0.4, y2 = h * 0.78;
+  capas(L, (ctx, s) => { ctx.fillStyle = s; textoVertical(ctx, 'TESELIA', w * 0.42, (y1 + y2) / 2, w * 0.4, w * 0.14, `300 ${SANS}`, (y2 - y1) * 0.92); }, { color: '#f2f2f2', alto: '#6a6a6a' });
+  L.color.save(); L.color.fillStyle = ROJO;
+  textoVertical(L.color, 'LLAMA BLANCA · FULGOR NEGRO', w * 0.8, (y1 + y2) / 2, w * 0.12, w * 0.035, `600 ${SANS}`, (y2 - y1) * 0.92);
+  L.color.restore();
 
-  // --- costuras discretas a lo largo de los dos cantos
-  for (const x of [w * 0.07, w * 0.93]) {
-    for (let y = h * 0.07; y < h * 0.93; y += 9) {
-      const enNoche = y > (yMedio0 + yMedio1) / 2;
-      capas(L, (ctx, s) => { ctx.fillStyle = s; ctx.fillRect(x - 1, y, 2, 5); }, { color: enNoche ? '#a88a55' : '#8c6f4c', alto: '#4a4a4a', mr: MR.costura });
-    }
-  }
+  // pie: marca marfil/negro de Teselia, código y número de cartas
+  const m = w * 0.46, ym = h * 0.83;
+  L.color.fillStyle = '#e9e4da'; L.color.fillRect((w - m) / 2, ym, m / 2, m);
+  L.color.fillStyle = '#2b2b2b'; L.color.fillRect(w / 2, ym, m / 2, m);
+  L.color.strokeStyle = 'rgba(242,242,242,.35)'; L.color.lineWidth = Math.max(1, w * 0.01); L.color.strokeRect((w - m) / 2, ym, m, m);
+  L.color.textAlign = 'center'; L.color.textBaseline = 'alphabetic';
+  L.color.fillStyle = ROJO; L.color.font = `600 ${w * 0.12}px ${SANS}`; L.color.fillText('SV10.5', w / 2, h * 0.925);
+  L.color.fillStyle = '#f2f2f2'; L.color.font = `300 ${w * 0.2}px ${SANS}`; L.color.fillText('158', w / 2, h * 0.968);
 
-  // --- sello de Teselia (arriba) con aro dorado
-  const ry = h * 0.15, rr = w * 0.27;
-  capas(L, (ctx, s) => { ctx.beginPath(); ctx.arc(w / 2, ry, rr * 1.12, 0, 2 * Math.PI); ctx.fillStyle = s; ctx.fill(); }, { color: COLORES.oro, alto: '#d8d8d8', mr: MR.oro });
-  sello(L.color, w / 2, ry, rr, COLORES.marfil, COLORES.noche);
-  L.alto.beginPath(); L.alto.arc(w / 2, ry, rr, 0, 2 * Math.PI); L.alto.fillStyle = '#b0b0b0'; L.alto.fill();
-  L.mr.beginPath(); L.mr.arc(w / 2, ry, rr, 0, 2 * Math.PI); L.mr.fillStyle = 'rgb(0,110,0)'; L.mr.fill();
-
-  // --- títulos en vertical (oro estampado: color + relieve hundido + metal)
-  // cada título ocupa su mitad, entre el filete y el rayo, con aire a los lados
-  const tam = w * 0.3, esp = w * 0.05;
-  capas(L, (ctx, s) => { ctx.fillStyle = s; textoVertical(ctx, 'LLAMA BLANCA', w / 2, (h * 0.235 + yMedio0) / 2, tam, esp, SERIF, (yMedio0 - h * 0.235) * 0.9); }, { color: COLORES.tinta, alto: '#3c3c3c', mr: MR.cuero });
-  capas(L, (ctx, s) => { ctx.fillStyle = s; textoVertical(ctx, 'FULGOR NEGRO', w / 2, (yMedio1 + h * 0.765) / 2, tam, esp, SERIF, (h * 0.765 - yMedio1) * 0.9); }, { color: COLORES.oroClaro, alto: '#3c3c3c', mr: MR.oro });
-
-  // --- pie: nombre de la colección y códigos
-  capas(L, (ctx, s) => {
-    ctx.fillStyle = s; ctx.font = `600 ${w * 0.15}px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('TESELIA', w / 2, h * 0.85);
-  }, { color: COLORES.oro, alto: '#4a4a4a', mr: MR.oro });
-  capas(L, (ctx, s) => {
-    ctx.fillStyle = s; ctx.font = `${w * 0.1}px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('sv10.5', w / 2, h * 0.885);
-  }, { color: 'rgba(202,162,92,.8)', mr: MR.oro });
-
-  // --- curvatura del lomo redondeado: los cantos se oscurecen un poco (solo color)
+  // grano de impresión y cantos algo más oscuros (el lomo redondeado)
+  let sem = 11; const azar = () => { sem = (sem * 16807) % 2147483647; return sem / 2147483647; };
+  for (let i = 0; i < w * h / 70; i++) { L.color.fillStyle = azar() < 0.5 ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.08)'; L.color.fillRect(azar() * w, azar() * h, 1.3, 1.3); }
   const v = L.color.createLinearGradient(0, 0, w, 0);
-  v.addColorStop(0, 'rgba(0,0,0,.35)'); v.addColorStop(0.18, 'rgba(0,0,0,0)'); v.addColorStop(0.82, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.35)');
+  v.addColorStop(0, 'rgba(0,0,0,.45)'); v.addColorStop(0.16, 'rgba(0,0,0,0)'); v.addColorStop(0.84, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.45)');
   L.color.fillStyle = v; L.color.fillRect(0, 0, w, h);
   return C;
 }

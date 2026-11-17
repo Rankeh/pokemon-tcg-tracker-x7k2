@@ -22,7 +22,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
-export const FASE = '3.10';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.11';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -43,8 +43,11 @@ const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchM
   nucleos: navigator.hardwareConcurrency || 0, memoriaGb: navigator.deviceMemory || 0 });
 const tema = elegirTema(params.get('tema'));                 // ?tema=editorial (por defecto, 3.10: la dirección de la biblioteca) | diorama | claro | acogedor | noche
 document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
-const tapa = elegirAcabado(params.get('tapa'));               // ?tapa=grafito (por defecto) | fieltro | cuero | tejido | acolchado
+const tapa = elegirAcabado(params.get('tapa') || TEMAS[tema].acabado);   // ?tapa=grafito | fieltro | cuero | tejido | acolchado | editorial (por defecto, el del tema)
 const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0', emblema: params.get('emblema') !== '0', portada: params.get('portada') !== '0' });   // ?portada=0: tapa lisa con el emblema bordado (3.7.25)   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone
+// 3.11 · modo claro/oscuro (web/editorial/modo.js): el suelo se funde con el fondo de la página en los dos modos
+try { aspecto.aplicarModo(document.documentElement.dataset.modo || 'oscuro'); } catch (e) { console.warn('Modo no aplicado:', e); }   // el modo nunca debe impedir que cargue el álbum
+document.addEventListener('modo', (e) => { if (aspecto.aplicarModo(e.detail)) pedirFrame(); });
 
 const orbita = new OrbitaLigera();
 let album = null, metricas = null, diag = null, cache = null, vista = null, ctrl = null, adaptador = null, ficha = null;

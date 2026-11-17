@@ -5,8 +5,8 @@ body { -webkit-tap-highlight-color: transparent; }
 #lienzo { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; opacity: 0; transition: opacity .7s ease; }
 body.lista #lienzo { opacity: 1; }
 
-/* fundido a negro al abrir un álbum (la cámara se acerca a la portada a la vez) */
-.velo { position: fixed; inset: 0; background: #0b0b0b; opacity: 0; pointer-events: none; z-index: 20; transition: opacity .55s ease .15s; }
+/* fundido al color de fondo al abrir un álbum (la cámara se acerca a la portada a la vez) */
+.velo { position: fixed; inset: 0; background: var(--e-fondo); opacity: 0; pointer-events: none; z-index: 20; transition: opacity .55s ease .15s; }
 body.abriendo .velo { opacity: 1; }
 body.abriendo .cabecera, body.abriendo .filtros, body.abriendo .info, body.abriendo .pie, body.abriendo .flecha { opacity: 0; transition: opacity .25s; }
 
@@ -29,7 +29,7 @@ body.abriendo .cabecera, body.abriendo .filtros, body.abriendo .info, body.abrie
 .filtros::-webkit-scrollbar { display: none; }
 .filtros button { white-space: nowrap; }
 
-.flecha { position: fixed; z-index: 2; top: calc(var(--y-info, 60vh) - 34vh); }
+.flecha { position: fixed; z-index: 2; top: calc(var(--y-centro, 45vh) - 22px); }
 .flecha.izq { left: calc(var(--e-marco-ancho) + clamp(8px, 2vw, 24px)); }
 .flecha.der { right: calc(var(--e-marco-ancho) + clamp(8px, 2vw, 24px)); }
 
@@ -44,6 +44,8 @@ body.abriendo .cabecera, body.abriendo .filtros, body.abriendo .info, body.abrie
 .info .abrir::after { content: "→"; letter-spacing: 0; font-size: .9rem; }
 
 .posicion { color: var(--e-suave); }
+.derecha { display: flex; align-items: center; gap: 14px; }
+.derecha p { margin: 0; }
 .aviso { position: fixed; z-index: 21; left: 50%; transform: translateX(-50%); bottom: calc(var(--e-marco-ancho) + max(56px, env(safe-area-inset-bottom) + 48px)); margin: 0; max-width: calc(100% - 28px); text-align: center; }
 
 /* lista accesible: invisible pero presente para lector de pantalla y teclado; se muestra si no hay 3D */
