@@ -4,7 +4,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { LIBRO } from '../js/disposicion.js';
 import { poses, mover, elementos, series, altoVisible, CARRUSEL } from '../js/carrusel.js';
-import { listarAlbumes, validarAlbum, normalizarAlbumes } from '../js/albumes.js';
+import { listarAlbumes, validarAlbum, normalizarAlbumes, albumPorId } from '../js/albumes.js';
+import { readFile, access } from 'node:fs/promises';
+import { validarCatalogo } from '../../js/coleccion.js';
+import { crearMapa } from '../../prueba-3d/js/adaptador-coleccion.js';
+const raiz = new URL('../../../', import.meta.url);
+const leerJson = async (ruta) => JSON.parse(await readFile(new URL(ruta, raiz), 'utf8'));
 
 test('el libro tiene las medidas del álbum 3D (GLB: 258 + 10 mm de ancho, 322 mm de alto, 46,5 mm de grosor)', () => {
   assert.deepEqual(LIBRO, { grueso: 0.0465, alto: 0.322, fondo: 0.268 });
@@ -48,10 +53,13 @@ test('encuadre: el libro de cara ocupa ~la mitad del alto; en vertical caben la 
   assert.ok(LIBRO.alto / altoVisible(iphone) > 0.3, 'iPhone: el libro no queda diminuto');
 });
 
-test('álbumes: el actual (Teselia) está, con serie y nº de cartas, y apunta a la ruta existente del visor 3D', async () => {
+test('álbumes: Teselia (primero, ruta de siempre) y Asako Ito (?album=asako-ito)', async () => {
   const lista = await listarAlbumes();
-  assert.equal(lista.length, 1);
-  assert.equal(lista[0].id, 'teselia');
+  assert.deepEqual(lista.map((a) => a.id), ['teselia', 'asako-ito']);
+  assert.equal(lista[1].ruta, 'web/prueba-3d/index.html?album=asako-ito');
+  assert.equal(albumPorId('asako-ito').nombre, 'Asako Ito');
+  assert.equal(albumPorId('no-existe').id, 'teselia', 'id desconocido → Teselia (los enlaces viejos siguen funcionando)');
+  assert.equal(albumPorId(null).id, 'teselia');
   assert.equal(lista[0].ruta, 'web/prueba-3d/index.html');
   assert.equal(lista[0].serie, 'sv'); assert.equal(lista[0].cartas, 158);
   assert.deepEqual(validarAlbum(lista[0]), []);
@@ -67,4 +75,28 @@ test('álbumes: se descartan inválidos, ids repetidos y rutas absolutas; se ord
   ]);
   assert.deepEqual(r.map((a) => a.id), ['a', 'b']);
   assert.notEqual(r[0].nombre, 'duplicado');
+});
+
+test('cada álbum: su catálogo existe, es válido, cabe en su modelo 3D, coincide con el nº de cartas y sus cartas de portada están en el catálogo', async () => {
+  for (const a of await listarAlbumes()) {
+    const cat = await leerJson(a.catalogo);
+    assert.ok(validarCatalogo(cat).ok, a.id + ': catálogo válido');
+    assert.equal(cat.cartas.length, a.cartas, a.id + ': nº de cartas del registro = catálogo');
+    const mapa = crearMapa(cat), modelo = mapa.hojas === 9 ? 'album.glb' : `album-${mapa.hojas}h.glb`;
+    await access(new URL('web/prueba-3d/modelo/' + modelo, raiz));                         // el visor elige este modelo por nº de hojas
+    for (const id of a.portada.cartas) assert.ok(cat.cartas.some((c) => c.id === id), `${a.id}: carta de portada ${id} en el catálogo`);
+    await access(new URL(a.precios, raiz));
+  }
+});
+
+test('Asako Ito: todas las cartas son suyas (coincidencia exacta), físicas (sin TCG Pocket), sin repetidos y con nº de Pokédex', async () => {
+  const cat = await leerJson('datos/catalogo/coleccion-asako-ito.json');
+  assert.equal(cat.ilustrador, 'Asako Ito');
+  for (const c of cat.cartas) {
+    assert.equal(c.ilustrador, 'Asako Ito', c.id);
+    assert.notEqual(c.serie, 'tcgp', c.id + ' es de TCG Pocket');
+    assert.ok(Array.isArray(c.dexId) && Number.isInteger(c.dexId[0]), c.id + ': dexId para el orden por Pokédex');
+  }
+  assert.equal(new Set(cat.cartas.map((c) => c.id)).size, cat.cartas.length);
+  assert.ok(cat.totales.excluidas.every((e) => /Pocket/.test(e.motivo)), 'solo se excluye TCG Pocket');
 });

@@ -39,7 +39,10 @@ function textoVertical(ctx, texto, cx, cy, tam, espacio, fuente, largo = Infinit
 /** Lomo Teselia, dirección editorial (como el lomo de una edición de coleccionista): negro mate con grano, sello rojo «TCG» arriba,
  *  título en vertical en grotesca fina, subtítulo rojo en paralelo y, abajo, la marca marfil/negro de Teselia y los datos.
  *  Devuelve { color, alto, mr } (lienzos w×h): el relieve hunde un poco el título y el sello; nada es metálico. */
-export function dibujarLomoTeselia(ancho = 160) {
+/** Datos del lomo de Teselia (por defecto). Cada álbum trae los suyos en el registro (albumes.js → lomo). */
+export const LOMO_TESELIA = { titulo: 'TESELIA', subtitulo: 'LLAMA BLANCA · FULGOR NEGRO', codigo: 'SV10.5', cifra: '158', marca: 'teselia' };
+
+export function dibujarLomoEditorial(ancho = 160, d = LOMO_TESELIA) {
   const { w, h } = tamLomo(ancho);
   const C = { color: lienzo(w, h), alto: lienzo(w, h), mr: lienzo(w, h) };
   const L = { color: C.color.getContext('2d'), alto: C.alto.getContext('2d'), mr: C.mr.getContext('2d') };
@@ -58,19 +61,23 @@ export function dibujarLomoTeselia(ancho = 160) {
 
   // título y subtítulo en vertical (de arriba abajo, como en los lomos de cine)
   const y1 = y0 + lado + w * 0.4, y2 = h * 0.78;
-  capas(L, (ctx, s) => { ctx.fillStyle = s; textoVertical(ctx, 'TESELIA', w * 0.42, (y1 + y2) / 2, w * 0.4, w * 0.14, `300 ${SANS}`, (y2 - y1) * 0.92); }, { color: '#f2f2f2', alto: '#6a6a6a' });
+  capas(L, (ctx, s) => { ctx.fillStyle = s; textoVertical(ctx, d.titulo, w * 0.42, (y1 + y2) / 2, w * 0.4, w * 0.14, `300 ${SANS}`, (y2 - y1) * 0.92); }, { color: '#f2f2f2', alto: '#6a6a6a' });
   L.color.save(); L.color.fillStyle = ROJO;
-  textoVertical(L.color, 'LLAMA BLANCA · FULGOR NEGRO', w * 0.8, (y1 + y2) / 2, w * 0.12, w * 0.035, `600 ${SANS}`, (y2 - y1) * 0.92);
+  textoVertical(L.color, d.subtitulo, w * 0.8, (y1 + y2) / 2, w * 0.12, w * 0.035, `600 ${SANS}`, (y2 - y1) * 0.92);
   L.color.restore();
 
   // pie: marca marfil/negro de Teselia, código y número de cartas
   const m = w * 0.46, ym = h * 0.83;
-  L.color.fillStyle = '#e9e4da'; L.color.fillRect((w - m) / 2, ym, m / 2, m);
-  L.color.fillStyle = '#2b2b2b'; L.color.fillRect(w / 2, ym, m / 2, m);
+  if (d.marca === 'paleta') {                                       // artista: tres tonos de acuarela suave
+    ['#f4c7c3', '#c9e4d6', '#c9d8f2'].forEach((c, i) => { L.color.fillStyle = c; L.color.fillRect((w - m) / 2, ym + (i * m) / 3, m, m / 3 + 0.5); });
+  } else {                                                          // Teselia: mitad marfil (Llama Blanca), mitad negra (Fulgor Negro)
+    L.color.fillStyle = '#e9e4da'; L.color.fillRect((w - m) / 2, ym, m / 2, m);
+    L.color.fillStyle = '#2b2b2b'; L.color.fillRect(w / 2, ym, m / 2, m);
+  }
   L.color.strokeStyle = 'rgba(242,242,242,.35)'; L.color.lineWidth = Math.max(1, w * 0.01); L.color.strokeRect((w - m) / 2, ym, m, m);
   L.color.textAlign = 'center'; L.color.textBaseline = 'alphabetic';
-  L.color.fillStyle = ROJO; L.color.font = `600 ${w * 0.12}px ${SANS}`; L.color.fillText('SV10.5', w / 2, h * 0.925);
-  L.color.fillStyle = '#f2f2f2'; L.color.font = `300 ${w * 0.2}px ${SANS}`; L.color.fillText('158', w / 2, h * 0.968);
+  L.color.fillStyle = ROJO; L.color.font = `600 ${Math.min(w * 0.12, (w * 0.86) / Math.max(1, d.codigo.length * 0.68))}px ${SANS}`; L.color.fillText(d.codigo, w / 2, h * 0.925);
+  L.color.fillStyle = '#f2f2f2'; L.color.font = `300 ${w * 0.2}px ${SANS}`; L.color.fillText(d.cifra, w / 2, h * 0.968);
 
   // grano de impresión y cantos algo más oscuros (el lomo redondeado)
   let sem = 11; const azar = () => { sem = (sem * 16807) % 2147483647; return sem / 2147483647; };
@@ -83,7 +90,7 @@ export function dibujarLomoTeselia(ancho = 160) {
 
 /** Tapa delantera (cara +x del libro de pie): tejido azul del álbum con la banda y la lámina de portada en sus sitios reales.
  *  u = 0 junto al lomo; la parte de arriba del lienzo es la parte de arriba del libro. `cartas` = { blanca, negra } (opcional). */
-export function dibujarTapa(cartas = {}, ancho = 512) {
+export function dibujarTapa(cartas = {}, ancho = 512, diseno = undefined) {
   const W = ancho, H = Math.round(ancho * LIBRO.alto / LIBRO.fondo), c = lienzo(W, H), ctx = c.getContext('2d');
   const px = (m) => (m / LIBRO.fondo) * W, py = (m) => (m / LIBRO.alto) * H;
   ctx.fillStyle = COLORES.tejido; ctx.fillRect(0, 0, W, H);
@@ -95,8 +102,8 @@ export function dibujarTapa(cartas = {}, ancho = 512) {
     const x = px(0.01 + x0 + m), y = py(0.161 - 0.141 + m), w = px(x1 - x0 - 2 * m), h = py(0.282 - 2 * m);
     const s = lienzo(Math.round(w), Math.round(h)); fn(s.getContext('2d'), s.width, s.height); ctx.drawImage(s, x, y, w, h);
   };
-  sub(0.012, 0.046, 0.003, (k, w, h) => dibujarBanda(k, w, h));
-  sub(0.055, 0.244, 0.004, (k, w, h) => dibujarPortada(k, w, h, cartas));
+  sub(0.012, 0.046, 0.003, (k, w, h) => dibujarBanda(k, w, h, diseno));
+  sub(0.055, 0.244, 0.004, (k, w, h) => dibujarPortada(k, w, h, cartas, diseno));
   return c;
 }
 

@@ -404,14 +404,14 @@ export function generarEmblemaAlfa(tam = EMBLEMA.tam) {
 const aclarar = (hex, f) => { const r = Math.min(255, ((hex >> 16) & 255) * f), g = Math.min(255, ((hex >> 8) & 255) * f), b = Math.min(255, (hex & 255) * f); return (r << 16 | g << 8 | b); };
 
 export class Aspecto {
-  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito', entorno = true, emblema = true, portada = false }) {
+  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito', entorno = true, emblema = true, portada = false, disenoPortada = undefined }) {
     this.tapa = elegirAcabado(tapa); this.acabado = ACABADOS[this.tapa];
     this.tema = TEMAS[tema] ? tema : 'noche'; this.t = TEMAS[this.tema];
     this.renderer = renderer; this.scene = scene; this.nivel = nivel; this.origen = origen;
     this.config = NIVELES[nivel] || null;                    // null = legado
     this.luces = {}; this.recursos = []; this.mallasPropias = []; this.sombra = null; this.mesa = null; this.materiales = new Map(); this.uvHechas = new WeakSet();
     this.conEmblema = emblema;
-    this.conPortada = portada;                               // 3.8: lámina impresa Llama Blanca / Fulgor Negro (sustituye al emblema bordado)
+    this.conPortada = portada; this.disenoPortada = disenoPortada;      // textos y cartas de la portada del álbum abierto (undefined = Teselia)                               // 3.8: lámina impresa Llama Blanca / Fulgor Negro (sustituye al emblema bordado)
     this.alCambiar = null;                                   // main.js lo usa para pedir un fotograma cuando llegan las ilustraciones
     this._montarLuces();
     this._montarEntorno(entorno);
@@ -655,12 +655,13 @@ export class Aspecto {
       tapaMalla.add(o);
       return { o, t, ctx, w, h };
     };
-    const p = lamina(panel, PORTADA.margen, lado, (ctx, w, h) => dibujarPortada(ctx, w, h), 'Tapa_Portada');
-    const b = banda && banda.geometry ? lamina(banda, PORTADA.margenBanda, Math.round(lado / 8), dibujarBanda, 'Tapa_Lomo_Titulo') : null;
+    const d = this.disenoPortada;
+    const p = lamina(panel, PORTADA.margen, lado, (ctx, w, h) => dibujarPortada(ctx, w, h, {}, d), 'Tapa_Portada');
+    const b = banda && banda.geometry ? lamina(banda, PORTADA.margenBanda, Math.round(lado / 8), (ctx, w, h) => dibujarBanda(ctx, w, h, d), 'Tapa_Lomo_Titulo') : null;
     this.portada = { panel: p.o, banda: b ? b.o : null, ilustraciones: false };
-    cargarCartas().then((cartas) => {
+    cargarCartas(undefined, d && d.cartas).then((cartas) => {
       if (!this.portada || (!cartas.blanca && !cartas.negra)) return;
-      dibujarPortada(p.ctx, p.w, p.h, cartas); p.t.needsUpdate = true;
+      dibujarPortada(p.ctx, p.w, p.h, cartas, d); p.t.needsUpdate = true;
       this.portada.ilustraciones = true;
       this.alCambiar?.();
     });

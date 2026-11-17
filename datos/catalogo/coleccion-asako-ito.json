@@ -1,0 +1,742 @@
+{
+ "generado": "2026-11-17",
+ "fuente": "TCGdex (datos MIT), ilustrador = «Asako Ito» (coincidencia exacta)",
+ "ilustrador": "Asako Ito",
+ "totales": {
+  "total": 37,
+  "imagenEspanol": 36,
+  "imagenOtroIdioma": 0,
+  "sinImagen": 1,
+  "excluidas": [
+   {
+    "id": "A2-001",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2a-037",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A4-038",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A1-100",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A1-107",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B1-107",
+    "motivo": "TCG Pocket (digital)"
+   }
+  ]
+ },
+ "cartas": [
+  {
+   "id": "swsh2-2",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Metapod",
+   "numero": "2",
+   "expansion": "swsh2",
+   "nombreExpansion": "Choque Rebelde",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh2/2/high.webp",
+   "dexId": [
+    11
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sv05-003",
+   "categoriaColeccion": "comun",
+   "nombre": "Seedot",
+   "numero": "003",
+   "expansion": "sv05",
+   "nombreExpansion": "Fuerzas Temporales",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv05/003/high.webp",
+   "dexId": [
+    273
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm10-6",
+   "categoriaColeccion": "comun",
+   "nombre": "Oddish",
+   "numero": "6",
+   "expansion": "sm10",
+   "nombreExpansion": "Vínculos Indestructibles",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm10/6/high.webp",
+   "dexId": [
+    43
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm5-10",
+   "categoriaColeccion": "comun",
+   "nombre": "Cherubi",
+   "numero": "10",
+   "expansion": "sm5",
+   "nombreExpansion": "Ultraprisma",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm5/10/high.webp",
+   "dexId": [
+    420
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "me05-015",
+   "categoriaColeccion": "comun",
+   "nombre": "Wailmer",
+   "numero": "015",
+   "expansion": "me05",
+   "nombreExpansion": "Oscuridad Absoluta",
+   "serie": "me",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/me/me05/015/high.webp",
+   "dexId": [
+    320
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh8-18",
+   "categoriaColeccion": "comun",
+   "nombre": "Grubbin",
+   "numero": "18",
+   "expansion": "swsh8",
+   "nombreExpansion": "Golpe Fusión",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh8/18/high.webp",
+   "dexId": [
+    736
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh11-018",
+   "categoriaColeccion": "comun",
+   "nombre": "Blipbug",
+   "numero": "018",
+   "expansion": "swsh11",
+   "nombreExpansion": "Origen Perdido",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh11/018/high.webp",
+   "dexId": [
+    824
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "30th-027",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "027",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/027/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm1-30",
+   "categoriaColeccion": "comun",
+   "nombre": "Poliwag",
+   "numero": "30",
+   "expansion": "sm1",
+   "nombreExpansion": "Sol y Luna",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm1/30/high.webp",
+   "dexId": [
+    60
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm3-34",
+   "categoriaColeccion": "comun",
+   "nombre": "Marill",
+   "numero": "34",
+   "expansion": "sm3",
+   "nombreExpansion": "Sombras Ardientes",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm3/34/high.webp",
+   "dexId": [
+    183
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm9-39",
+   "categoriaColeccion": "rara",
+   "nombre": "Electrode",
+   "numero": "39",
+   "expansion": "sm9",
+   "nombreExpansion": "Union de Aliados",
+   "serie": "sm",
+   "rareza": "Rara",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm9/39/high.webp",
+   "dexId": [
+    101
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm7-44",
+   "categoriaColeccion": "comun",
+   "nombre": "Luvdisc",
+   "numero": "44",
+   "expansion": "sm7",
+   "nombreExpansion": "Tormenta Celestial",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm7/44/high.webp",
+   "dexId": [
+    370
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm3-44",
+   "categoriaColeccion": "comun",
+   "nombre": "Tynamo",
+   "numero": "44",
+   "expansion": "sm3",
+   "nombreExpansion": "Sombras Ardientes",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm3/44/high.webp",
+   "dexId": [
+    602
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm5-51",
+   "categoriaColeccion": "comun",
+   "nombre": "Drifloon",
+   "numero": "51",
+   "expansion": "sm5",
+   "nombreExpansion": "Ultraprisma",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm5/51/high.webp",
+   "dexId": [
+    425
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm10-53",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Pyukumuku",
+   "numero": "53",
+   "expansion": "sm10",
+   "nombreExpansion": "Vínculos Indestructibles",
+   "serie": "sm",
+   "rareza": "Uncommon",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm10/53/high.webp",
+   "dexId": [
+    771
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm12-58",
+   "categoriaColeccion": "comun",
+   "nombre": "Tympole",
+   "numero": "58",
+   "expansion": "sm12",
+   "nombreExpansion": "Eclipse Cósmico",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm12/58/high.webp",
+   "dexId": [
+    535
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh4-72",
+   "categoriaColeccion": "comun",
+   "nombre": "Chimecho",
+   "numero": "72",
+   "expansion": "swsh4",
+   "nombreExpansion": "Voltaje Vívido",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh4/72/high.webp",
+   "dexId": [
+    358
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh12-081",
+   "categoriaColeccion": "comun",
+   "nombre": "Espurr",
+   "numero": "081",
+   "expansion": "swsh12",
+   "nombreExpansion": "Tempestad Plateada",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh12/081/high.webp",
+   "dexId": [
+    677
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh12-083",
+   "categoriaColeccion": "comun",
+   "nombre": "Swirlix",
+   "numero": "083",
+   "expansion": "swsh12",
+   "nombreExpansion": "Tempestad Plateada",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh12/083/high.webp",
+   "dexId": [
+    684
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh1-87",
+   "categoriaColeccion": "comun",
+   "nombre": "Munna",
+   "numero": "87",
+   "expansion": "swsh1",
+   "nombreExpansion": "Espada y Escudo",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh1/87/high.webp",
+   "dexId": [
+    517
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh5-89",
+   "categoriaColeccion": "comun",
+   "nombre": "Zubat",
+   "numero": "89",
+   "expansion": "swsh5",
+   "nombreExpansion": "Estilos de Combate",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh5/89/high.webp",
+   "dexId": [
+    41
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh3-89",
+   "categoriaColeccion": "comun",
+   "nombre": "Trapinch",
+   "numero": "89",
+   "expansion": "swsh3",
+   "nombreExpansion": "Oscuridad Incandescente",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh3/89/high.webp",
+   "dexId": [
+    328
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sv06-091",
+   "categoriaColeccion": "comun",
+   "nombre": "Sandygast",
+   "numero": "091",
+   "expansion": "sv06",
+   "nombreExpansion": "Mascarada Crepuscular",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06/091/high.webp",
+   "dexId": [
+    769
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm2-94",
+   "categoriaColeccion": "comun",
+   "nombre": "Goomy",
+   "numero": "94",
+   "expansion": "sm2",
+   "nombreExpansion": "Albor de Guadianes",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm2/94/high.webp",
+   "dexId": [
+    704
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm8-101",
+   "categoriaColeccion": "comun",
+   "nombre": "Litwick",
+   "numero": "101",
+   "expansion": "sm8",
+   "nombreExpansion": "Truenos Perdidos",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm8/101/high.webp",
+   "dexId": [
+    607
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm7-105",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Shelgon",
+   "numero": "105",
+   "expansion": "sm7",
+   "nombreExpansion": "Tormenta Celestial",
+   "serie": "sm",
+   "rareza": "Uncommon",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm7/105/high.webp",
+   "dexId": [
+    372
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh12.5-109",
+   "categoriaColeccion": "rara",
+   "nombre": "Snorlax",
+   "numero": "109",
+   "expansion": "swsh12.5",
+   "nombreExpansion": "Cenit Supremo",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh12.5/109/high.webp",
+   "dexId": [
+    143
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh8-111",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Wigglytuff",
+   "numero": "111",
+   "expansion": "swsh8",
+   "nombreExpansion": "Golpe Fusión",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh8/111/high.webp",
+   "dexId": [
+    40
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm8-111",
+   "categoriaColeccion": "comun",
+   "nombre": "Phanpy",
+   "numero": "111",
+   "expansion": "sm8",
+   "nombreExpansion": "Truenos Perdidos",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm8/111/high.webp",
+   "dexId": [
+    231
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm11-112",
+   "categoriaColeccion": "comun",
+   "nombre": "Gible",
+   "numero": "112",
+   "expansion": "sm11",
+   "nombreExpansion": "Mentes Unidas",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm11/112/high.webp",
+   "dexId": [
+    443
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm7-117",
+   "categoriaColeccion": "comun",
+   "nombre": "Whismur",
+   "numero": "117",
+   "expansion": "sm7",
+   "nombreExpansion": "Tormenta Celestial",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm7/117/high.webp",
+   "dexId": [
+    293
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sv09-120",
+   "categoriaColeccion": "comun",
+   "nombre": "Dunsparce",
+   "numero": "120",
+   "expansion": "sv09",
+   "nombreExpansion": "Juntos de Aventuras",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv09/120/high.webp",
+   "dexId": [
+    206
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh6-121",
+   "categoriaColeccion": "comun",
+   "nombre": "Castform",
+   "numero": "121",
+   "expansion": "swsh6",
+   "nombreExpansion": "Reinado Escalofriante",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh6/121/high.webp",
+   "dexId": [
+    351
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm11-143",
+   "categoriaColeccion": "comun",
+   "nombre": "Cottonee",
+   "numero": "143",
+   "expansion": "sm11",
+   "nombreExpansion": "Mentes Unidas",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm11/143/high.webp",
+   "dexId": [
+    546
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sm12-146",
+   "categoriaColeccion": "comun",
+   "nombre": "Azurill",
+   "numero": "146",
+   "expansion": "sm12",
+   "nombreExpansion": "Eclipse Cósmico",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm12/146/high.webp",
+   "dexId": [
+    298
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "sv10.5b-151",
+   "categoriaColeccion": "ir",
+   "nombre": "Audino",
+   "numero": "151",
+   "expansion": "sv10.5b",
+   "nombreExpansion": "Fulgor Negro",
+   "serie": "sv",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv10.5b/151/high.webp",
+   "dexId": [
+    531
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)"
+  },
+  {
+   "id": "swsh12.5gg-GG19",
+   "categoriaColeccion": "rara",
+   "nombre": "Altaria",
+   "numero": "GG19",
+   "expansion": "swsh12.5gg",
+   "nombreExpansion": "Cenit Supremo Galería de Galar",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "Asako Ito",
+   "imagen": null,
+   "dexId": [
+    334
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null
+  }
+ ]
+}

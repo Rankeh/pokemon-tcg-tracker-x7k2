@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { LIBRO } from './disposicion.js';
-import { dibujarLomoTeselia, dibujarTapa, dibujarCantos, dibujarLomoNuevo, dibujarTapaNueva, COLORES } from './lomo-teselia.js';
+import { dibujarLomoEditorial, dibujarTapa, dibujarCantos, dibujarLomoNuevo, dibujarTapaNueva, COLORES } from './lomo-teselia.js';
 import { generarSombra, normalDesdeAltura } from './texturas.js';
 import { cargarCartas } from '../../prueba-3d/js/portada-tapa.js';
 
@@ -18,26 +18,28 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
   const sombraGeo = r(new THREE.PlaneGeometry(1, 1));
   const cache = new Map();
 
-  function materialesTeselia() {
-    if (cache.has('teselia')) return cache.get('teselia');
-    const lomo = dibujarLomoTeselia(ancho);
+  /** Materiales de un álbum de diseño editorial (lomo, tapa con su portada, contratapa y cantos), uno por álbum. */
+  function materialesEditorial(album) {
+    const k = 'editorial:' + album.id;
+    if (cache.has(k)) return cache.get(k);
+    const lomo = dibujarLomoEditorial(ancho, album.lomo);
     const mr = tex(lomo.mr, false);                               // una sola textura: G = rugosidad, B = metal
     const mLomo = r(new THREE.MeshStandardMaterial({
       map: tex(lomo.color), roughnessMap: mr, metalnessMap: mr, roughness: 1, metalness: 1,
       normalMap: calidad.nivel !== 'baja' ? tex(normalDesdeAltura(lomo.alto, 3), false) : null,
     }));
     if (mLomo.normalMap) mLomo.normalScale.set(0.9, 0.9);
-    const lienzoTapa = dibujarTapa({}, calidad.nivel === 'baja' ? 384 : 768);
+    const lienzoTapa = dibujarTapa({}, calidad.nivel === 'baja' ? 384 : 768, album.portada);
     const tTapa = tex(lienzoTapa);
     const mTapa = r(new THREE.MeshStandardMaterial({ map: tTapa, roughness: 0.72, metalness: 0 }));
     const mContra = r(new THREE.MeshStandardMaterial({ color: COLORES.tejido, roughness: 0.82, metalness: 0 }));
     const mCantos = r(new THREE.MeshStandardMaterial({ map: tex(dibujarCantos()), roughness: 0.9, metalness: 0 }));
     const lista = [mTapa, mContra, mCantos, mCantos, mLomo, mCantos];
-    cache.set('teselia', lista);
+    cache.set(k, lista);
     // la lámina de la portada lleva Reshiram y Zekrom: se repinta cuando llegan las imágenes locales (no bloquea el primer dibujo)
-    cargarCartas(new URL('../../prueba-3d/assets/cartas/grande/', import.meta.url)).then((cartas) => {
+    cargarCartas(new URL('../../prueba-3d/assets/cartas/grande/', import.meta.url), album.portada && album.portada.cartas).then((cartas) => {
       if (!cartas.blanca && !cartas.negra) return;
-      lienzoTapa.getContext('2d').drawImage(dibujarTapa(cartas, lienzoTapa.width), 0, 0); tTapa.needsUpdate = true; alCambiar();
+      lienzoTapa.getContext('2d').drawImage(dibujarTapa(cartas, lienzoTapa.width, album.portada), 0, 0); tTapa.needsUpdate = true; alCambiar();
     });
     return lista;
   }
@@ -60,7 +62,7 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
   /** Álbum de pie. El grupo se coloca en el centro del libro; `userData` identifica el álbum para el picking. */
   function crearAlbum(album) {
     const g = new THREE.Group(); g.name = 'Libro_' + album.id;
-    const libro = new THREE.Mesh(geo, album.lomo.diseno === 'teselia' ? materialesTeselia() : materialesLisos(album.lomo.color));
+    const libro = new THREE.Mesh(geo, album.lomo.diseno === 'liso' ? materialesLisos(album.lomo.color) : materialesEditorial(album));
     libro.name = 'Cuerpo'; g.add(libro);
     g.userData = { tipo: 'album', id: album.id };
     libro.userData = g.userData;

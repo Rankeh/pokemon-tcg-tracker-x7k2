@@ -140,7 +140,7 @@ function actualizarUi() {
     const a = it.album;
     $('i-titulo').textContent = a.nombre;
     $('i-sub').textContent = a.subtitulo.toUpperCase();
-    $('i-meta').textContent = `${a.expansiones.filter((e) => e !== 'svp').join(' · ').toUpperCase()} · ${a.cartas} CARTAS`;
+    $('i-meta').textContent = (a.meta || `${a.cartas} cartas`).toUpperCase();
     $('abrir').textContent = 'Abrir álbum';
   } else {
     $('i-titulo').textContent = 'Nuevo álbum';

@@ -11,6 +11,7 @@ import { crearGeometria } from './logica.js';
 import { Resaltado } from './resaltado.js';
 import { Metricas } from './metricas.js';
 import { Aspecto, elegirCalidad, elegirTema, elegirAcabado, TEMAS } from './aspecto.js';
+import { albumPorId } from '../../estanteria/js/albumes.js';
 import { fijarTemaMarcadores } from './marcadores.js';
 import { Diagnostico } from './diagnostico.js';
 import { CacheTexturas } from './texturas.js';
@@ -22,10 +23,14 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables } from './picking.js';
 
-export const FASE = '3.11';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.12';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
+// 3.12 · qué álbum se abre: ?album=<id> del registro de la biblioteca (sin parámetro, Teselia: los enlaces antiguos siguen igual)
+const albumActual = albumPorId(params.get('album'));
+document.title = 'Álbum ' + albumActual.nombre;
+{ const h1 = document.querySelector('h1'); if (h1 && h1.firstChild && h1.firstChild.nodeType === 3) h1.firstChild.nodeValue = 'Álbum ' + albumActual.nombre + ' '; }
 const mq = matchMedia('(prefers-reduced-motion: reduce)');
 let reducirMovimiento = mq.matches;
 mq.addEventListener?.('change', () => { reducirMovimiento = mq.matches; });
@@ -44,7 +49,7 @@ const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchM
 const tema = elegirTema(params.get('tema'));                 // ?tema=editorial (por defecto, 3.10: la dirección de la biblioteca) | diorama | claro | acogedor | noche
 document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
 const tapa = elegirAcabado(params.get('tapa') || TEMAS[tema].acabado);   // ?tapa=grafito | fieltro | cuero | tejido | acolchado | editorial (por defecto, el del tema)
-const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0', emblema: params.get('emblema') !== '0', portada: params.get('portada') !== '0' });   // ?portada=0: tapa lisa con el emblema bordado (3.7.25)   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone
+const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0', emblema: params.get('emblema') !== '0', portada: params.get('portada') !== '0', disenoPortada: albumActual.portada });   // ?portada=0: tapa lisa con el emblema bordado (3.7.25)   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone
 // 3.11 · modo claro/oscuro (web/editorial/modo.js): el suelo se funde con el fondo de la página en los dos modos
 try { aspecto.aplicarModo(document.documentElement.dataset.modo || 'oscuro'); } catch (e) { console.warn('Modo no aplicado:', e); }   // el modo nunca debe impedir que cargue el álbum
 document.addEventListener('modo', (e) => { if (aspecto.aplicarModo(e.detail)) pedirFrame(); });
@@ -424,7 +429,7 @@ function bucle(ahora) {
 // ------------------------------------------------------------------ arranque
 async function arrancar() {
   const t0 = performance.now();
-  const catalogo = await (await fetch('../../datos/catalogo/coleccion-teselia.json')).json();
+  const catalogo = await (await fetch('../../' + albumActual.catalogo)).json();
   const mapa = crearMapa(catalogo);
   // Persistencia: LA MISMA base de datos de la app original ('coleccion-teselia'). ?bd=otro-nombre solo para pruebas con datos ajenos.
   let modelo, soloLectura = false;
@@ -439,7 +444,9 @@ async function arrancar() {
   }
   adaptador = new AdaptadorColeccion(mapa, modelo);
   await adaptador.cargar();
-  album = await cargarAlbum('modelo/' + (/^[\w.-]+\.glb$/.test(params.get('modelo') || '') ? params.get('modelo') : 'album.glb'), { renderer });
+  // el modelo tiene tantas hojas como pide el catálogo: album.glb (9 hojas, Teselia) o album-<n>h.glb (blender/exportar_glb.py --hojas n)
+  const modeloPorDefecto = mapa.hojas === 9 ? 'album.glb' : `album-${mapa.hojas}h.glb`;
+  album = await cargarAlbum('modelo/' + (/^[\w.-]+\.glb$/.test(params.get('modelo') || '') ? params.get('modelo') : modeloPorDefecto), { renderer });
   if (album.geo.n !== mapa.hojas) throw new Error(`El modelo tiene ${album.geo.n} hojas y el catálogo necesita ${mapa.hojas}. Regenera album.glb (python blender/exportar_glb.py).`);
   if (diag) diag.estadoGlb = 'ok · ' + album.carga.bytes + ' bytes · descarga ' + Math.round(album.carga.descargaMs) + ' ms · proceso ' + Math.round(album.carga.procesoMs) + ' ms';
   album.onCambio = () => pedirFrame();
@@ -451,7 +458,7 @@ async function arrancar() {
   resaltado = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro });
 
   const manifiesto = await cargarManifiesto();
-  precios = await cargarPrecios();                               // opcional: null hasta ejecutar herramientas/precios/descargar_precios.py
+  precios = await cargarPrecios('../../' + albumActual.precios);                               // opcional: null hasta ejecutar herramientas/precios/descargar_precios.py
   cache = new CacheTexturas({ presupuestoBytes: (+params.get('mem') || 32) * 1048576, concurrencia: 4 });
   vista = new VistaBolsillos({ album, adaptador, cache, materialCarta: (c, r) => aspecto.materialCarta(c, r), reducirMovimiento: () => reducirMovimiento,
     productores: crearProductores({ manifiesto, anisotropia: Math.min(4, renderer.capabilities.getMaxAnisotropy()) }) });
@@ -494,7 +501,7 @@ async function arrancar() {
     pedirFrame(1800);
   }
   setInterval(() => { if (!$('panel').hidden) metricas.pintar(); }, 500);
-  console.info('Álbum 3D · fase ' + FASE + ' · tapa: ' + (aspecto.resumen().portada ? 'lámina Llama Blanca / Fulgor Negro' : aspecto.resumen().emblema ? 'emblema bordado' : 'lisa (nivel legado o ?emblema=0)'));
+  console.info('Álbum 3D · fase ' + FASE + ' · tapa: ' + (aspecto.resumen().portada ? 'lámina de ' + albumActual.nombre : aspecto.resumen().emblema ? 'emblema bordado' : 'lisa (nivel legado o ?emblema=0)'));
   window.__album3d = { FASE, medirEscenas, aspecto, dim, resaltado, diagCam, reservado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
   requestAnimationFrame(bucle);
   if (params.get('auto') === 'medir') setTimeout(medir, 800);

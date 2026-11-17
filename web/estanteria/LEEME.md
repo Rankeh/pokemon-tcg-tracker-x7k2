@@ -21,3 +21,14 @@ la pantalla funde a negro y se pasa al visor 3D, que sigue en su ruta de siempre
 | `css/estanteria.css` | Retícula de la página; los componentes vienen de `web/editorial/editorial.css` |
 
 Pruebas: `node --test web/estanteria/pruebas/*.test.mjs`
+
+## Varios álbumes (3.12)
+Cada álbum está descrito por completo en `js/albumes.js`: catálogo y precios, ruta, textos de la portada (y sus dos cartas «foto») y datos del
+lomo. La biblioteca y el visor 3D leen de ahí; el visor se abre con `web/prueba-3d/index.html?album=<id>` (sin parámetro, Teselia).
+El visor elige el modelo por el nº de hojas que pide el catálogo: `album.glb` (9 hojas) o `album-<n>h.glb` (`python blender/exportar_glb.py --hojas n`).
+Las copias se guardan por id de carta en la misma base de datos: una carta que está en dos álbumes (Audino de Fulgor Negro) cuenta en los dos.
+
+**Álbum de artista — Asako Ito:** `python herramientas/catalogo-ilustrador/generar.py --ilustrador "Asako Ito" --id asako-ito` y
+`python herramientas/texturas/descargar_cartas.py --catalogo datos/catalogo/coleccion-asako-ito.json`. 37 cartas físicas según TCGdex
+(coincidencia exacta del nombre); se excluyen 6 de Pokémon TCG Pocket (digital) — `--incluir-pocket` las añadiría. Altaria GG19 no tiene imagen
+en TCGdex y sale con marcador.
