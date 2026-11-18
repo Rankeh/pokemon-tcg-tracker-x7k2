@@ -1,0 +1,368 @@
+{
+ "fecha": "2026-11-18",
+ "fuente": "Cardmarket vía TCGdex (api.tcgdex.net)",
+ "unidad": "EUR",
+ "nota": "Precio del mercado europeo; Cardmarket no separa por idioma de la carta.",
+ "cartas": {
+  "30th-023": {
+   "tendencia": 0.46,
+   "bajo": 0.02,
+   "medio30": 0.69,
+   "actualizado": "2026-11-17T22:16:19.520Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.46,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-024": {
+   "tendencia": 0.45,
+   "bajo": 0.02,
+   "medio30": 0.65,
+   "actualizado": "2026-11-17T22:16:19.846Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.45,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-025": {
+   "tendencia": 0.47,
+   "bajo": 0.02,
+   "medio30": 0.7,
+   "actualizado": "2026-11-17T22:16:19.483Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.47,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-026": {
+   "tendencia": 0.81,
+   "bajo": 0.25,
+   "medio30": 1.14,
+   "actualizado": "2026-11-17T22:16:19.846Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.81,
+     "bajo": 0.25
+    }
+   }
+  },
+  "30th-027": {
+   "tendencia": 0.49,
+   "bajo": 0.08,
+   "medio30": 0.74,
+   "actualizado": "2026-11-17T22:16:19.846Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.49,
+     "bajo": 0.08
+    }
+   }
+  },
+  "30th-028": {
+   "tendencia": 0.57,
+   "bajo": 0.02,
+   "medio30": 0.79,
+   "actualizado": "2026-11-17T22:16:19.483Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.57,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-029": {
+   "tendencia": 0.78,
+   "bajo": 0.1,
+   "medio30": 1.01,
+   "actualizado": "2026-11-17T22:16:19.846Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.78,
+     "bajo": 0.1
+    }
+   }
+  },
+  "30th-030": {
+   "tendencia": 0.38,
+   "bajo": 0.02,
+   "medio30": 0.62,
+   "actualizado": "2026-11-17T22:16:19.476Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.38,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-031": {
+   "tendencia": 0.78,
+   "bajo": 0.1,
+   "medio30": 1.07,
+   "actualizado": "2026-11-17T22:16:19.476Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.78,
+     "bajo": 0.1
+    }
+   }
+  },
+  "30th-032": {
+   "tendencia": 1.16,
+   "bajo": 0.39,
+   "medio30": 1.48,
+   "actualizado": "2026-11-17T22:16:19.476Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 1.16,
+     "bajo": 0.39
+    }
+   }
+  },
+  "30th-033": {
+   "tendencia": 0.46,
+   "bajo": 0.05,
+   "medio30": 0.71,
+   "actualizado": "2026-11-17T22:16:19.483Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.46,
+     "bajo": 0.05
+    }
+   }
+  },
+  "30th-034": {
+   "tendencia": 0.49,
+   "bajo": 0.02,
+   "medio30": 0.75,
+   "actualizado": "2026-11-17T22:16:19.476Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.49,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-035": {
+   "tendencia": 0.93,
+   "bajo": 0.3,
+   "medio30": 1.13,
+   "actualizado": "2026-11-17T22:16:19.483Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.93,
+     "bajo": 0.3
+    }
+   }
+  },
+  "30th-036": {
+   "tendencia": 0.52,
+   "bajo": 0.04,
+   "medio30": 0.81,
+   "actualizado": "2026-11-17T22:16:19.483Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.52,
+     "bajo": 0.04
+    }
+   }
+  },
+  "30th-037": {
+   "tendencia": 0.44,
+   "bajo": 0.02,
+   "medio30": 0.63,
+   "actualizado": "2026-11-17T22:16:19.462Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.44,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-038": {
+   "tendencia": 0.41,
+   "bajo": 0.02,
+   "medio30": 0.65,
+   "actualizado": "2026-11-17T22:16:19.447Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.41,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-039": {
+   "tendencia": 0.48,
+   "bajo": 0.02,
+   "medio30": 0.75,
+   "actualizado": "2026-11-17T22:16:19.846Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.48,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-040": {
+   "tendencia": 1.12,
+   "bajo": 0.05,
+   "medio30": 1.34,
+   "actualizado": "2026-11-17T22:16:19.483Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 1.12,
+     "bajo": 0.05
+    }
+   }
+  },
+  "30th-041": {
+   "tendencia": 0.42,
+   "bajo": 0.05,
+   "medio30": 0.67,
+   "actualizado": "2026-11-17T22:16:19.447Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.42,
+     "bajo": 0.05
+    }
+   }
+  },
+  "30th-042": {
+   "tendencia": 0.77,
+   "bajo": 0.1,
+   "medio30": 1.01,
+   "actualizado": "2026-11-17T22:16:19.472Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.77,
+     "bajo": 0.1
+    }
+   }
+  },
+  "30th-043": {
+   "tendencia": 0.43,
+   "bajo": 0.02,
+   "medio30": 0.69,
+   "actualizado": "2026-11-17T22:16:19.447Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.43,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-044": {
+   "tendencia": 0.46,
+   "bajo": 0.02,
+   "medio30": 0.7,
+   "actualizado": "2026-11-17T22:16:19.447Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.46,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-045": {
+   "tendencia": 0.46,
+   "bajo": 0.02,
+   "medio30": 0.69,
+   "actualizado": "2026-11-17T22:16:19.472Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.46,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-046": {
+   "tendencia": 0.74,
+   "bajo": 0.08,
+   "medio30": 0.96,
+   "actualizado": "2026-11-17T22:16:19.447Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.74,
+     "bajo": 0.08
+    }
+   }
+  },
+  "30th-047": {
+   "tendencia": 0.8,
+   "bajo": 0.14,
+   "medio30": 0.98,
+   "actualizado": "2026-11-17T22:16:19.447Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.8,
+     "bajo": 0.14
+    }
+   }
+  },
+  "30th-048": {
+   "tendencia": 0.77,
+   "bajo": 0.18,
+   "medio30": 1.02,
+   "actualizado": "2026-11-17T22:16:19.447Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.77,
+     "bajo": 0.18
+    }
+   }
+  },
+  "30th-049": {
+   "tendencia": 0.43,
+   "bajo": 0.05,
+   "medio30": 0.63,
+   "actualizado": "2026-11-17T22:16:19.472Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.43,
+     "bajo": 0.05
+    }
+   }
+  },
+  "30th-050": {
+   "tendencia": 0.86,
+   "bajo": 0.15,
+   "medio30": 1.12,
+   "actualizado": "2026-11-17T22:16:19.447Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.86,
+     "bajo": 0.15
+    }
+   }
+  },
+  "30th-051": {
+   "tendencia": 0.4,
+   "bajo": 0.02,
+   "medio30": 0.62,
+   "actualizado": "2026-11-17T22:16:19.483Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.4,
+     "bajo": 0.02
+    }
+   }
+  },
+  "30th-052": {
+   "tendencia": 0.45,
+   "bajo": 0.02,
+   "medio30": 0.7,
+   "actualizado": "2026-11-17T22:16:19.447Z",
+   "variantes": {
+    "holo": {
+     "tendencia": 0.45,
+     "bajo": 0.02
+    }
+   }
+  }
+ }
+}

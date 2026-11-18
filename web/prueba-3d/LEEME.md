@@ -409,3 +409,9 @@ Modelo de 2 hojas (`album-2h.glb`). Está en `datos/albumes-artista.json`, así 
 Se retiran los temas alternativos del álbum (`claro`, `acogedor`, `noche`, `diorama`): su CSS, la carpeta `web/diorama/`, sus paletas,
 luces, alfombra e isla en `aspecto.js` y sus marcadores. Las secciones anteriores de este documento los describen como historia.
 `elegirTema()` devuelve siempre `editorial`; un enlace antiguo con `?tema=…` abre el álbum normal.
+
+## 3.26 — Álbum «Pikachu 30» (30.º aniversario)
+Los 30 Pikachu de Celebración 30.º Aniversario (`30th-023` … `30th-052`), cada uno de un ilustrador distinto, holo con el sello del
+aniversario, todos con imagen en español y precio. Portada con los de Ken Sugimori y Atsuko Nishida; lomo con marca amarillo/rojo/blanco.
+Modelo de 2 hojas (`album-2h.glb`). El generador acepta ahora `--expansion 30th --pokemon Pikachu` además de `--ilustrador`, y el álbum
+está en `datos/albumes-artista.json`, así que se refresca cada lunes como los de artista. La 027 (de Asako Ito) es la misma carta en los dos álbumes.

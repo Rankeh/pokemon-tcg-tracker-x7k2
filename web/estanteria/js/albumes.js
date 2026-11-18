@@ -78,6 +78,25 @@ const ALBUMES = [
       codigo: 'ARTISTA', cifra: '{n}', marca: 'paleta', colores: ['#ff5fa2', '#ffd23f', '#2fb8f0'] },   // pop: rosa, amarillo y cian de sus ilustraciones
     orden: 2,
   },
+  {
+    id: 'pikachu-30',
+    nombre: 'Pikachu 30',
+    subtitulo: '30.º aniversario',
+    descripcion: 'Los 30 Pikachu de Celebración 30.º Aniversario (30th, 023–052), cada uno de un ilustrador distinto, con el sello del aniversario.',
+    expansiones: ['30th'],
+    meta: '30TH · {n} Pikachu · 2026',
+    serie: 'me',
+    nombreSerie: 'Megaevolución',
+    cartas: 30,                                     // respaldo si no se puede leer el catálogo; la cifra real sale del catálogo
+    catalogo: 'datos/catalogo/coleccion-pikachu-30.json',
+    precios: 'datos/catalogo/precios-pikachu-30.json',
+    ruta: 'web/prueba-3d/index.html?album=pikachu-30',
+    portada: { titulo: 'Pikachu', subtitulo: '30.º aniversario', arribaIzq: 'Pokémon TCG', arribaDer: '1996 — 2026',
+      pie: 'Celebración 30.º Aniversario · {n} cartas', banda: 'Pikachu', bandaCodigo: '30TH', cartas: ['30th-023', '30th-047'] },   // Ken Sugimori y Atsuko Nishida
+    lomo: { diseno: 'editorial', material: 'cuero', color: '#11141b', titulo: 'PIKACHU', subtitulo: '30.º ANIVERSARIO',
+      codigo: '30TH', cifra: '{n}', marca: 'paleta', colores: ['#ffd23f', '#e5432f', '#f2f2f2'] },   // amarillo, mejillas rojas y blanco
+    orden: 3,
+  },
 ];
 
 /** PURO · Comprueba que un álbum tiene lo mínimo para colocarse en la estantería. Devuelve la lista de problemas (vacía = válido). */

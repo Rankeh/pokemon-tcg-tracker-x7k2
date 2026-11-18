@@ -1,11 +1,12 @@
-"""Genera el catálogo (y los precios) de un álbum dedicado a un ILUSTRADOR a partir de TCGdex, con el mismo formato que
-datos/catalogo/coleccion-teselia.json, para que el visor 3D lo use sin cambios.
+"""Genera el catálogo (y los precios) de un álbum dedicado a un ILUSTRADOR, o a un POKÉMON dentro de una expansión, a partir de TCGdex,
+con el mismo formato que datos/catalogo/coleccion-teselia.json, para que el visor 3D lo use sin cambios.
 
 Uso (en la raíz del repo, con acceso a api.tcgdex.net):
     python herramientas/catalogo-ilustrador/generar.py --ilustrador "Asako Ito" --id asako-ito [--incluir-pocket]
+    python herramientas/catalogo-ilustrador/generar.py --expansion 30th --pokemon Pikachu --id pikachu-30
 
 Escribe datos/catalogo/coleccion-<id>.json y datos/catalogo/precios-<id>.json.
-- Coincidencia EXACTA del nombre del ilustrador (TCGdex «illustrator=eq:…»): «like» mezclaría a otros (p. ej. Masako).
+- Coincidencia EXACTA del nombre del ilustrador o del Pokémon (en inglés: «Pikachu» no incluye «Pikachu ex») (TCGdex «illustrator=eq:…»): «like» mezclaría a otros (p. ej. Masako).
 - Por defecto se excluyen las cartas de Pokémon TCG Pocket (serie «tcgp»: juego digital, no se coleccionan en papel).
 - Datos en español cuando TCGdex los tiene; si no, en inglés (se marca en idiomaImagen/estadoImagen).
 - Precios: Cardmarket vía TCGdex (pricing.cardmarket, EUR). No distinguen el idioma de la carta.
@@ -85,18 +86,29 @@ def arte_completo(en, cat):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--ilustrador', required=True)
+    ap.add_argument('--ilustrador')
+    ap.add_argument('--expansion', help='id de expansión de TCGdex (con --pokemon), p. ej. 30th')
+    ap.add_argument('--pokemon', help='nombre exacto en inglés, p. ej. Pikachu')
     ap.add_argument('--id', required=True, help='identificador del álbum (minúsculas y guiones), p. ej. asako-ito')
     ap.add_argument('--incluir-pocket', action='store_true', help='incluir también cartas de Pokémon TCG Pocket (digitales)')
     a = ap.parse_args()
+    if bool(a.ilustrador) == bool(a.expansion and a.pokemon):
+        ap.error('usa --ilustrador, o bien --expansion y --pokemon')
 
-    lista = pedir('en/cards?illustrator=' + urllib.parse.quote('eq:' + a.ilustrador)) or []
-    print('%d cartas de %s en TCGdex' % (len(lista), a.ilustrador))
+    if a.ilustrador:
+        lista = pedir('en/cards?illustrator=' + urllib.parse.quote('eq:' + a.ilustrador)) or []
+        valida = lambda en: en.get('illustrator') == a.ilustrador
+        fuente_txt, quien = 'ilustrador = «%s» (coincidencia exacta)' % a.ilustrador, a.ilustrador
+    else:
+        lista = [c for c in (pedir('en/sets/' + urllib.parse.quote(a.expansion)) or {}).get('cards', []) if c.get('name') == a.pokemon]
+        valida = lambda en: en.get('name') == a.pokemon and en['set']['id'] == a.expansion
+        fuente_txt, quien = 'expansión %s, Pokémon = «%s» (coincidencia exacta)' % (a.expansion, a.pokemon), '%s (%s)' % (a.pokemon, a.expansion)
+    print('%d cartas de %s en TCGdex' % (len(lista), quien))
     cartas, precios, fuera = [], {}, []
     for i, resumen in enumerate(lista, 1):
         en = pedir('en/cards/' + urllib.parse.quote(resumen['id']))
-        if not en or en.get('illustrator') != a.ilustrador:          # comprobación doble: solo coincidencias exactas
-            fuera.append((resumen['id'], 'ilustrador distinto')); continue
+        if not en or not valida(en):                                 # comprobación doble: solo coincidencias exactas
+            fuera.append((resumen['id'], 'no coincide')); continue
         serie = (en.get('set') or {}).get('serie', {}).get('id') or ''
         if not serie:
             serie = (pedir('en/sets/' + en['set']['id']) or {}).get('serie', {}).get('id', '')
@@ -146,8 +158,9 @@ def main():
         if previo.get('cartas') == cartas and previo.get('totales') == total: hoy = previo.get('generado', hoy)
     except FileNotFoundError:
         pass
-    destino.write_text(json.dumps({'generado': hoy, 'fuente': 'TCGdex (datos MIT), ilustrador = «%s» (coincidencia exacta)' % a.ilustrador,
-                                   'ilustrador': a.ilustrador, 'totales': total, 'cartas': cartas}, ensure_ascii=False, indent=1), encoding='utf-8')
+    cabecera = {'generado': hoy, 'fuente': 'TCGdex (datos MIT), ' + fuente_txt}
+    cabecera.update({'ilustrador': a.ilustrador} if a.ilustrador else {'expansion': a.expansion, 'pokemon': a.pokemon})
+    destino.write_text(json.dumps({**cabecera, 'totales': total, 'cartas': cartas}, ensure_ascii=False, indent=1), encoding='utf-8')
     (RAIZ / 'datos/catalogo' / ('precios-%s.json' % a.id)).write_text(json.dumps({
         'fecha': hoy, 'fuente': 'Cardmarket vía TCGdex (api.tcgdex.net)', 'unidad': 'EUR',
         'nota': 'Precio del mercado europeo; Cardmarket no separa por idioma de la carta.', 'cartas': precios}, ensure_ascii=False, indent=1), encoding='utf-8')

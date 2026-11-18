@@ -13,8 +13,9 @@ y donde marcas las cartas que tienes (con variantes, precios de Cardmarket y cop
 | Teselia — Llama Blanca · Fulgor Negro | 158 (IR, SIR y promos) | `datos/catalogo/coleccion-teselia.json` |
 | Asako Ito — colección de artista | todas sus cartas físicas | `datos/catalogo/coleccion-asako-ito.json` |
 | osare — colección de artista | todas sus cartas físicas | `datos/catalogo/coleccion-osare.json` |
+| Pikachu — 30.º aniversario | los 30 Pikachu de Celebración 30.º Aniversario (023–052) | `datos/catalogo/coleccion-pikachu-30.json` |
 
-Los álbumes de artista se actualizan solos cada lunes con las cartas nuevas (`.github/workflows/actualizar-artistas.yml`).
+Los álbumes de artista (y los precios del de Pikachu) se actualizan solos cada lunes (`.github/workflows/actualizar-artistas.yml`).
 
 ## Estructura
 | Carpeta | Qué hay |

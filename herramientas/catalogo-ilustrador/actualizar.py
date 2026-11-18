@@ -1,4 +1,4 @@
-"""Actualiza los álbumes de ARTISTA (datos/albumes-artista.json): regenera cada catálogo desde TCGdex (cartas nuevas incluidas),
+"""Actualiza los álbumes generados desde TCGdex (datos/albumes-artista.json: de artista o de un Pokémon en una expansión): regenera cada catálogo desde TCGdex (cartas nuevas incluidas),
 descarga las imágenes que falten y, si el álbum necesita más hojas, genera su modelo 3D (web/prueba-3d/modelo/album-<n>h.glb).
 La colección de nadie se toca: las cartas nuevas aparecen como pendientes. Lo ejecuta cada semana .github/workflows/actualizar-artistas.yml.
 Uso (en la raíz del repo, con acceso a api.tcgdex.net y assets.tcgdex.net):  python herramientas/catalogo-ilustrador/actualizar.py"""
@@ -18,7 +18,8 @@ def main():
     for a in json.loads((RAIZ / 'datos/albumes-artista.json').read_text(encoding='utf-8')):
         cat = RAIZ / 'datos/catalogo' / ('coleccion-%s.json' % a['id'])
         antes = ids(cat)
-        subprocess.run([sys.executable, 'herramientas/catalogo-ilustrador/generar.py', '--ilustrador', a['ilustrador'], '--id', a['id']], cwd=RAIZ, check=True)
+        filtro = ['--ilustrador', a['ilustrador']] if 'ilustrador' in a else ['--expansion', a['expansion'], '--pokemon', a['pokemon']]
+        subprocess.run([sys.executable, 'herramientas/catalogo-ilustrador/generar.py', *filtro, '--id', a['id']], cwd=RAIZ, check=True)
         despues = ids(cat)
         nuevas, retiradas = sorted(despues - antes), sorted(antes - despues)
         # imágenes: un fallo puntual no tumba la actualización (la carta se ve con marcador hasta la próxima vez)
@@ -27,11 +28,11 @@ def main():
         modelo = RAIZ / 'web/prueba-3d/modelo' / ('album.glb' if hojas == 9 else 'album-%dh.glb' % hojas)
         if not modelo.exists():                         # el álbum ha crecido: un modelo con más hojas (Python puro, sin Blender)
             subprocess.run([sys.executable, 'blender/exportar_glb.py', '--hojas', str(hojas)], cwd=RAIZ, check=True)
-        linea = '%s: %d cartas (%d nuevas%s), modelo %s' % (a['ilustrador'], len(despues), len(nuevas), ', %d retiradas' % len(retiradas) if retiradas else '', modelo.name)
+        linea = '%s: %d cartas (%d nuevas%s), modelo %s' % (a.get('ilustrador') or a['id'], len(despues), len(nuevas), ', %d retiradas' % len(retiradas) if retiradas else '', modelo.name)
         print(linea, nuevas or '')
         resumen.append('- ' + linea + (': ' + ', '.join(nuevas) if nuevas else ''))
     if os.environ.get('GITHUB_STEP_SUMMARY'):
-        with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as f: f.write('## Álbumes de artista\n' + '\n'.join(resumen) + '\n')
+        with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as f: f.write('## Álbumes generados desde TCGdex\n' + '\n'.join(resumen) + '\n')
 
 
 if __name__ == '__main__':

@@ -1,0 +1,885 @@
+{
+ "generado": "2026-11-18",
+ "fuente": "TCGdex (datos MIT), expansión 30th, Pokémon = «Pikachu» (coincidencia exacta)",
+ "expansion": "30th",
+ "pokemon": "Pikachu",
+ "totales": {
+  "total": 30,
+  "imagenEspanol": 30,
+  "imagenOtroIdioma": 0,
+  "sinImagen": 0,
+  "excluidas": []
+ },
+ "cartas": [
+  {
+   "id": "30th-023",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "023",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Ken Sugimori",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/023/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-024",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "024",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "danciao",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/024/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-025",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "025",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "satoma",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/025/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-026",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "026",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Takeshi Nakamura",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/026/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-027",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "027",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Asako Ito",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/027/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-028",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "028",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "sowsow",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/028/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-029",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "029",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "James Turner",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/029/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-030",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "030",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "DOM",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/030/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-031",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "031",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Atsushi Furusawa",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/031/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-032",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "032",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Tomokazu Komiya",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/032/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-033",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "033",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Narumi Sato",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/033/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-034",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "034",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "USGMEN",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/034/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-035",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "035",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Susumu Maeya",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/035/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-036",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "036",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "OKACHEKE",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/036/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-037",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "037",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Yuu Nishida",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/037/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-038",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "038",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Tetsu Kayama",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/038/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-039",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "039",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Teeziro",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/039/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-040",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "040",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/040/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-041",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "041",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Rianti Hidayat",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/041/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-042",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "042",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Akira Komayama",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/042/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-043",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "043",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "OOYAMA",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/043/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-044",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "044",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "akagi",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/044/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-045",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "045",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Naoyo Kimura",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/045/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-046",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "046",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "svlt",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/046/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-047",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "047",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Atsuko Nishida",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/047/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-048",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "048",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "KIYOTAKA OSHIYAMA",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/048/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-049",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "049",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Nurikabe",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/049/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-050",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "050",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Shimaris Yukichi",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/050/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-051",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "051",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "nagimiso",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/051/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-052",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "052",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Kazuki Minami",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/052/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  }
+ ]
+}

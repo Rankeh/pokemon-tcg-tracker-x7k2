@@ -53,10 +53,13 @@ test('encuadre: el libro de cara ocupa ~la mitad del alto; en vertical caben la 
   assert.ok(LIBRO.alto / altoVisible(iphone) > 0.3, 'iPhone: el libro no queda diminuto');
 });
 
-test('álbumes: Teselia (primero, ruta de siempre), Asako Ito y osare (?album=<id>)', async () => {
+test('álbumes: Teselia (primero, ruta de siempre), Asako Ito, osare y Pikachu 30 (?album=<id>)', async () => {
   const lista = await listarAlbumes();
-  assert.deepEqual(lista.map((a) => a.id), ['teselia', 'asako-ito', 'osare']);
+  assert.deepEqual(lista.map((a) => a.id), ['teselia', 'asako-ito', 'osare', 'pikachu-30']);
   assert.equal(albumPorId('osare').ruta, 'web/prueba-3d/index.html?album=osare');
+  const pk = (await leerJson(albumPorId('pikachu-30').catalogo)).cartas;
+  assert.equal(pk.length, 30, 'los 30 Pikachu'); assert.deepEqual(pk.map((c) => +c.numero), Array.from({ length: 30 }, (_, i) => 23 + i), '30th 023–052');
+  assert.equal(new Set(pk.map((c) => c.ilustrador)).size, 30, 'cada uno de un ilustrador distinto');
   assert.equal(lista[1].ruta, 'web/prueba-3d/index.html?album=asako-ito');
   assert.equal(albumPorId('asako-ito').nombre, 'Asako Ito');
   assert.equal(albumPorId('no-existe').id, 'teselia', 'id desconocido → Teselia (los enlaces viejos siguen funcionando)');
@@ -115,7 +118,8 @@ test('actualización automática: configuración de artistas coherente con el re
   for (const x of artistas) {
     const a = albumPorId(x.id);
     assert.equal(a.id, x.id, x.id + ' está en el registro de álbumes');
-    assert.equal((await leerJson(a.catalogo)).ilustrador, x.ilustrador);
+    const cat = await leerJson(a.catalogo);
+    if (x.ilustrador) assert.equal(cat.ilustrador, x.ilustrador); else { assert.equal(cat.expansion, x.expansion); assert.ok(cat.cartas.every((c) => c.nombre === x.pokemon && c.expansion === x.expansion)); }
   }
   const wf = await readFile(new URL('.github/workflows/actualizar-artistas.yml', raiz), 'utf8');
   assert.ok(/schedule:/.test(wf) && /workflow_dispatch:/.test(wf) && /actualizar\.py/.test(wf) && /contents: write/.test(wf));
