@@ -12,7 +12,7 @@ const salida = (t) => 1 - Math.pow(1 - t, 3);
 
 // 3.16 · Brillo de la variante visible: capa iridiscente que se SUMA a la carta (no la tapa). Zonas en fracción de la carta (arriba = 0):
 // la ventana de la ilustración de una carta normal; «holo» brilla ahí (o en toda la carta si es de arte completo), «reverse» en todo lo demás.
-import { VENTANA_ARTE, tipoBrillo, esArteCompleto } from '../../js/variantes.js';
+import { VENTANA_ARTE, BRILLO, tipoBrillo, esArteCompleto } from '../../js/variantes.js';
 export { VENTANA_ARTE, tipoBrillo };
 const materialesBrillo = new Map();                 // un material por tipo, compartido por todos los bolsillos
 function materialBrillo(tipo) {
@@ -20,15 +20,15 @@ function materialBrillo(tipo) {
   const w = 256, h = 358, c = document.createElement('canvas'); c.width = w; c.height = h;
   const ctx = c.getContext('2d');
   const g = ctx.createLinearGradient(0, 0, w, h);                // arcoíris en diagonal, en franjas suaves (como la lámina holográfica)
-  for (let i = 0; i <= 12; i++) g.addColorStop(i / 12, `hsla(${(i * 47) % 360}, 90%, 62%, ${i % 2 ? 0.55 : 0.25})`);
+  for (let i = 0; i <= 12; i++) g.addColorStop(i / 12, `hsla(${(i * 47) % 360}, 85%, 60%, ${BRILLO.franjas[i % 2]})`);
   ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
   let sem = 3; const azar = () => { sem = (sem * 16807) % 2147483647; return sem / 2147483647; };
-  for (let i = 0; i < 260; i++) { ctx.fillStyle = `rgba(255,255,255,${0.15 + azar() * 0.5})`; ctx.fillRect(azar() * w, azar() * h, 1 + azar() * 1.5, 1 + azar() * 1.5); }   // destellos
+  for (let i = 0; i < BRILLO.destellos; i++) { ctx.fillStyle = `rgba(255,255,255,${0.1 + azar() * (BRILLO.destelloMax - 0.1)})`; ctx.fillRect(azar() * w, azar() * h, 1 + azar() * 1.5, 1 + azar() * 1.5); }   // destellos
   const V = VENTANA_ARTE, vx = V.x0 * w, vy = V.y0 * h, vw = (V.x1 - V.x0) * w, vh = (V.y1 - V.y0) * h;
   if (tipo === 'reverse') ctx.clearRect(vx, vy, vw, vh);
   else if (tipo === 'holo-arte') { const arte = ctx.getImageData(vx, vy, vw, vh); ctx.clearRect(0, 0, w, h); ctx.putImageData(arte, vx, vy); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
-  const m = new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false,
+  const m = new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: BRILLO.opacidad, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false,
     polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   materialesBrillo.set(tipo, m);
   return m;

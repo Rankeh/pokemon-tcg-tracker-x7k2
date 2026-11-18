@@ -439,3 +439,9 @@ está en `datos/albumes-artista.json`, así que se refresca cada lunes como los 
   existe); restar funciona como «Quitar una». Mantener la tecla pulsada no repite.
 - **← / →** pasan a la carta anterior/siguiente en orden de lectura (`ordenLectura` / `cartaEnLectura`): al final de una fila, la primera
   de la siguiente; al final de la página, se gira la hoja.
+
+## 3.30 — Brillo holo más suave
+- La ventana de la ilustración (`VENTANA_ARTE`) acaba en el 47 % de la altura, medido en las imágenes (30th-027, sv06-034, sv10.5w-057);
+  antes llegaba al 53 % y el brillo tapaba la franja de datos bajo la ilustración.
+- Álbum 3D: el arcoíris se suma a la luz de la carta, así que se baja a una alfa efectiva ≤ 0,12 (antes 0,30) y menos destellos (`BRILLO`).
+- Ficha y carta ampliada: `soft-light` en lugar de `color-dodge`, que quemaba los tonos claros.

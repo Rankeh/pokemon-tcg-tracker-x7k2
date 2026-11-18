@@ -87,3 +87,14 @@ test('3.18 · todas las cartas de Teselia tienen brillo holo (catálogo real)', 
   const cat = JSON.parse(await readFile(new URL('../../../datos/catalogo/coleccion-teselia.json', import.meta.url), 'utf8'));
   assert.ok(cat.cartas.every(holoImplicito), 'las 158');
 });
+
+test('3.30 · brillo holo: la ventana de la ilustración acaba donde la medida (47 %), el brillo 3D es suave y la ficha no quema la imagen', async () => {
+  const { VENTANA_ARTE: V, BRILLO } = await import('../../js/variantes.js');
+  const { readFile } = await import('node:fs/promises');
+  assert.ok(Math.abs(V.y1 - 0.47) < 0.01 && V.y0 > 0.09 && V.y0 < 0.11, 'ventana medida en 30th-027, sv06-034 y sv10.5w-057');
+  assert.ok(Math.max(...BRILLO.franjas) * BRILLO.opacidad <= 0.12, 'alfa efectiva del arcoíris ≤ 0,12 (antes 0,30)');
+  assert.ok(BRILLO.destelloMax * BRILLO.opacidad <= 0.15, 'destellos discretos');
+  const css = await readFile(new URL('../css/prueba-3d.css', import.meta.url), 'utf8');
+  assert.ok(!css.includes('color-dodge') && css.includes('soft-light'), 'ficha: soft-light en vez de color-dodge');
+  assert.ok(css.includes('inset(10.5% 8% 53% 8%)') && css.includes('8% 47%, 92% 47%'), 'la ficha usa la misma ventana que el 3D');
+});

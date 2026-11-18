@@ -234,12 +234,12 @@ body[data-tema="editorial"] .v-nota { color: var(--e-rojo); }
 /* brillo sobre la imagen de la ficha (las mismas zonas que en el bolsillo 3D: web/js/variantes.js VENTANA_ARTE) */
 .ficha-imagen { position: relative; }
 .ficha-imagen[data-acabado]:not([data-acabado=""])::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: color-dodge; opacity: .5;
+  content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; opacity: .55;   /* 3.30: soft-light respeta los oscuros (el modo anterior quemaba la ilustración) */
   background: linear-gradient(125deg, #ff6b6b 0%, #ffd93d 16%, #6bff95 32%, #4fc3ff 48%, #b46bff 64%, #ff6bd5 80%, #ff6b6b 100%);
   background-size: 220% 220%; animation: brillo-holo 6s ease-in-out infinite alternate;
 }
-.ficha-imagen[data-acabado="holo-arte"]::after { clip-path: inset(10.5% 8% 47% 8%); }
-.ficha-imagen[data-acabado="reverse"]::after { clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, 8% 10.5%, 8% 53%, 92% 53%, 92% 10.5%, 8% 10.5%); }
+.ficha-imagen[data-acabado="holo-arte"]::after { clip-path: inset(10.5% 8% 53% 8%); }
+.ficha-imagen[data-acabado="reverse"]::after { clip-path: polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, 0 0, 8% 10.5%, 8% 47%, 92% 47%, 92% 10.5%, 8% 10.5%); }
 @keyframes brillo-holo { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
 @media (prefers-reduced-motion: reduce) {
 .ficha-imagen::after { animation: none !important; }

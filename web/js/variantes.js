@@ -14,7 +14,10 @@ const suma = (vs) => Object.values(vs).reduce((s, n) => s + n, 0);
 
 /** Zona de la ilustración en una carta normal (fracciones; arriba = 0) y tipo de brillo según la variante visible. «holo» brilla en la
  *  ilustración (o en toda la carta si es de arte completo); «reverse» en todo lo demás. Lo usan el bolsillo 3D y la ficha. */
-export const VENTANA_ARTE = { x0: 0.08, x1: 0.92, y0: 0.105, y1: 0.53 };
+export const VENTANA_ARTE = { x0: 0.08, x1: 0.92, y0: 0.105, y1: 0.47 };   // 3.30: medida en las imágenes (antes 0,53 tapaba la franja de datos)
+/** 3.30 · Intensidad del brillo en el álbum 3D: franjas de arcoíris (alfa alterna) × opacidad del material. El brillo se SUMA a la luz de la
+ *  carta, así que se mantiene bajo (alfa efectiva ≤ 0,12; antes 0,30 y aclaraba toda la ilustración). */
+export const BRILLO = { franjas: [0.1, 0.28], opacidad: 0.4, destellos: 120, destelloMax: 0.35 };
 /** 3.18 · Catálogos SIN variantes (Teselia): las ilustraciones raras (IR/SIR, partidarios SIR) y las promos son holo de por sí. */
 export const CATEGORIAS_HOLO = ["ir", "sir", "partidario", "promo"];
 export const holoImplicito = (carta) => !(Array.isArray(carta.variantes) && carta.variantes.length) && CATEGORIAS_HOLO.includes(carta.categoriaColeccion);
