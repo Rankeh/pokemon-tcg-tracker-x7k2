@@ -76,6 +76,17 @@ export function cartaVecina(actual, candidatos, dir) {
   return mejor;
 }
 
+/** 3.29 · Orden de lectura de las cartas a la vista: página izquierda antes que la derecha (`pag` 0/1), y en cada página por filas
+ *  (arriba → abajo) y columnas (izquierda → derecha). Con la ficha abierta, ← → recorren las cartas en este orden. */
+export function ordenLectura(candidatos) {
+  return [...candidatos].sort((a, b) => (a.pag ?? 0) - (b.pag ?? 0) || (Math.abs(a.z - b.z) > MISMA ? a.z - b.z : a.x - b.x));
+}
+/** Carta anterior (paso −1) o siguiente (+1) en orden de lectura, o null al llegar al principio o al final de lo que se ve. */
+export function cartaEnLectura(actual, candidatos, paso) {
+  const o = ordenLectura(candidatos), i = o.findIndex((c) => c.nombre === actual.nombre);
+  return i < 0 ? null : o[i + paso] || null;
+}
+
 /** Carta con la que se entra en una página nueva al cruzar su borde: la de la fila más cercana a `z` (o la primera fila) en el lado de entrada
  *  (yendo a la derecha, la columna izquierda; yendo a la izquierda, la derecha). Sin `z`: la primera carta (arriba a la izquierda). */
 export function cartaDeEntrada(candidatos, dir = 'der', z = null) {

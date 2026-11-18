@@ -431,3 +431,11 @@ está en `datos/albumes-artista.json`, así que se refresca cada lunes como los 
   se abre la ficha de la carta de entrada. Con la carta ampliada las flechas no hacen nada.
 - Si una carta solo existe en una variante (los Pikachu del 30.º aniversario son solo holo), las copias sin clasificar —por ejemplo las de
   «Añadir todas»— se ven con esa variante y brillan. Es solo cómo se pintan: los datos guardados no cambian.
+
+## 3.29 — Teclado con la ficha abierta: ampliar y sumar/restar
+- **Intro** amplía la carta (Intro o Esc la vuelven a cerrar). Al abrir la ficha el foco va al panel y no al botón «+», así que Intro ya no
+  suma una copia sin querer; si eliges un botón con Tab, Intro lo pulsa.
+- **↑ / ↓** (o **+ / −**) suman o restan una copia, como los botones. Con variantes, se suma a la que se ve en el álbum (o a la única que
+  existe); restar funciona como «Quitar una». Mantener la tecla pulsada no repite.
+- **← / →** pasan a la carta anterior/siguiente en orden de lectura (`ordenLectura` / `cartaEnLectura`): al final de una fila, la primera
+  de la siguiente; al final de la página, se gira la hoja.

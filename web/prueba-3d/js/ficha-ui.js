@@ -33,7 +33,7 @@ export class FichaUI {
     const fuera = () => {
       document.removeEventListener('keydown', tecla, true); capa.remove(); this.zoom = null; caja.focus?.({ preventScroll: true });
     };
-    const tecla = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fuera(); } };   // en captura: Esc no cierra también la ficha
+    const tecla = (e) => { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); fuera(); } };   // en captura: Esc no cierra también la ficha; Intro también la cierra (3.29)
     capa.addEventListener('click', (e) => { e.stopPropagation(); fuera(); });
     document.addEventListener('keydown', tecla, true);
     document.body.append(capa); this.zoom = { cerrar: fuera };
@@ -72,7 +72,8 @@ export class FichaUI {
     this._cancelarSalida();
     this.el.raiz.hidden = false; this.el.fondo.hidden = false;
     document.body.classList.add('ficha-abierta');
-    this.el.anadir.focus({ preventScroll: true });
+    // 3.29: el foco va al panel (no al botón «+»), así Intro amplía la carta en vez de sumar una copia sin querer
+    this.el.raiz.tabIndex = -1; this.el.raiz.focus?.({ preventScroll: true });
   }
 
   actualizar(d) {

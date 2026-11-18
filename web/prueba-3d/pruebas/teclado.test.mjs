@@ -73,3 +73,13 @@ test('3.28 · brillo: si la carta solo existe en una variante (holo), las copias
   assert.equal(a.acabado('p2'), null, 'normal o reverse: sin clasificar no se adivina');
   assert.equal(a.acabado('p3'), null, 'sin copias, sin brillo');
 });
+
+test('3.29 · orden de lectura (← → con la ficha abierta): página izquierda y luego derecha, por filas; null al principio y al final', async () => {
+  const { cartaEnLectura, ordenLectura } = await import('../js/navegacion3d.js');
+  const l = rejilla().map((c) => ({ ...c, pag: c.x < 0 ? 0 : 1 }));
+  assert.deepEqual(ordenLectura(l).slice(0, 4).map((c) => c.nombre), ['c00', 'c10', 'c20', 'c01'], 'fila a fila en la página izquierda');
+  assert.equal(cartaEnLectura(en(l, 'c20'), l, 1).nombre, 'c01', 'al final de la fila, la primera de la siguiente');
+  assert.equal(cartaEnLectura(en(l, 'c22'), l, 1).nombre, 'c30', 'al final de la página izquierda, la primera de la derecha');
+  assert.equal(cartaEnLectura(en(l, 'c30'), l, -1).nombre, 'c22');
+  assert.equal(cartaEnLectura(en(l, 'c52'), l, 1), null); assert.equal(cartaEnLectura(en(l, 'c00'), l, -1), null);
+});

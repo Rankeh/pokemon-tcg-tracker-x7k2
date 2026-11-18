@@ -21,11 +21,11 @@ import { crearProductores, cargarManifiesto } from './texturas3d.js';
 import { VistaBolsillos } from './bolsillos3d.js';
 import { Controlador } from './controlador.js';
 import { FichaUI } from './ficha-ui.js';
-import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoLectura, cartaVecina, cartaDeEntrada } from './navegacion3d.js';
+import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoLectura, cartaVecina, cartaDeEntrada, cartaEnLectura, ordenLectura } from './navegacion3d.js';
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.28';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.29';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -278,9 +278,12 @@ botones.informe.onclick = async () => {
 addEventListener('keydown', (e) => {
   if (ctrl?.fichaAbierta) {
     if (e.key === 'Escape') { cerrarFicha(); return; }
-    // 3.28 · con la ficha abierta las flechas pasan a la carta vecina (no con la carta ampliada ni dentro de un campo)
-    const d = { ArrowRight: 'der', ArrowLeft: 'izq', ArrowUp: 'arriba', ArrowDown: 'abajo' }[e.key];
-    if (d && !ficha?.zoom && !e.altKey && !e.ctrlKey && !e.metaKey && !e.target.closest?.('select, input, textarea')) { e.preventDefault(); moverEnFicha(d); }
+    // 3.28–3.29 · con la ficha abierta: ← → carta anterior/siguiente (orden de lectura), ↑ ↓ suman/restan una copia, Intro amplía la carta
+    if (ficha?.zoom || e.altKey || e.ctrlKey || e.metaKey || e.target.closest?.('select, input, textarea')) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); moverEnFicha(e.key === 'ArrowRight' ? 'der' : 'izq'); }
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === '+' || e.key === '-') {
+      e.preventDefault(); if (!e.repeat) cantidadConTeclado(e.key === 'ArrowUp' || e.key === '+' ? +1 : -1);   // mantener pulsado no suma sin parar
+    } else if (e.key === 'Enter' && !e.target.closest?.('button, a')) { e.preventDefault(); ficha.ampliar(); }   // en un botón elegido con Tab, Intro lo pulsa
     return;
   }
   // 3.19 · Esc por capas: ficha → menú ⋯ → ventana de confirmación → (nada abierto) vuelve a la biblioteca
@@ -313,7 +316,7 @@ function cartasVisibles() {
   const pagina = modoEfectivo() === 'pagina';
   return candidatosTocables(album.estado, adaptador, (n) => album.matrizMundo(n))
     .filter((c) => !pagina || (c.lado === 1) === (lado === 'der'))
-    .map((c) => ({ nombre: c.nombre, x: c.matriz[12], z: c.matriz[14] }));
+    .map((c) => ({ nombre: c.nombre, x: c.matriz[12], z: c.matriz[14], pag: c.lado === 1 ? 1 : 0 }));   // lado −1 = dorso = página izquierda
 }
 function mostrarFoco(nombre) {
   foco.nombre = nombre; foco.visible = true; foco.pendiente = null;
@@ -339,13 +342,25 @@ function moverFoco(dir) {
   dir === 'der' ? siguiente() : anterior();
   if (album.estado.objetivo + lado !== antes) { foco.pendiente = { dir, z: actual.z }; cursor.ocultar(); }
 }
+/** 3.29 · ↑ / ↓ con la ficha abierta: suma o resta una copia, como los botones de la ficha. Con variantes, se suma a la que se ve en el álbum
+ *  (o a la única que existe, o a la primera); restar quita como «Quitar una» (primero las sin clasificar). */
+function cantidadConTeclado(delta) {
+  if (!ctrl.fichaAbierta) return;
+  cambioAMano();
+  const c = adaptador.mapa.cartaPorId.get(ctrl.seleccion.id), vs = Array.isArray(c?.variantes) ? c.variantes : [];
+  if (delta < 0) { if (adaptador.cantidad(ctrl.seleccion.id) > 0) ctrl.retirar(); return; }
+  if (!vs.length) { ctrl.anadir(); return; }
+  const v = adaptador.acabado(ctrl.seleccion.id) || vs[0].id;
+  ctrl.cambiarVariante(v, +1);
+}
+
 /** 3.28 · Flechas con la ficha abierta: la ficha pasa a la carta vecina; en el borde lateral se cierra, se gira la hoja y se abre la de entrada. */
 function moverEnFicha(dir) {
   if (!album || album.estado.animando || foco.pendiente) return;
   const vis = cartasVisibles(), actual = vis.find((c) => c.nombre === ctrl.seleccion.nombre);
   if (!actual) return;
   foco.visible = true;                                            // al cerrar la ficha, el cursor queda en la última carta vista
-  const v = cartaVecina(actual, vis, dir);
+  const v = dir === 'der' || dir === 'izq' ? cartaEnLectura(actual, vis, dir === 'der' ? 1 : -1) : cartaVecina(actual, vis, dir);
   if (v) {
     if (ctrl.cambiarA(v.nombre)) { foco.nombre = v.nombre; resaltado.mostrar(album.nodo.get(v.nombre)); actualizarUi(); pedirFrame(); }   // la cámara la reencuadra el bucle (huella «sel:<carta>»)
     return;
@@ -354,7 +369,7 @@ function moverEnFicha(dir) {
   const antes = album.estado.objetivo + lado;
   ctrl.cerrar(); ctrl.ultimoCierre = -Infinity; resaltado.ocultar(true); cursor.ocultar(true);
   dir === 'der' ? siguiente() : anterior();
-  if (album.estado.objetivo + lado !== antes) foco.pendiente = { dir, z: actual.z, ficha: true };
+  if (album.estado.objetivo + lado !== antes) foco.pendiente = { dir, z: actual.z, ficha: true, lectura: true };
   else abrirFicha(actual.nombre, true);                           // última página: la ficha sigue en la misma carta
   claveCamara = huellaCamara(); aplicarCamara(true); actualizarUi(); pedirFrame();
 }
@@ -364,7 +379,7 @@ function revisarFoco() {
   if (!album || album.estado.animando || (!foco.visible && !foco.pendiente)) return;
   const vis = cartasVisibles();
   if (foco.pendiente) {
-    const p = foco.pendiente, c = cartaDeEntrada(vis, p.dir, p.z); foco.pendiente = null;
+    const p = foco.pendiente, o = p.lectura && ordenLectura(vis), c = p.lectura ? (p.dir === 'der' ? o[0] : o[o.length - 1]) : cartaDeEntrada(vis, p.dir, p.z); foco.pendiente = null;
     if (!c) ocultarFoco(); else if (p.ficha) abrirFicha(c.nombre, true); else mostrarFoco(c.nombre);
     return;
   }

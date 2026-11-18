@@ -98,19 +98,29 @@ const tecla = async (pag, k, n = 1) => { for (let i = 0; i < n; i++) { await pag
   const id = await pag.evaluate((n) => window.__album3d.adaptador.bolsillo(n).carta.id, e.foco);
   await tecla(pag, 'Enter'); e = await estado(pag);
   ok(e.ficha && !e.aro && await pag.evaluate(() => window.__album3d.resaltado.malla.visible) && (await pag.textContent('#ficha')).includes('Pikachu'), `Intro abre la ficha de la carta del cursor (${id})`);
-  // 3.28 · con la ficha abierta, las flechas pasan a la carta vecina sin cerrarla
+  // 3.28–3.29 · con la ficha abierta: ← → carta anterior/siguiente en orden de lectura; ↑ ↓ suman/restan; Intro amplía
   const nombreFicha = () => pag.evaluate(() => window.__album3d.ctrl.seleccion?.nombre);
+  const cant = () => pag.evaluate(() => { const a = window.__album3d; return a.adaptador.cantidad(a.ctrl.seleccion.id); });
   const f0 = await nombreFicha(); await tecla(pag, 'ArrowLeft'); const f1 = await nombreFicha();
-  ok((await estado(pag)).ficha && f1 && f1 !== f0 && (await centro(pag, f1)).x < (await centro(pag, f0)).x, `ficha abierta: ← pasa a la carta de la izquierda (${f0} → ${f1})`);
+  ok((await estado(pag)).ficha && f1 && f1 !== f0 && (await centro(pag, f1)).x < (await centro(pag, f0)).x, `ficha abierta: ← pasa a la carta anterior (${f0} → ${f1})`);
   ok(await pag.evaluate((n) => window.__album3d.resaltado.nodo?.name === n, f1), 'el aro de selección sigue a la carta nueva');
   const titulo = await pag.textContent('#f-num'); await tecla(pag, 'ArrowRight');
-  ok(await nombreFicha() === f0 && (await pag.textContent('#f-num')) !== titulo, `→ vuelve a la anterior y la ficha cambia de datos (${titulo.trim()} → ${(await pag.textContent('#f-num')).trim()})`);
-  await tecla(pag, 'ArrowUp', 3); const fArriba = await nombreFicha(); ok((await estado(pag)).ficha, '↑ en el borde: la ficha sigue abierta');
-  await tecla(pag, 'ArrowRight'); await quieto(pag); await dormir(400); await quieto(pag); e = await estado(pag);
-  const fx = await nombreFicha();
-  ok(e.ficha && e.v === 2 && /^Hoja_0_D_/.test(fx || ''), `ficha abierta en el borde derecho: gira la hoja y abre la ficha de la primera carta de la fila (${fx}, ${e.etq})`);
-  await tecla(pag, 'ArrowLeft'); await quieto(pag); await dormir(400); await quieto(pag); e = await estado(pag);
-  ok(e.ficha && e.v === 1 && (await nombreFicha()) === fArriba, `← vuelve a la página 1, a la misma carta, con la ficha abierta (${await nombreFicha()})`);
+  ok(await nombreFicha() === f0 && (await pag.textContent('#f-num')) !== titulo, `→ vuelve a la siguiente y la ficha cambia de datos (${titulo.trim()} → ${(await pag.textContent('#f-num')).trim()})`);
+  await tecla(pag, 'ArrowRight'); const f2 = await nombreFicha();
+  ok((await centro(pag, f2)).z > (await centro(pag, f0)).z + 0.03 && (await centro(pag, f2)).x < (await centro(pag, f0)).x, `al final de la fila, → baja a la primera carta de la siguiente (${f2})`);
+  const n0 = await cant(); await tecla(pag, 'ArrowUp'); await dormir(400);
+  ok(await cant() === n0 + 1 && (await estado(pag)).ficha && await nombreFicha() === f2, `↑ suma una copia (${n0} → ${await cant()}) y la ficha sigue en la misma carta`);
+  ok(await pag.evaluate(() => { const a = window.__album3d; return a.adaptador.registro(a.ctrl.seleccion.id).variantes.holo === 1; }), '↑ suma a la variante holo (la única de estos Pikachu)');
+  await tecla(pag, 'ArrowDown'); await dormir(400); ok(await cant() === n0, `↓ resta una copia (${await cant()})`);
+  await tecla(pag, 'ArrowDown'); await dormir(400); await tecla(pag, 'ArrowDown'); await dormir(400); ok(await cant() === 0, '↓ nunca baja de 0');
+  await tecla(pag, 'Enter'); ok(!!(await pag.$('.zoom-carta')) || (await pag.getAttribute('#f-imagen', 'data-estado')) !== 'imagen', 'Intro con la ficha abierta amplía la carta (si tiene imagen)');
+  if (await pag.$('.zoom-carta')) { await tecla(pag, 'ArrowRight'); ok(await nombreFicha() === f2, 'con la carta ampliada las flechas no cambian de carta'); await tecla(pag, 'Enter'); ok(!(await pag.$('.zoom-carta')) && (await estado(pag)).ficha, 'Intro otra vez cierra la ampliación y deja la ficha'); }
+  // al acabar la página, → gira la hoja y abre la primera carta de la página nueva; ← vuelve a la última
+  for (let k = 0; k < 9 && (await estado(pag)).v === 1; k++) await tecla(pag, 'ArrowRight');
+  await quieto(pag); await dormir(400); await quieto(pag); e = await estado(pag); const fx = await nombreFicha();
+  ok(e.ficha && e.v === 2 && /^Hoja_0_D_/.test(fx || ''), `al final de la página, → gira la hoja y abre la primera carta de la página 2 (${fx}, ${e.etq})`);
+  await tecla(pag, 'ArrowLeft'); await quieto(pag); await dormir(400); await quieto(pag); e = await estado(pag); const fu = await nombreFicha();
+  ok(e.ficha && e.v === 1 && /^Hoja_0_F_/.test(fu || ''), `← en la primera carta: vuelve a la página 1, a su última carta (${fu})`);
   await tecla(pag, 'Escape'); e = await estado(pag);
   ok(!e.ficha && e.visible && e.aro && /prueba-3d/.test(pag.url()), 'Esc cierra la ficha y el cursor sigue en la carta');
   // Av Pág / Re Pág y Mayús+flecha giran la hoja como antes; el cursor que se queda fuera de la vista desaparece
