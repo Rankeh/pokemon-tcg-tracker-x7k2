@@ -1,5 +1,7 @@
 # Pokémon TCG Tracker
 
+[![Pruebas](https://github.com/Rankeh/pokemon-tcg-tracker-x7k2/actions/workflows/pruebas.yml/badge.svg)](https://github.com/Rankeh/pokemon-tcg-tracker-x7k2/actions/workflows/pruebas.yml)
+
 Biblioteca personal de álbumes de cartas del JCC Pokémon: una estantería 3D con tus álbumes y, dentro de cada uno, un álbum 3D que se hojea
 y donde marcas las cartas que tienes (con variantes, precios de Cardmarket y copias de seguridad).
 
@@ -42,5 +44,7 @@ python blender/pruebas_glb.py
 ```
 En navegador (Chromium + Playwright, IndexedDB real en bases de datos desechables):
 `node web/prueba-3d/pruebas/ejecutar-pagina.mjs`, `ejecutar-navegador.mjs`, `ejecutar-completar.mjs` y `ejecutar-variantes.mjs`.
+
+GitHub ejecuta todas estas pruebas en cada subida a `main` y en cada pull request (`.github/workflows/pruebas.yml`).
 
 Uso personal y sin ánimo de lucro. Datos de cartas: TCGdex. Pokémon y sus ilustraciones © The Pokémon Company, Nintendo, Creatures y GAME FREAK.

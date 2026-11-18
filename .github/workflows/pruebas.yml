@@ -1,0 +1,55 @@
+# Ejecuta todas las pruebas en cada subida a main y en cada pull request (y a mano desde la pestaña Actions).
+# Si algo falla, el aviso aparece en GitHub antes de que el cambio se note en la web.
+name: Pruebas
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  logica:
+    name: Lógica (Node y Python)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install numpy
+      - name: Biblioteca y álbum 3D
+        run: node --test web/estanteria/pruebas/*.test.mjs web/prueba-3d/pruebas/*.test.mjs
+      - name: Colección y distribución
+        run: node web/pruebas/node.mjs && node web/pruebas/node-album.mjs
+      - name: Modelo 3D (GLB)
+        run: python blender/pruebas_glb.py
+
+  navegador:
+    name: Navegador (Chromium + IndexedDB real)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Playwright y Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Página del álbum (encuadre, gestos, temas)
+        run: node web/prueba-3d/pruebas/ejecutar-pagina.mjs
+      - name: Colección con IndexedDB real
+        run: node web/prueba-3d/pruebas/ejecutar-navegador.mjs
+      - name: Añadir y eliminar todas
+        run: node web/prueba-3d/pruebas/ejecutar-completar.mjs
+      - name: Variantes, Esc y carta ampliada
+        run: node web/prueba-3d/pruebas/ejecutar-variantes.mjs
