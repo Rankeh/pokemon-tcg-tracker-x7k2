@@ -1,7 +1,8 @@
 // 3.11 · Diseño impreso de la tapa, dirección EDITORIAL (la misma que la biblioteca): portada negra como la carátula de una edición de
 // coleccionista. Arriba, una línea de datos en versalitas; en el centro, las dos cartas estrella (Reshiram ex de Llama Blanca y Zekrom ex de
-// Fulgor Negro) como «foto» de portada; abajo, el título en grotesca fina, las expansiones en rojo y el sello rojo «TCG».
+// Fulgor Negro) como «foto» de portada; abajo, el título en grotesca fina, las expansiones en rojo y el sello de la app (web/editorial/marca.js).
 // La banda junto al lomo repite el sello y el título en vertical. Se dibuja con Canvas 2D; sin las ilustraciones locales se dibuja igual.
+import { dibujarMarca } from '../../editorial/marca.js';
 
 export const PORTADA = {
   margen: 0.004,               // m de panel que quedan a la vista alrededor de la lámina
@@ -61,12 +62,8 @@ function grano(ctx, W, H, n, alfa = 0.05) {
   for (let i = 0; i < n; i++) { ctx.fillStyle = azar() < 0.5 ? `rgba(255,255,255,${alfa})` : `rgba(0,0,0,${alfa * 1.6})`; ctx.fillRect(azar() * W, azar() * H, 1.4, 1.4); }
 }
 
-/** Sello rojo «TCG» (la «editorial» de la colección). */
-export function sello(ctx, x, y, lado) {
-  ctx.fillStyle = TINTA.rojo; ctx.fillRect(x, y, lado, lado);
-  ctx.fillStyle = '#ffffff'; ctx.font = `800 ${lado * 0.36}px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('TCG', x + lado / 2, y + lado * 0.54);
-}
+/** Sello de la colección: el símbolo de la app (web/editorial/marca.js). */
+export function sello(ctx, x, y, lado) { dibujarMarca(ctx, x, y, lado); }
 
 function carta(ctx, img, cx, cy, w, giro) {
   const h = w * (img.naturalHeight / img.naturalWidth), r = w * 0.045;

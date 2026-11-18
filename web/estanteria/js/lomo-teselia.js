@@ -1,6 +1,7 @@
 // Lomo y tapas del álbum Teselia tal como se ven en la biblioteca (Canvas 2D), dirección editorial: negro mate, sello rojo «TCG», título en
 // grotesca fina. Se generan tres capas a la vez (color, altura → relieve, metal/rugosidad). La tapa delantera reproduce la del álbum 3D
 // (misma portada y banda de portada-tapa.js sobre la misma tela negra).
+import { dibujarMarca } from '../../editorial/marca.js';
 import { LIBRO } from './disposicion.js';
 import { dibujarPortada, dibujarBanda } from '../../prueba-3d/js/portada-tapa.js';
 
@@ -61,8 +62,7 @@ export function dibujarLomoEditorial(ancho = 160, d = LOMO_TESELIA, grueso = LIB
   // sello rojo arriba (la «editorial» de la colección)
   const lado = u * 0.7, x0 = cx - lado / 2, y0 = u * 0.18;
   capas(L, (ctx, s) => { ctx.fillStyle = s; ctx.fillRect(x0, y0, lado, lado); }, { color: ROJO, alto: '#9a9a9a', mr: 'rgb(0,120,0)' });
-  L.color.fillStyle = '#ffffff'; L.color.font = `800 ${lado * 0.34}px ${SANS}`; L.color.textAlign = 'center'; L.color.textBaseline = 'middle';
-  L.color.fillText('TCG', cx, y0 + lado * 0.54);
+  dibujarMarca(L.color, x0, y0, lado);                             // 3.21: el símbolo de la app (antes, el texto «TCG»)
   L.color.fillStyle = 'rgba(242,242,242,.25)'; L.color.fillRect(cx - u * 0.35, y0 + lado + u * 0.22, u * 0.7, Math.max(1, u * 0.012));
 
   // título y subtítulo en vertical (de arriba abajo, como en los lomos de cine)

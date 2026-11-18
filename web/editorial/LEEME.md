@@ -22,3 +22,9 @@ El álbum es una edición de coleccionista: tela negra (acabado `editorial`, el 
 título «Teselia» en grotesca fina, expansiones en rojo y sello rojo «TCG»; la banda junto al lomo repite sello y título. En la biblioteca, el lomo
 lleva el sello arriba, «TESELIA» en vertical con el subtítulo rojo en paralelo y, abajo, la marca marfil/negro, el código y el nº de cartas.
 Dibujo en `web/prueba-3d/js/portada-tapa.js` (portada y banda, compartidas) y `web/estanteria/js/lomo-teselia.js` (lomo).
+
+## Símbolo y favicon (3.21)
+`marca.js` define el símbolo de la app —cuadrado rojo con dos cartas en abanico (una en contorno, la de delante blanca con su ventana de
+ilustración)—, diseño propio sin marcas registradas. Una sola definición para el SVG (cabecera de la biblioteca, `favicon.svg`) y el Canvas
+(sello de lomos, banda y portada). `favicon-32.png` y `apple-touch-icon.png` (180 px, icono de la pantalla de inicio en iPhone) salen del
+mismo SVG. Las tres páginas (biblioteca, álbum y cuenta) enlazan los iconos.
