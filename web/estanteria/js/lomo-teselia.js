@@ -42,6 +42,9 @@ function textoVertical(ctx, texto, cx, cy, tam, espacio, fuente, largo = Infinit
 /** Datos del lomo de Teselia (por defecto). Cada álbum trae los suyos en el registro (albumes.js → lomo). */
 export const LOMO_TESELIA = { titulo: 'TESELIA', subtitulo: 'LLAMA BLANCA · FULGOR NEGRO', codigo: 'SV10.5', cifra: '158', marca: 'teselia' };
 
+/** Ancho de lomo (m) al que se diseñan los elementos: el de los álbumes de artista (19–22,5 mm). */
+export const LOMO_REF = 0.0215;
+
 export function dibujarLomoEditorial(ancho = 160, d = LOMO_TESELIA, grueso = LIBRO.grueso) {
   const { w, h } = tamLomo(ancho, grueso);
   const C = { color: lienzo(w, h), alto: lienzo(w, h), mr: lienzo(w, h) };
@@ -51,33 +54,36 @@ export function dibujarLomoEditorial(ancho = 160, d = LOMO_TESELIA, grueso = LIB
   L.color.fillStyle = g; L.color.fillRect(0, 0, w, h);
   L.alto.fillStyle = '#808080'; L.alto.fillRect(0, 0, w, h);
   L.mr.fillStyle = 'rgb(0,170,0)'; L.mr.fillRect(0, 0, w, h);                      // mate, sin metal
+  // 3.20c · los elementos miden lo mismo en todos los lomos (como en un lomo de ~21 mm): en un álbum más grueso quedan centrados
+  // con tela a los lados, en vez de crecer con el grosor (Teselia salía con todo al doble de tamaño que Asako Ito y osare)
+  const u = w * Math.min(1, LOMO_REF / grueso), cx = w / 2;
 
   // sello rojo arriba (la «editorial» de la colección)
-  const lado = w * 0.7, x0 = (w - lado) / 2, y0 = w * 0.18;
+  const lado = u * 0.7, x0 = cx - lado / 2, y0 = u * 0.18;
   capas(L, (ctx, s) => { ctx.fillStyle = s; ctx.fillRect(x0, y0, lado, lado); }, { color: ROJO, alto: '#9a9a9a', mr: 'rgb(0,120,0)' });
   L.color.fillStyle = '#ffffff'; L.color.font = `800 ${lado * 0.34}px ${SANS}`; L.color.textAlign = 'center'; L.color.textBaseline = 'middle';
-  L.color.fillText('TCG', w / 2, y0 + lado * 0.54);
-  L.color.fillStyle = 'rgba(242,242,242,.25)'; L.color.fillRect(w * 0.15, y0 + lado + w * 0.22, w * 0.7, Math.max(1, w * 0.012));
+  L.color.fillText('TCG', cx, y0 + lado * 0.54);
+  L.color.fillStyle = 'rgba(242,242,242,.25)'; L.color.fillRect(cx - u * 0.35, y0 + lado + u * 0.22, u * 0.7, Math.max(1, u * 0.012));
 
   // título y subtítulo en vertical (de arriba abajo, como en los lomos de cine)
-  const y1 = y0 + lado + w * 0.4, y2 = h * 0.78;
-  capas(L, (ctx, s) => { ctx.fillStyle = s; textoVertical(ctx, d.titulo, w * 0.42, (y1 + y2) / 2, w * 0.4, w * 0.14, `300 ${SANS}`, (y2 - y1) * 0.92); }, { color: '#f2f2f2', alto: '#6a6a6a' });
+  const y1 = y0 + lado + u * 0.4, y2 = h * 0.78;
+  capas(L, (ctx, s) => { ctx.fillStyle = s; textoVertical(ctx, d.titulo, cx - u * 0.08, (y1 + y2) / 2, u * 0.4, u * 0.14, `300 ${SANS}`, (y2 - y1) * 0.92); }, { color: '#f2f2f2', alto: '#6a6a6a' });
   L.color.save(); L.color.fillStyle = ROJO;
-  textoVertical(L.color, d.subtitulo, w * 0.8, (y1 + y2) / 2, w * 0.12, w * 0.035, `600 ${SANS}`, (y2 - y1) * 0.92);
+  textoVertical(L.color, d.subtitulo, cx + u * 0.3, (y1 + y2) / 2, u * 0.12, u * 0.035, `600 ${SANS}`, (y2 - y1) * 0.92);
   L.color.restore();
 
   // pie: marca marfil/negro de Teselia, código y número de cartas
-  const m = w * 0.46, ym = h * 0.83;
+  const m = u * 0.46, ym = h * 0.83;
   if (d.marca === 'paleta') {                                       // artista: tres tonos de acuarela suave
-    (Array.isArray(d.colores) && d.colores.length === 3 ? d.colores : ['#f4c7c3', '#c9e4d6', '#c9d8f2']).forEach((c, i) => { L.color.fillStyle = c; L.color.fillRect((w - m) / 2, ym + (i * m) / 3, m, m / 3 + 0.5); });
+    (Array.isArray(d.colores) && d.colores.length === 3 ? d.colores : ['#f4c7c3', '#c9e4d6', '#c9d8f2']).forEach((c, i) => { L.color.fillStyle = c; L.color.fillRect(cx - m / 2, ym + (i * m) / 3, m, m / 3 + 0.5); });
   } else {                                                          // Teselia: mitad marfil (Llama Blanca), mitad negra (Fulgor Negro)
-    L.color.fillStyle = '#e9e4da'; L.color.fillRect((w - m) / 2, ym, m / 2, m);
-    L.color.fillStyle = '#2b2b2b'; L.color.fillRect(w / 2, ym, m / 2, m);
+    L.color.fillStyle = '#e9e4da'; L.color.fillRect(cx - m / 2, ym, m / 2, m);
+    L.color.fillStyle = '#2b2b2b'; L.color.fillRect(cx, ym, m / 2, m);
   }
-  L.color.strokeStyle = 'rgba(242,242,242,.35)'; L.color.lineWidth = Math.max(1, w * 0.01); L.color.strokeRect((w - m) / 2, ym, m, m);
+  L.color.strokeStyle = 'rgba(242,242,242,.35)'; L.color.lineWidth = Math.max(1, u * 0.01); L.color.strokeRect(cx - m / 2, ym, m, m);
   L.color.textAlign = 'center'; L.color.textBaseline = 'alphabetic';
-  L.color.fillStyle = ROJO; L.color.font = `600 ${Math.min(w * 0.12, (w * 0.86) / Math.max(1, d.codigo.length * 0.68))}px ${SANS}`; L.color.fillText(d.codigo, w / 2, h * 0.925);
-  L.color.fillStyle = '#f2f2f2'; L.color.font = `300 ${w * 0.2}px ${SANS}`; L.color.fillText(d.cifra, w / 2, h * 0.968);
+  L.color.fillStyle = ROJO; L.color.font = `600 ${Math.min(u * 0.12, (u * 0.86) / Math.max(1, d.codigo.length * 0.68))}px ${SANS}`; L.color.fillText(d.codigo, cx, h * 0.925);
+  L.color.fillStyle = '#f2f2f2'; L.color.font = `300 ${u * 0.2}px ${SANS}`; L.color.fillText(d.cifra, cx, h * 0.968);
 
   // grano de impresión y cantos algo más oscuros (el lomo redondeado)
   let sem = 11; const azar = () => { sem = (sem * 16807) % 2147483647; return sem / 2147483647; };
