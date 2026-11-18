@@ -81,6 +81,15 @@ ok(await pag.isHidden('#f-variantes') && !(await pag.isHidden('.ficha-cantidad')
 ok(await pag.getAttribute('#f-imagen', 'data-acabado') === 'holo-completo', '3.18 · Teselia: la IR que tienes lleva brillo holo de carta completa en la ficha');
 await pag.evaluate(() => { const a = window.__album3d, pg = a.adaptador.mapa.porId.get('sv10.5w-166').pagina; a.vista.sincronizar(new Map([[pg, 0]])); });   // monta su página
 ok(await brillo3d('sv10.5w-166') === 'holo-completo', '3.18 · …y en el bolsillo 3D');
+// 3.22 · tocar la carta de la ficha la amplía; Esc / toque cierran SOLO la ampliación
+await pag.waitForFunction(() => document.getElementById('f-imagen').dataset.estado === 'imagen', null, { timeout: 8000 });
+await pag.click('#f-imagen');
+ok(await pag.isVisible('.zoom-carta img'), 'tocar la carta la amplía a pantalla completa');
+ok(await pag.getAttribute('.zoom-figura', 'data-acabado') === 'holo-completo', 'la carta ampliada conserva su brillo holo');
+await pag.keyboard.press('Escape'); await dormir(200);
+ok(!(await pag.$('.zoom-carta')) && await pag.evaluate(() => window.__album3d.ctrl.fichaAbierta), 'Esc cierra la ampliación y deja la ficha abierta');
+await pag.click('#f-imagen'); await pag.click('.zoom-carta', { position: { x: 10, y: 10 } }); await dormir(200);
+ok(!(await pag.$('.zoom-carta')), 'tocar fuera de la carta también la cierra');
 // 3.19 · Esc por capas: ficha → menú → confirmación → biblioteca
 await pag.keyboard.press('Escape'); await dormir(400);
 ok(!(await pag.evaluate(() => window.__album3d.ctrl.fichaAbierta)) && /prueba-3d/.test(pag.url()), 'Esc con la ficha abierta: solo la cierra');

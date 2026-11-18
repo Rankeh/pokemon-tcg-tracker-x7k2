@@ -12,13 +12,39 @@ export class FichaUI {
     el.retirar.onclick = () => alRetirar();
     el.fondo.onclick = () => alCerrar();
     this.datos = null;
+    // 3.22 · tocar la carta la amplía (solo si hay imagen; con el marcador no hay nada que ampliar)
+    if (el.imagen && el.imagen.addEventListener) {
+      el.imagen.addEventListener('click', () => this.ampliar());
+      el.imagen.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.ampliar(); } });
+    }
+  }
+
+  /** 3.22 · Carta a pantalla completa (con el brillo de su variante). Se cierra tocando en cualquier sitio, con ✕ o con Esc (solo ella). */
+  ampliar() {
+    const caja = this.el.imagen, img = caja && caja.querySelector && caja.querySelector('img');
+    if (!img || caja.dataset.estado !== 'imagen' || this.zoom) return;
+    const capa = document.createElement('div'); capa.className = 'zoom-carta'; capa.setAttribute('role', 'dialog'); capa.setAttribute('aria-modal', 'true');
+    capa.setAttribute('aria-label', 'Carta ampliada: ' + img.alt);
+    const fig = document.createElement('figure'); fig.className = 'ficha-imagen zoom-figura'; fig.dataset.estado = 'imagen';
+    if (caja.dataset.acabado) fig.dataset.acabado = caja.dataset.acabado;
+    const grande = new Image(); grande.alt = img.alt; grande.src = img.currentSrc || img.src; fig.append(grande);
+    const cerrar = document.createElement('button'); cerrar.type = 'button'; cerrar.className = 'zoom-cerrar'; cerrar.textContent = '✕'; cerrar.setAttribute('aria-label', 'Cerrar carta ampliada');
+    capa.append(fig, cerrar);
+    const fuera = () => {
+      document.removeEventListener('keydown', tecla, true); capa.remove(); this.zoom = null; caja.focus?.({ preventScroll: true });
+    };
+    const tecla = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fuera(); } };   // en captura: Esc no cierra también la ficha
+    capa.addEventListener('click', (e) => { e.stopPropagation(); fuera(); });
+    document.addEventListener('keydown', tecla, true);
+    document.body.append(capa); this.zoom = { cerrar: fuera };
+    cerrar.focus({ preventScroll: true });
   }
 
   /** Imagen: copia local grande → copia local mini → marcador HTML. Nunca se piden imágenes a servidores externos. */
   _imagen(d) {
     const caja = this.el.imagen, e = this.manifiesto && this.manifiesto.cartas && this.manifiesto.cartas[d.id];
     caja.replaceChildren();
-    caja.dataset.estado = 'marcador';
+    caja.dataset.estado = 'marcador'; for (const a of ['tabindex', 'role', 'aria-label']) caja.removeAttribute?.(a);
     const marcador = () => {
       caja.replaceChildren();
       const m = document.createElement('div'); m.className = 'ficha-sin-imagen';
@@ -33,7 +59,7 @@ export class FichaUI {
     const img = new Image(); img.alt = `${d.nombre}, ${d.nombreExpansion || d.expansion} ${d.numero}`; img.decoding = 'async';
     let i = 0;
     img.onerror = () => { i++; if (i < cadena.length) img.src = cadena[i]; else marcador(); };
-    img.onload = () => { caja.dataset.estado = 'imagen'; };
+    img.onload = () => { caja.dataset.estado = 'imagen'; caja.tabIndex = 0; caja.setAttribute?.('role', 'button'); caja.setAttribute?.('aria-label', 'Ampliar carta: ' + img.alt); };
     img.src = cadena[0];
     caja.append(img);
   }
@@ -121,6 +147,7 @@ export class FichaUI {
 
   /** 3.7.5: la ficha sale con una animación corta (SALIDA_MS) y solo entonces se oculta. El estado lógico (ficha-abierta, datos) cambia ya. */
   cerrar() {
+    this.zoom?.cerrar();                                          // 3.22: si la carta estaba ampliada, se cierra con la ficha
     document.body.classList.remove('ficha-abierta');
     this.datos = null;
     this._cancelarSalida();

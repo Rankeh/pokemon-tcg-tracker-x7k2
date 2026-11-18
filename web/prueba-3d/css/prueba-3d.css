@@ -480,3 +480,17 @@ body[data-tema="editorial"] h1 { gap: 0; }
 body[data-tema="editorial"] .h1-pre { margin-right: .28em; }       /* el espacio final de «Álbum » desaparece dentro de flex */
 body[data-tema="editorial"] h1 small { margin-left: 10px; }
 @media (max-width: 520px) { body[data-tema="editorial"] h1 small { margin-left: 4px; } }
+
+/* 3.22 · carta ampliada: tocar la imagen de la ficha la muestra a pantalla completa (con el brillo de su variante) */
+.ficha-imagen[data-estado="imagen"] { cursor: zoom-in; }
+.ficha-imagen[data-estado="imagen"]:focus-visible { outline: 2px solid var(--acento); outline-offset: 3px; }
+.zoom-carta { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  background: rgba(8, 8, 8, .86); cursor: zoom-out; animation: zoom-fondo .18s ease-out; }
+.zoom-figura { margin: 0; align-self: center; justify-self: center; width: min(92vw, calc((100dvh - 136px) * 63 / 88), 640px);   /* hueco arriba y abajo para la ✕ */ aspect-ratio: 63 / 88; border: 0 !important; border-radius: 4.5% / 3.3% !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .6) !important; transform: none !important; animation: zoom-carta .22s cubic-bezier(.2, .8, .2, 1); }
+.zoom-figura img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.zoom-cerrar { position: fixed; top: max(14px, env(safe-area-inset-top)); right: 14px; width: 44px; min-height: 44px; padding: 0; font-size: 1.2rem;
+  color: #f2f2f2 !important; background: rgba(255, 255, 255, .08) !important; border: 1px solid rgba(255, 255, 255, .25) !important; border-radius: 0; }
+@keyframes zoom-fondo { from { opacity: 0; } }
+@keyframes zoom-carta { from { opacity: 0; transform: scale(.92); } }
+@media (prefers-reduced-motion: reduce) { .zoom-carta, .zoom-figura { animation: none; } }
