@@ -43,3 +43,18 @@ export function candidatosTocables(estado, adaptador, matrizDe) {
   }
   return res;
 }
+
+/** 3.27 · Distancia t del rayo a una caja del mundo {x:[a,b], y:[a,b], z:[a,b]} (método de las losas), o null. Con `margen` la caja crece
+ *  por los lados (zona táctil algo mayor que la tapa). Sirve para «tocar el álbum cerrado lo abre». */
+export function rayoCaja(o, d, caja, margen = 0) {
+  let t0 = 0, t1 = Infinity;
+  for (const [i, eje] of [[0, 'x'], [1, 'y'], [2, 'z']]) {
+    const a = caja[eje][0] - margen, b = caja[eje][1] + margen;
+    if (Math.abs(d[i]) < 1e-12) { if (o[i] < a || o[i] > b) return null; continue; }
+    let ta = (a - o[i]) / d[i], tb = (b - o[i]) / d[i];
+    if (ta > tb) [ta, tb] = [tb, ta];
+    t0 = Math.max(t0, ta); t1 = Math.min(t1, tb);
+    if (t0 > t1) return null;
+  }
+  return t0;
+}

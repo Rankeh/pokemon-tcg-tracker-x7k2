@@ -415,3 +415,13 @@ Los 30 Pikachu de Celebración 30.º Aniversario (`30th-023` … `30th-052`), ca
 aniversario, todos con imagen en español y precio. Portada con los de Ken Sugimori y Atsuko Nishida; lomo con marca amarillo/rojo/blanco.
 Modelo de 2 hojas (`album-2h.glb`). El generador acepta ahora `--expansion 30th --pokemon Pikachu` además de `--ilustrador`, y el álbum
 está en `datos/albumes-artista.json`, así que se refresca cada lunes como los de artista. La 027 (de Asako Ito) es la misma carta en los dos álbumes.
+
+## 3.27 — Tocar la tapa abre el álbum · flechas entre cartas
+- **Tocar el álbum cerrado lo abre** (pensado para iPhone, vale también con el ratón): el toque se prueba contra la caja de la tapa
+  (`rayoCaja` en `picking.js`, con 1 cm de margen). Fuera del álbum no pasa nada.
+- **Teclado en el ordenador:** las flechas mueven un cursor (aro rojo tenue) entre las cartas a la vista; la vecina se elige por posición
+  (`cartaVecina` / `cartaDeEntrada` en `navegacion3d.js`), así que cruza de la página izquierda a la derecha y salta los huecos. Al pasar el
+  borde lateral se gira la hoja y se entra por la misma fila. **Intro** abre la ficha (al cerrarla el cursor sigue ahí); **Esc** quita primero el
+  cursor y luego vuelve a la biblioteca. Pasar hoja directamente: **Av Pág / Re Pág** o **Mayús + ← →**. Con el álbum cerrado, → lo abre.
+  Tocar una carta con el ratón no muestra el cursor, pero la siguiente flecha sigue desde esa carta.
+- Pruebas: `pruebas/teclado.test.mjs` (funciones puras) y `pruebas/ejecutar-teclado.mjs` (Chromium: toque en iPhone y recorrido con flechas).

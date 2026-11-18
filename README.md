@@ -44,7 +44,7 @@ node web/pruebas/node.mjs && node web/pruebas/node-album.mjs
 python blender/pruebas_glb.py
 ```
 En navegador (Chromium + Playwright, IndexedDB real en bases de datos desechables):
-`node web/prueba-3d/pruebas/ejecutar-pagina.mjs`, `ejecutar-navegador.mjs`, `ejecutar-completar.mjs` y `ejecutar-variantes.mjs`.
+`node web/prueba-3d/pruebas/ejecutar-pagina.mjs`, `ejecutar-navegador.mjs`, `ejecutar-completar.mjs`, `ejecutar-variantes.mjs` y `ejecutar-teclado.mjs`.
 
 GitHub ejecuta todas estas pruebas en cada subida a `main` y en cada pull request (`.github/workflows/pruebas.yml`).
 

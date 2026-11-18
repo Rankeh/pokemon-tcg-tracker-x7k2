@@ -6,7 +6,7 @@ import { ModeloColeccion } from '../../js/album/modelo.js';
 import { crearMapa, AdaptadorColeccion } from './adaptador-coleccion.js';
 import { cargarAlbum } from './album3d.js';
 import { OrbitaLigera } from './camara.js';
-import { dimensiones, puntosVista, puntosGiro, calcularEncuadre, elevacionPara, planos, reservadoDesdeDom, claseVista, COMPOSICION, cajasReales, cajasDimensiones, puntosPagina, puntosConjunto, elegirEncuadreSeleccion } from './encuadre.js';
+import { aabbMundo, dimensiones, puntosVista, puntosGiro, calcularEncuadre, elevacionPara, planos, reservadoDesdeDom, claseVista, COMPOSICION, cajasReales, cajasDimensiones, puntosPagina, puntosConjunto, elegirEncuadreSeleccion } from './encuadre.js';
 import { crearGeometria } from './logica.js';
 import { Resaltado } from './resaltado.js';
 import { Metricas } from './metricas.js';
@@ -21,11 +21,11 @@ import { crearProductores, cargarManifiesto } from './texturas3d.js';
 import { VistaBolsillos } from './bolsillos3d.js';
 import { Controlador } from './controlador.js';
 import { FichaUI } from './ficha-ui.js';
-import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoLectura } from './navegacion3d.js';
+import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoLectura, cartaVecina, cartaDeEntrada } from './navegacion3d.js';
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
-import { elegirBolsillo, candidatosTocables } from './picking.js';
+import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.26';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.27';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -68,7 +68,7 @@ const cambioAMano = () => menuAlbum?.invalidarDeshacer();         // tras un cam
 // El encuadre NO usa distancias fijas: se calcula con calcularEncuadre() a partir del viewport, la proporción, la elevación, las dimensiones reales
 // del modelo, las páginas visibles y el espacio que ocupan la cabecera, la barra inferior y la ficha (medidos en el DOM).
 const diagCam = { nivel: '', radio: 0 };       // para depurar y para las pruebas de la página real
-let dim = null, tamano = { w: 0, h: 0 }, claveCamara = '', resaltado = null;
+let dim = null, tamano = { w: 0, h: 0 }, claveCamara = '', resaltado = null, cursor = null;
 let modoVista = null, manual = false, lado = 'der';            // 'doble' | 'pagina' (en vertical, por defecto una página a la vez)
 const esVertical = () => camara.aspect < 0.9;
 const modoEfectivo = () => modoVista || (esVertical() ? 'pagina' : 'doble');
@@ -281,11 +281,65 @@ addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (e.defaultPrevented || document.querySelector('dialog[open]') || !$('menu-album').hidden || e.target.closest?.('select, input, textarea')) return;
     e.preventDefault();
+    if (foco.visible) { ocultarFoco(); return; }                   // 3.27: primero quita el cursor de las cartas
     location.href = $('b-biblioteca').href;
     return;
   }
-  if (e.key === 'ArrowRight') siguiente(); else if (e.key === 'ArrowLeft') anterior();
+  if (e.target.closest?.('select, input, textarea') || e.altKey || e.ctrlKey || e.metaKey) return;   // el selector de página usa sus propias flechas
+  const dir = { ArrowRight: 'der', ArrowLeft: 'izq', ArrowUp: 'arriba', ArrowDown: 'abajo' }[e.key];
+  // 3.27 · las flechas mueven el cursor entre cartas (y cruzan de página al llegar al borde); Re Pág / Av Pág y Mayús+← → giran la hoja
+  if (e.key === 'PageDown' || (e.shiftKey && dir === 'der')) { e.preventDefault(); siguiente(); }
+  else if (e.key === 'PageUp' || (e.shiftKey && dir === 'izq')) { e.preventDefault(); anterior(); }
+  else if (dir) { e.preventDefault(); moverFoco(dir); }
+  else if ((e.key === 'Enter' || e.key === ' ') && (e.target === document.body || e.target === canvas)) {
+    e.preventDefault();
+    if (foco.visible && foco.nombre) abrirFicha(foco.nombre, true); else if (album?.estado.objetivo === 0) alternarAbrir();
+  }
 });
+
+// ------------------------------------------------------------------ 3.27 · cursor del teclado entre cartas
+// foco.nombre: la carta del cursor (también la última tocada con el ratón, para seguir desde ahí); foco.visible: el aro del cursor se ve.
+// foco.pendiente: se ha girado la hoja (o cambiado de página) al cruzar un borde y se elige la carta de entrada cuando acaba el giro.
+const foco = { nombre: null, visible: false, pendiente: null };
+/** Cartas a la vista (con carta asignada) y su posición en el mesa: en la vista de una página, solo las de la página enfocada. */
+function cartasVisibles() {
+  if (!album || album.estado.animando) return [];
+  const pagina = modoEfectivo() === 'pagina';
+  return candidatosTocables(album.estado, adaptador, (n) => album.matrizMundo(n))
+    .filter((c) => !pagina || (c.lado === 1) === (lado === 'der'))
+    .map((c) => ({ nombre: c.nombre, x: c.matriz[12], z: c.matriz[14] }));
+}
+function mostrarFoco(nombre) {
+  foco.nombre = nombre; foco.visible = true; foco.pendiente = null;
+  cursor.mostrar(album.nodo.get(nombre)); pedirFrame();
+}
+function ocultarFoco() { if (foco.visible) { foco.visible = false; cursor.ocultar(); pedirFrame(); } foco.pendiente = null; }
+function moverFoco(dir) {
+  if (!album || !puedeNavegar() || foco.pendiente) return;
+  const vis = cartasVisibles();
+  if (!vis.length) {                                              // álbum cerrado o contratapa: las flechas pasan hoja como siempre
+    if (album.estado.animando) return;
+    if (dir === 'der') { siguiente(); if (album.estado.objetivo > 0) foco.pendiente = { dir: 'der', z: null }; }
+    else if (dir === 'izq') { anterior(); if (album.estado.objetivo > 0) foco.pendiente = { dir: 'izq', z: null }; }
+    return;
+  }
+  const actual = foco.nombre && vis.find((c) => c.nombre === foco.nombre);
+  if (!actual) { mostrarFoco(cartaDeEntrada(vis, 'der').nombre); return; }   // primera pulsación: aparece el cursor en la primera carta a la vista
+  if (!foco.visible) { mostrarFoco(actual.nombre); return; }      // la última carta tocada con el ratón
+  const v = cartaVecina(actual, vis, dir);
+  if (v) { mostrarFoco(v.nombre); return; }
+  if (dir === 'arriba' || dir === 'abajo') return;               // borde superior o inferior: se queda donde está
+  const antes = album.estado.objetivo + lado;                     // borde lateral: página siguiente/anterior y se entra por la misma fila
+  dir === 'der' ? siguiente() : anterior();
+  if (album.estado.objetivo + lado !== antes) { foco.pendiente = { dir, z: actual.z }; cursor.ocultar(); }
+}
+/** En cada frame (barato: como mucho 18 bolsillos): coloca el cursor tras un giro y lo quita si su carta ya no está a la vista. */
+function revisarFoco() {
+  if (!album || album.estado.animando || (!foco.visible && !foco.pendiente)) return;
+  const vis = cartasVisibles();
+  if (foco.pendiente) { const c = cartaDeEntrada(vis, foco.pendiente.dir, foco.pendiente.z); foco.pendiente = null; if (c) mostrarFoco(c.nombre); else ocultarFoco(); return; }
+  if (!vis.some((c) => c.nombre === foco.nombre)) ocultarFoco();  // se pasó la hoja con los botones, el gesto o el selector
+}
 
 // ------------------------------------------------------------------ selección táctil / ratón (rayo → bolsillo → adaptador)
 const rayo = new THREE.Raycaster();
@@ -340,20 +394,30 @@ function tocar(cx, cy) {
   if (!album || ctrl.fichaAbierta) return;
   const r = canvas.getBoundingClientRect();
   rayo.setFromCamera(new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), camara);
-  const o = rayo.ray.origin, d = rayo.ray.direction;
-  const golpe = elegirBolsillo([o.x, o.y, o.z], [d.x, d.y, d.z], candidatosTocables(album.estado, adaptador, (n) => album.matrizMundo(n)));
-  if (!golpe) return;                                            // toque fuera del álbum, en un hueco o en una hoja enterrada: no pasa nada
-  if (ctrl.seleccionar(golpe.nombre)) {
-    resaltado.mostrar(album.nodo.get(golpe.nombre));
-    claveCamara = huellaCamara(); aplicarCamara(true);              // encuadre de selección: la página entera dentro del espacio que deja la ficha
-    actualizarUi(); pedirFrame();
+  const o = [rayo.ray.origin.x, rayo.ray.origin.y, rayo.ray.origin.z], d = [rayo.ray.direction.x, rayo.ray.direction.y, rayo.ray.direction.z];
+  if (album.estado.objetivo === 0 && !album.estado.animando) {     // 3.27 · álbum cerrado: tocar la tapa lo abre (en iPhone no hace falta el botón)
+    const tapa = album.cajaMalla('Tapa_Malla');
+    if (tapa && rayoCaja(o, d, aabbMundo(tapa), 0.01) !== null) alternarAbrir();
+    return;
   }
+  const golpe = elegirBolsillo(o, d, candidatosTocables(album.estado, adaptador, (n) => album.matrizMundo(n)));
+  if (!golpe) return;                                            // toque fuera del álbum, en un hueco o en una hoja enterrada: no pasa nada
+  abrirFicha(golpe.nombre, false);
+}
+/** Abre la ficha de un bolsillo (toque o Intro). Con el teclado, el cursor vuelve a verse al cerrar la ficha. */
+function abrirFicha(nombre, conTeclado) {
+  if (!ctrl.seleccionar(nombre)) return;
+  foco.nombre = nombre; foco.visible = conTeclado; foco.pendiente = null; cursor.ocultar(true);
+  resaltado.mostrar(album.nodo.get(nombre));
+  claveCamara = huellaCamara(); aplicarCamara(true);              // encuadre de selección: la página entera dentro del espacio que deja la ficha
+  actualizarUi(); pedirFrame();
 }
 
 function cerrarFicha() {
   if (!ctrl.fichaAbierta) return;
   ctrl.cerrar();
   resaltado.ocultar();
+  if (foco.visible && foco.nombre) cursor.mostrar(album.nodo.get(foco.nombre));   // 3.27: se sigue navegando con las flechas desde esa carta
   claveCamara = huellaCamara(); aplicarCamara(true);               // vuelve al encuadre de la navegación (calculado de nuevo, no un valor guardado)
   actualizarUi(); pedirFrame();
 }
@@ -423,6 +487,8 @@ function bucle(ahora) {
   activo = orbita.actualizar(dt) || activo;
   activo = vista.avanzar(dt) || activo;
   activo = resaltado.avanzar(dt) || activo;
+  activo = cursor.avanzar(dt) || activo;
+  revisarFoco();
   const clave = album.estado.vueltas + ':' + album.estado.objetivo + ':' + album.estado.animando;
   if (clave !== claveNav) { claveNav = clave; sincronizarTexturas(); actualizarUi(); }
   const hc = huellaCamara();
@@ -468,6 +534,7 @@ async function arrancar() {
   aspecto.aplicarAlbum(album);
   dim = dimensiones(album.params);
   resaltado = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro });
+  cursor = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro, opacidad: 0.5 });   // 3.27: cursor del teclado, más tenue que la selección
 
   const manifiesto = await cargarManifiesto();
   precios = await cargarPrecios('../../' + albumActual.precios);                               // opcional: null hasta ejecutar herramientas/precios/descargar_precios.py
@@ -532,7 +599,7 @@ async function arrancar() {
   }
   setInterval(() => { if (!$('panel').hidden) metricas.pintar(); }, 500);
   console.info('Álbum 3D · fase ' + FASE + ' · tapa: ' + (aspecto.resumen().portada ? 'lámina de ' + albumActual.nombre : aspecto.resumen().emblema ? 'emblema bordado' : 'lisa (nivel legado o ?emblema=0)'));
-  window.__album3d = { FASE, medirEscenas, aspecto, dim, resaltado, diagCam, reservado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
+  window.__album3d = { FASE, medirEscenas, aspecto, dim, resaltado, cursor, foco, diagCam, reservado, album, orbita, metricas, THREE, scene, camara, renderer, cache, vista, adaptador, ctrl };   // para depurar desde la consola
   requestAnimationFrame(bucle);
   if (params.get('auto') === 'medir') setTimeout(medir, 800);
   if (params.get('auto') === 'escenas') setTimeout(() => medirEscenas(), 1500);

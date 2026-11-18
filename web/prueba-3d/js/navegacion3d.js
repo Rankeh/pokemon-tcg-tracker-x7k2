@@ -56,3 +56,32 @@ export function pasoLectura({ vueltas: v, lado, n, total, direccion, modo }) {
   if (modo === 'pagina' && v > 0 && lado === 'der' && izquierda) return { accion: 'lado', lado: 'izq', direccion };
   return v > 0 ? { accion: 'girar', lado: 'der', direccion } : { accion: 'ninguna', lado, direccion };
 }
+
+// ------------------------------------------------------------------ 3.27 · navegar entre cartas con las flechas del teclado
+// Las cartas se eligen por su POSICIÓN en el mundo (x = izquierda→derecha, z = arriba→abajo en pantalla): vale igual para el frente y el dorso
+// de las hojas, para la vista doble (6 columnas) y la de una página, y salta solo los huecos sin carta (no son candidatos).
+const MISMA = 0.02;                                   // m: medio bolsillo; menos que esto en el eje del movimiento = misma columna/fila
+
+/** Carta vecina en la dirección `dir` ('izq' | 'der' | 'arriba' | 'abajo') desde `actual` {x, z}, o null si no hay (borde de la página).
+ *  candidatos: [{nombre, x, z}]. Se prefiere la de la misma fila (o columna) y, a igualdad, la más cercana. */
+export function cartaVecina(actual, candidatos, dir) {
+  const h = dir === 'izq' || dir === 'der', s = dir === 'der' || dir === 'abajo' ? 1 : -1;
+  let mejor = null, mejorP = Infinity;
+  for (const c of candidatos) {
+    const avance = ((h ? c.x - actual.x : c.z - actual.z)) * s, lateral = Math.abs(h ? c.z - actual.z : c.x - actual.x);
+    if (avance < MISMA) continue;
+    const p = lateral * 4 + avance;
+    if (p < mejorP) { mejorP = p; mejor = c; }
+  }
+  return mejor;
+}
+
+/** Carta con la que se entra en una página nueva al cruzar su borde: la de la fila más cercana a `z` (o la primera fila) en el lado de entrada
+ *  (yendo a la derecha, la columna izquierda; yendo a la izquierda, la derecha). Sin `z`: la primera carta (arriba a la izquierda). */
+export function cartaDeEntrada(candidatos, dir = 'der', z = null) {
+  if (!candidatos.length) return null;
+  const zRef = z ?? Math.min(...candidatos.map((c) => c.z)), s = dir === 'izq' ? -1 : 1;
+  const dMin = Math.min(...candidatos.map((c) => Math.abs(c.z - zRef)));
+  const fila = candidatos.filter((c) => Math.abs(c.z - zRef) - dMin < MISMA);
+  return fila.reduce((a, b) => ((b.x - a.x) * s < 0 ? b : a));
+}

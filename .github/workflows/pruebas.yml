@@ -53,3 +53,5 @@ jobs:
         run: node web/prueba-3d/pruebas/ejecutar-completar.mjs
       - name: Variantes, Esc y carta ampliada
         run: node web/prueba-3d/pruebas/ejecutar-variantes.mjs
+      - name: Tocar para abrir y flechas entre cartas
+        run: node web/prueba-3d/pruebas/ejecutar-teclado.mjs

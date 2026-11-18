@@ -19,7 +19,7 @@ export function escalaEntrada(t) {
 }
 
 export class Resaltado {
-  constructor({ reducirMovimiento = () => false, color = 0xe8b25a } = {}) {
+  constructor({ reducirMovimiento = () => false, color = 0xe8b25a, opacidad = 0.95 } = {}) {   // 3.27: opacidad menor para el cursor del teclado
     const d = datosMarco();
     this.geo = new THREE.BufferGeometry();
     this.geo.setAttribute('position', new THREE.Float32BufferAttribute(d.posiciones, 3));
@@ -27,14 +27,14 @@ export class Resaltado {
     this.mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, side: THREE.DoubleSide, depthTest: false, depthWrite: false, toneMapped: false })   // 3.7.2b: sin tone mapping → el dorado es el mismo con cualquier luz;
     this.malla = new THREE.Mesh(this.geo, this.mat);
     this.malla.renderOrder = 999; this.malla.visible = false;
-    this.reducir = reducirMovimiento; this.destino = 0; this.nodo = null; this.t = 1;   // t: progreso de la entrada (escala), 0..1
+    this.reducir = reducirMovimiento; this.opacidad = opacidad; this.destino = 0; this.nodo = null; this.t = 1;   // t: progreso de la entrada (escala), 0..1
   }
 
   mostrar(nodo) {
     this.ocultar(true);
     this.nodo = nodo;
     this.malla.position.set(0, (nodo.userData.cara === 'D' ? -1 : 1) * ALTURA, 0);        // por delante de la funda, según la cara
-    nodo.add(this.malla); this.malla.visible = true; this.destino = 0.95;
+    nodo.add(this.malla); this.malla.visible = true; this.destino = this.opacidad;
     this.t = 0; this.malla.scale.set(ESCALA_ENTRADA, ESCALA_ENTRADA, ESCALA_ENTRADA);                       // 3.7.5: entra con un pequeño rebote (solo escala y opacidad)
     if (this.reducir()) { this.mat.opacity = this.destino; this.t = 1; this.malla.scale.set(1, 1, 1); }
   }
