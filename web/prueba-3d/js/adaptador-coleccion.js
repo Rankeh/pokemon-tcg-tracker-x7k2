@@ -125,7 +125,8 @@ export class AdaptadorColeccion {
     const c = this.mapa.cartaPorId.get(id);
     if (!c || !(this.cantidad(id) > 0)) return null;
     if (!Array.isArray(c.variantes) || !c.variantes.length) return holoImplicito(c) ? 'holo' : null;      // 3.18: IR/SIR/promos de Teselia
-    return aMostrar(this.registro(id), c.variantes.map((v) => v.id));
+    // 3.28: si la carta solo existe en una variante (p. ej. los Pikachu holo del 30.º aniversario), las copias sin clasificar son de esa variante
+    return aMostrar(this.registro(id), c.variantes.map((v) => v.id)) || (c.variantes.length === 1 ? c.variantes[0].id : null);
   }
 
   /** 3.16 · Operación sobre una variante, encadenada en la misma cola que cambiar (los toques rápidos no se pisan). */

@@ -425,3 +425,9 @@ está en `datos/albumes-artista.json`, así que se refresca cada lunes como los 
   cursor y luego vuelve a la biblioteca. Pasar hoja directamente: **Av Pág / Re Pág** o **Mayús + ← →**. Con el álbum cerrado, → lo abre.
   Tocar una carta con el ratón no muestra el cursor, pero la siguiente flecha sigue desde esa carta.
 - Pruebas: `pruebas/teclado.test.mjs` (funciones puras) y `pruebas/ejecutar-teclado.mjs` (Chromium: toque en iPhone y recorrido con flechas).
+
+## 3.28 — Flechas con la ficha abierta · brillo de las cartas de una sola variante
+- Con la ficha abierta, las flechas pasan a la carta vecina sin cerrarla (`Controlador.cambiarA`); en el borde lateral se gira la hoja y
+  se abre la ficha de la carta de entrada. Con la carta ampliada las flechas no hacen nada.
+- Si una carta solo existe en una variante (los Pikachu del 30.º aniversario son solo holo), las copias sin clasificar —por ejemplo las de
+  «Añadir todas»— se ven con esa variante y brillan. Es solo cómo se pintan: los datos guardados no cambian.

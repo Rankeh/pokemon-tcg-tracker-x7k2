@@ -98,7 +98,19 @@ const tecla = async (pag, k, n = 1) => { for (let i = 0; i < n; i++) { await pag
   const id = await pag.evaluate((n) => window.__album3d.adaptador.bolsillo(n).carta.id, e.foco);
   await tecla(pag, 'Enter'); e = await estado(pag);
   ok(e.ficha && !e.aro && await pag.evaluate(() => window.__album3d.resaltado.malla.visible) && (await pag.textContent('#ficha')).includes('Pikachu'), `Intro abre la ficha de la carta del cursor (${id})`);
-  await tecla(pag, 'ArrowRight'); ok((await estado(pag)).ficha, 'con la ficha abierta las flechas no mueven nada');
+  // 3.28 · con la ficha abierta, las flechas pasan a la carta vecina sin cerrarla
+  const nombreFicha = () => pag.evaluate(() => window.__album3d.ctrl.seleccion?.nombre);
+  const f0 = await nombreFicha(); await tecla(pag, 'ArrowLeft'); const f1 = await nombreFicha();
+  ok((await estado(pag)).ficha && f1 && f1 !== f0 && (await centro(pag, f1)).x < (await centro(pag, f0)).x, `ficha abierta: ← pasa a la carta de la izquierda (${f0} → ${f1})`);
+  ok(await pag.evaluate((n) => window.__album3d.resaltado.nodo?.name === n, f1), 'el aro de selección sigue a la carta nueva');
+  const titulo = await pag.textContent('#f-num'); await tecla(pag, 'ArrowRight');
+  ok(await nombreFicha() === f0 && (await pag.textContent('#f-num')) !== titulo, `→ vuelve a la anterior y la ficha cambia de datos (${titulo.trim()} → ${(await pag.textContent('#f-num')).trim()})`);
+  await tecla(pag, 'ArrowUp', 3); const fArriba = await nombreFicha(); ok((await estado(pag)).ficha, '↑ en el borde: la ficha sigue abierta');
+  await tecla(pag, 'ArrowRight'); await quieto(pag); await dormir(400); await quieto(pag); e = await estado(pag);
+  const fx = await nombreFicha();
+  ok(e.ficha && e.v === 2 && /^Hoja_0_D_/.test(fx || ''), `ficha abierta en el borde derecho: gira la hoja y abre la ficha de la primera carta de la fila (${fx}, ${e.etq})`);
+  await tecla(pag, 'ArrowLeft'); await quieto(pag); await dormir(400); await quieto(pag); e = await estado(pag);
+  ok(e.ficha && e.v === 1 && (await nombreFicha()) === fArriba, `← vuelve a la página 1, a la misma carta, con la ficha abierta (${await nombreFicha()})`);
   await tecla(pag, 'Escape'); e = await estado(pag);
   ok(!e.ficha && e.visible && e.aro && /prueba-3d/.test(pag.url()), 'Esc cierra la ficha y el cursor sigue en la carta');
   // Av Pág / Re Pág y Mayús+flecha giran la hoja como antes; el cursor que se queda fuera de la vista desaparece

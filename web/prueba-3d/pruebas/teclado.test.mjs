@@ -47,3 +47,29 @@ test('rayoCaja: el rayo de la cámara toca la tapa cerrada; fuera de ella, no (c
   assert.ok(rayoCaja(o, hacia([0.125, 0.035, 0]), tapa, 0.01) > 0, 'el margen amplía la zona');
   assert.equal(rayoCaja(o, [0, 1, 0], tapa), null, 'mirando hacia otro lado');
 });
+
+test('3.28 · Controlador.cambiarA: con la ficha abierta pasa a otra carta sin cerrarla ni esperar; nunca sin ficha, a un hueco ni durante un giro', async () => {
+  const { Controlador } = await import('../js/controlador.js');
+  const abiertas = [], estado = { animando: false };
+  const c = new Controlador({ adaptador: { puedeEditar: (n) => n !== 'hueco', fichaDe: (n) => ({ id: 'id-' + n }) }, estado, vista: {}, ficha: { abrir: (d) => abiertas.push(d.id), cerrar() {} } });
+  assert.equal(c.cambiarA('b'), false, 'sin ficha abierta no hace nada');
+  assert.ok(c.seleccionar('a')); assert.ok(c.cambiarA('b')); assert.deepEqual(c.seleccion, { nombre: 'b', id: 'id-b' });
+  assert.equal(c.cambiarA('hueco'), false); assert.equal(c.cambiarA('b'), false, 'misma carta');
+  estado.animando = true; assert.equal(c.cambiarA('a'), false, 'durante un giro no'); estado.animando = false;
+  assert.deepEqual(abiertas, ['id-a', 'id-b']);
+});
+
+test('3.28 · brillo: si la carta solo existe en una variante (holo), las copias sin clasificar se ven con esa variante', async () => {
+  const { AdaptadorColeccion, crearMapa } = await import('../js/adaptador-coleccion.js');
+  const cartas = [
+    { id: 'p1', nombre: 'Pikachu', numero: '023', dexId: [25], categoriaColeccion: 'otra', variantes: [{ id: 'holo', nombre: 'Holo' }] },
+    { id: 'p2', nombre: 'Pikachu', numero: '024', dexId: [25], categoriaColeccion: 'otra', variantes: [{ id: 'normal', nombre: 'Normal' }, { id: 'reverse', nombre: 'Reverse' }] },
+    { id: 'p3', nombre: 'Pikachu', numero: '025', dexId: [25], categoriaColeccion: 'otra', variantes: [{ id: 'holo', nombre: 'Holo' }] },
+  ];
+  const filas = { p1: 1, p2: 1, p3: 0 };
+  const modelo = { cargar: async () => {}, cantidad: (id) => filas[id] || 0, registro: (id) => ({ cantidad: filas[id] || 0, variantes: {}, mostrar: null }) };
+  const a = new AdaptadorColeccion(crearMapa({ cartas }), modelo);
+  assert.equal(a.acabado('p1'), 'holo', 'solo holo: la copia sin clasificar brilla como holo');
+  assert.equal(a.acabado('p2'), null, 'normal o reverse: sin clasificar no se adivina');
+  assert.equal(a.acabado('p3'), null, 'sin copias, sin brillo');
+});

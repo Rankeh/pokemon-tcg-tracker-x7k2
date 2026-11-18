@@ -23,6 +23,17 @@ export class Controlador {
     return true;
   }
 
+  /** 3.28 · Con la ficha abierta, pasa a otra carta (flechas del teclado) sin cerrar ni esperar el enfriamiento. */
+  cambiarA(nombre) {
+    if (!this.seleccion || nombre === this.seleccion.nombre) return false;
+    if (this.estado.animando || this.vista.animandoTurno?.()) return false;
+    if (!this.adaptador.puedeEditar(nombre)) return false;
+    const datos = this.adaptador.fichaDe(nombre);
+    this.seleccion = { nombre, id: datos.id };
+    this.ficha.abrir(datos);
+    return true;
+  }
+
   /** Añade (+1) o retira (-1) una copia de la carta abierta. Cada llamada se encadena en la cola del adaptador: los toques rápidos no se pisan. */
   async cambiar(delta) {
     const sel = this.seleccion;

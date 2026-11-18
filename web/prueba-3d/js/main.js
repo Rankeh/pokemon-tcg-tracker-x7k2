@@ -25,7 +25,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.27';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.28';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -276,7 +276,13 @@ botones.informe.onclick = async () => {
   catch { $('informe').hidden = false; $('informe').value = txt; $('informe').select(); }
 };
 addEventListener('keydown', (e) => {
-  if (ctrl?.fichaAbierta) { if (e.key === 'Escape') cerrarFicha(); return; }
+  if (ctrl?.fichaAbierta) {
+    if (e.key === 'Escape') { cerrarFicha(); return; }
+    // 3.28 · con la ficha abierta las flechas pasan a la carta vecina (no con la carta ampliada ni dentro de un campo)
+    const d = { ArrowRight: 'der', ArrowLeft: 'izq', ArrowUp: 'arriba', ArrowDown: 'abajo' }[e.key];
+    if (d && !ficha?.zoom && !e.altKey && !e.ctrlKey && !e.metaKey && !e.target.closest?.('select, input, textarea')) { e.preventDefault(); moverEnFicha(d); }
+    return;
+  }
   // 3.19 · Esc por capas: ficha → menú ⋯ → ventana de confirmación → (nada abierto) vuelve a la biblioteca
   if (e.key === 'Escape') {
     if (e.defaultPrevented || document.querySelector('dialog[open]') || !$('menu-album').hidden || e.target.closest?.('select, input, textarea')) return;
@@ -333,11 +339,35 @@ function moverFoco(dir) {
   dir === 'der' ? siguiente() : anterior();
   if (album.estado.objetivo + lado !== antes) { foco.pendiente = { dir, z: actual.z }; cursor.ocultar(); }
 }
+/** 3.28 · Flechas con la ficha abierta: la ficha pasa a la carta vecina; en el borde lateral se cierra, se gira la hoja y se abre la de entrada. */
+function moverEnFicha(dir) {
+  if (!album || album.estado.animando || foco.pendiente) return;
+  const vis = cartasVisibles(), actual = vis.find((c) => c.nombre === ctrl.seleccion.nombre);
+  if (!actual) return;
+  foco.visible = true;                                            // al cerrar la ficha, el cursor queda en la última carta vista
+  const v = cartaVecina(actual, vis, dir);
+  if (v) {
+    if (ctrl.cambiarA(v.nombre)) { foco.nombre = v.nombre; resaltado.mostrar(album.nodo.get(v.nombre)); actualizarUi(); pedirFrame(); }   // la cámara la reencuadra el bucle (huella «sel:<carta>»)
+    return;
+  }
+  if (dir === 'arriba' || dir === 'abajo') return;
+  const antes = album.estado.objetivo + lado;
+  ctrl.cerrar(); ctrl.ultimoCierre = -Infinity; resaltado.ocultar(true); cursor.ocultar(true);
+  dir === 'der' ? siguiente() : anterior();
+  if (album.estado.objetivo + lado !== antes) foco.pendiente = { dir, z: actual.z, ficha: true };
+  else abrirFicha(actual.nombre, true);                           // última página: la ficha sigue en la misma carta
+  claveCamara = huellaCamara(); aplicarCamara(true); actualizarUi(); pedirFrame();
+}
+
 /** En cada frame (barato: como mucho 18 bolsillos): coloca el cursor tras un giro y lo quita si su carta ya no está a la vista. */
 function revisarFoco() {
   if (!album || album.estado.animando || (!foco.visible && !foco.pendiente)) return;
   const vis = cartasVisibles();
-  if (foco.pendiente) { const c = cartaDeEntrada(vis, foco.pendiente.dir, foco.pendiente.z); foco.pendiente = null; if (c) mostrarFoco(c.nombre); else ocultarFoco(); return; }
+  if (foco.pendiente) {
+    const p = foco.pendiente, c = cartaDeEntrada(vis, p.dir, p.z); foco.pendiente = null;
+    if (!c) ocultarFoco(); else if (p.ficha) abrirFicha(c.nombre, true); else mostrarFoco(c.nombre);
+    return;
+  }
   if (!vis.some((c) => c.nombre === foco.nombre)) ocultarFoco();  // se pasó la hoja con los botones, el gesto o el selector
 }
 
