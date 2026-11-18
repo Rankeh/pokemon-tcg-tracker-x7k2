@@ -62,6 +62,31 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
     g.setAttribute('color', new THREE.Float32BufferAttribute(c, 3));
     return g;
   }
+  /** 3.20b · Lomo de libro encuadernado: superficie que abomba en TODO el ancho (perfil semielíptico), no una caja con los cantos
+   *  redondeados (en el álbum grueso eso dejaba una cara plana enorme). La superficie lleva el diseño del lomo (u a lo ancho, v a lo alto);
+   *  detrás, un relleno de tela y tapas arriba y abajo. Abombado proporcional al grosor, como en el visor. */
+  function lomoCurvo(T) {
+    const N = 24, H = LIBRO.alto, b = Math.min(0.009, T * 0.24), z0 = LIBRO.fondo / 2 - b;
+    const perfil = (u) => ({ x: (u - 0.5) * T, z: z0 + b * Math.sqrt(Math.max(0, 1 - (2 * u - 1) ** 2)) });
+    const pos = [], uv = [], idx = [];
+    for (let i = 0; i <= N; i++) { const u = i / N, p = perfil(u); for (const v of [0, 1]) { pos.push(p.x, (v - 0.5) * H, p.z); uv.push(u, v); } }
+    for (let i = 0; i < N; i++) { const a = i * 2, c = a + 2; idx.push(a, c, a + 1, c, c + 1, a + 1); }
+    const cara = new THREE.BufferGeometry();
+    cara.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); cara.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); cara.setIndex(idx); cara.computeVertexNormals();
+    const tapa = (y) => {                                            // tapa superior/inferior del abombado: abanico de triángulos, por las dos caras
+      const pz = [0, y, z0], t = [];
+      for (let i = 0; i <= N; i++) { const p = perfil(i / N); pz.push(p.x, y, p.z); }
+      for (let i = 1; i <= N; i++) t.push(0, i, i + 1, 0, i + 1, i);
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pz, 3)); g.setIndex(t);
+      const n = new Float32Array(pz.length); for (let k = 1; k < n.length; k += 3) n[k] = Math.sign(y);
+      g.setAttribute('normal', new THREE.Float32BufferAttribute(n, 3));
+      return conColor(g);
+    };
+    const fondoLomo = LIBRO.fondo / 2 - ANATOMIA.lomo - 0.002, relleno = new THREE.BoxGeometry(T, H, z0 - fondoLomo);
+    relleno.translate(0, 0, (z0 + fondoLomo) / 2);
+    return { lomoCara: r(cara), lomoRelleno: r(conColor(relleno)), lomoTapaArriba: r(tapa(H / 2)), lomoTapaAbajo: r(tapa(-H / 2)) };
+  }
+  const conColor = (g, k = 1) => { g.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 3).fill(k), 3)); return g; };
   const geos = new Map();                            // geometrías compartidas por grosor (álbumes con el mismo nº de hojas)
   function geometrias(T) {
     if (geos.has(T)) return geos.get(T);
@@ -71,7 +96,7 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
       banda: r(cantos(losa(A.banda[1] - A.banda[0], A.altoPieza, A.radioBanda, A.radioBanda, 0.0014, 0.0006))),
       panel: r(cantos(losa(A.panel[1] - A.panel[0], A.altoPieza, A.radioPanel, A.radioPanel, 0.0010, 0.0004))),
       hojas: r(new RoundedBoxGeometry(Math.max(0.002, T - 2 * gt), A.altoHoja, A.anchoHoja, 2, 0.001)),
-      lomo: r(cantos(new RoundedBoxGeometry(T, LIBRO.alto, A.lomo + 0.004, 4, Math.min(T / 2, 0.0045)), 'x')),
+      ...lomoCurvo(T),
     };
     geos.set(T, g); return g;
   }
@@ -129,7 +154,8 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
     add(G.tapa, matTela, -T / 2 + gt / 2, zTapa, 'Contratapa');
     const hojas = new THREE.Mesh(G.hojas, matHojas); hojas.position.set(0, 0, zLomoInt - A.anchoHoja / 2); g.add(hojas);
     const d = materialesEditorial(album, T);
-    const lomo = new THREE.Mesh(G.lomo, [matTela, matTela, matTela, matTela, d.lomo, matTela]); lomo.position.z = LIBRO.fondo / 2 - (A.lomo + 0.004) / 2; lomo.name = 'Lomo'; g.add(lomo);
+    const lomo = new THREE.Mesh(G.lomoCara, d.lomo); lomo.name = 'Lomo'; g.add(lomo);
+    for (const geo of [G.lomoRelleno, G.lomoTapaArriba, G.lomoTapaAbajo]) g.add(new THREE.Mesh(geo, matTela));
     // banda y panel en relieve (tela) sobre la tapa delantera, y encima la lámina impresa con su margen
     const xFrente = T / 2, zDe = (x0, x1) => zLomoInt - (x0 + x1) / 2;
     add(G.banda, matTela, xFrente + 0.0006, zDe(...A.banda), 'Banda');
