@@ -120,3 +120,17 @@ test('actualización automática: configuración de artistas coherente con el re
   const wf = await readFile(new URL('.github/workflows/actualizar-artistas.yml', raiz), 'utf8');
   assert.ok(/schedule:/.test(wf) && /workflow_dispatch:/.test(wf) && /actualizar\.py/.test(wf) && /contents: write/.test(wf));
 });
+
+import { ANATOMIA, hojasPara, grosorAlbum } from '../js/disposicion.js';
+test('3.20 · grosor real de cada álbum = el de su modelo 3D (2 tapas + hojas); el carrusel no solapa lomos de grosores distintos', () => {
+  assert.equal(hojasPara(158), 9); assert.equal(hojasPara(37), 3); assert.equal(hojasPara(19), 2);
+  assert.ok(Math.abs(grosorAlbum(158) - 0.0435) < 1e-9, 'Teselia: 43,5 mm como el lomo de album.glb');
+  assert.ok(grosorAlbum(19) < grosorAlbum(37) && grosorAlbum(37) < grosorAlbum(158));
+  const g = [grosorAlbum(158), grosorAlbum(37), grosorAlbum(19), LIBRO.grueso];
+  for (let s = 0; s < 4; s++) {
+    const p = poses(4, s, g), lados = p.map((q, i) => ({ i, x0: q.x - g[i] / 2, x1: q.x + g[i] / 2 })).filter((o) => o.i !== s).sort((a, b) => a.x0 - b.x0);
+    for (let k = 1; k < lados.length; k++) assert.ok(lados[k].x0 >= lados[k - 1].x1 - 1e-12, `sel ${s}: lomos ${lados[k - 1].i} y ${lados[k].i} se solapan`);
+    for (const o of lados) assert.ok(Math.min(Math.abs(o.x0), Math.abs(o.x1)) >= LIBRO.fondo / 2 + CARRUSEL.aire - 1e-12, 'ninguno pisa la portada abierta');
+  }
+  assert.ok(ANATOMIA.anchoTapa + ANATOMIA.lomo === LIBRO.fondo);
+});

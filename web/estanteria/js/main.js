@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { elegirCalidad, generarEntorno } from '../../prueba-3d/js/aspecto.js';
 import { listarAlbumes, conCifras } from './albumes.js';
-import { LIBRO } from './disposicion.js';
+import { LIBRO, grosorAlbum } from './disposicion.js';
 import { poses, mover, elementos, series, altoVisible, CARRUSEL } from './carrusel.js';
 import { crearFabricaLibros } from './libros.js';
 
@@ -58,7 +58,10 @@ function construir() {
   items = elementos(albumes, filtro);
   objetos = items.map((it) => {
     let o = cache.get(it.id);
-    if (!o) { o = { grupo: it.tipo === 'album' ? libros.crearAlbum(it.album) : libros.crearNuevo(), sombra: libros.sombra(), primera: true }; cache.set(it.id, o); }
+    if (!o) {
+      const grueso = it.tipo === 'album' ? grosorAlbum(it.album.cartas) : LIBRO.grueso;     // 3.20: el grosor real del álbum 3D
+      o = { grupo: it.tipo === 'album' ? libros.crearAlbum(it.album, grueso) : libros.crearNuevo(), sombra: libros.sombra(), primera: true, grueso }; cache.set(it.id, o);
+    }
     o.item = it; fila.add(o.grupo, o.sombra);
     return o;
   });
@@ -70,7 +73,7 @@ function construir() {
 
 /** Lleva cada libro a su pose (con animación salvo `ya`). */
 function colocar(ya = false) {
-  const p = poses(items.length, sel);
+  const p = poses(items.length, sel, objetos.map((o) => o.grueso));
   objetos.forEach((o, i) => { o.meta = p[i]; if (ya || o.primera || reducir.matches) { aplicar(o, 1); o.primera = false; } });
   pedirFrame();
 }
@@ -81,7 +84,7 @@ function aplicar(o, k) {
   // la sombra se queda en el suelo y cambia de forma al girar (lomo estrecho ↔ portada ancha)
   const t = Math.min(1, Math.abs(g.rotation.y) / (Math.PI / 2));
   o.sombra.position.set(g.position.x, 0.0005, g.position.z);
-  o.sombra.scale.set(LIBRO.grueso * 2.1 * (1 - t) + LIBRO.fondo * 1.12 * t, LIBRO.fondo * 1.12 * (1 - t) + LIBRO.grueso * 2.4 * t, 1);
+  o.sombra.scale.set(o.grueso * 2.1 * (1 - t) + LIBRO.fondo * 1.12 * t, LIBRO.fondo * 1.12 * (1 - t) + o.grueso * 2.4 * t, 1);
   return Math.abs(m.x - g.position.x) + Math.abs(m.y + lev - g.position.y) + Math.abs(m.z - g.position.z) + Math.abs(m.giro - g.rotation.y);
 }
 

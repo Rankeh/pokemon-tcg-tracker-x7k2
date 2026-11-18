@@ -32,3 +32,9 @@ Las copias se guardan por id de carta en la misma base de datos: una carta que e
 `python herramientas/texturas/descargar_cartas.py --catalogo datos/catalogo/coleccion-asako-ito.json`. 37 cartas físicas según TCGdex
 (coincidencia exacta del nombre); se excluyen 6 de Pokémon TCG Pocket (digital) — `--incluir-pocket` las añadiría. Altaria GG19 no tiene imagen
 en TCGdex: se usa la de limitlesstcg.com (ver web/prueba-3d/LEEME.md, 3.15).
+
+## 3.20 — Los álbumes de la biblioteca son el álbum del visor
+Cada libro se construye con la anatomía y los materiales del álbum 3D (tema editorial): tapas de tela negra en sarga (acabado `editorial`,
+mismos mapas de relieve y rugosidad, brillo de tela en calidad alta y cantos más claros), esquinas de 16 mm por fuera, banda y panel en relieve
+con la lámina impresa (mismo dibujo y material que la tapa del visor), bloque de hojas grafito y lomo redondeado con su diseño. El grosor es el
+real del modelo de cada álbum (2 tapas + hojas: Teselia 43,5 mm, Asako Ito 22,5 mm, osare 19 mm) y el carrusel separa los lomos según ese grosor.

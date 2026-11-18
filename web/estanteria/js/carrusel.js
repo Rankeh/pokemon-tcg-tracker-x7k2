@@ -13,14 +13,16 @@ export const CARRUSEL = {
  * PURO · pose de cada elemento para la selección `sel` (índice). Devuelve [{ x, y, z, giro }] (giro en radianes alrededor de Y:
  * 0 = lomo a la cámara, −π/2 = portada a la cámara). La selección siempre queda en x = 0: lo que se mueve es la fila.
  */
-export function poses(n, sel) {
-  const s = Math.max(0, Math.min(n - 1, sel)), paso = LIBRO.grueso + CARRUSEL.hueco;
-  const borde = LIBRO.fondo / 2 + CARRUSEL.aire + LIBRO.grueso / 2;
-  return Array.from({ length: n }, (_, i) => {
-    if (i === s) return { x: 0, y: LIBRO.alto / 2 + CARRUSEL.levante, z: CARRUSEL.salida, giro: -Math.PI / 2 };
-    const k = Math.abs(i - s) - 1, lado = Math.sign(i - s);
-    return { x: lado * (borde + k * paso), y: LIBRO.alto / 2, z: 0, giro: 0 };
-  });
+export function poses(n, sel, gruesos = []) {
+  const s = Math.max(0, Math.min(n - 1, sel)), g = (i) => gruesos[i] ?? LIBRO.grueso;   // 3.20: cada álbum con su grosor real
+  const x = new Array(n).fill(0);
+  for (const lado of [-1, 1]) {
+    let cursor = LIBRO.fondo / 2 + CARRUSEL.aire;                // borde exterior de la portada abierta
+    for (let i = s + lado; i >= 0 && i < n; i += lado) { x[i] = lado * (cursor + g(i) / 2); cursor += g(i) + CARRUSEL.hueco; }
+  }
+  return Array.from({ length: n }, (_, i) => (i === s
+    ? { x: 0, y: LIBRO.alto / 2 + CARRUSEL.levante, z: CARRUSEL.salida, giro: -Math.PI / 2 }
+    : { x: x[i], y: LIBRO.alto / 2, z: 0, giro: 0 }));
 }
 
 /** PURO · índice válido tras moverse `delta` posiciones (sin dar la vuelta: al final se queda en el extremo). */

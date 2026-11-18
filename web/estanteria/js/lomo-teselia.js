@@ -12,7 +12,7 @@ export const COLORES = { tejido: '#161616', papel: '#f2f2f2' };     // tela negr
 const lienzo = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 
 /** PURO · tamaño del lienzo del lomo para `ancho` px (misma proporción que el lomo real). */
-export const tamLomo = (ancho = 160) => ({ w: ancho, h: Math.round(ancho * LIBRO.alto / LIBRO.grueso) });
+export const tamLomo = (ancho = 160, grueso = LIBRO.grueso) => ({ w: ancho, h: Math.round(ancho * LIBRO.alto / grueso) });
 
 /** Ejecuta `fn(ctx, estilo)` en las tres capas; `estilo` = { color, alto, mr } (cualquiera puede omitirse). */
 function capas(L, fn, estilo) {
@@ -42,8 +42,8 @@ function textoVertical(ctx, texto, cx, cy, tam, espacio, fuente, largo = Infinit
 /** Datos del lomo de Teselia (por defecto). Cada álbum trae los suyos en el registro (albumes.js → lomo). */
 export const LOMO_TESELIA = { titulo: 'TESELIA', subtitulo: 'LLAMA BLANCA · FULGOR NEGRO', codigo: 'SV10.5', cifra: '158', marca: 'teselia' };
 
-export function dibujarLomoEditorial(ancho = 160, d = LOMO_TESELIA) {
-  const { w, h } = tamLomo(ancho);
+export function dibujarLomoEditorial(ancho = 160, d = LOMO_TESELIA, grueso = LIBRO.grueso) {
+  const { w, h } = tamLomo(ancho, grueso);
   const C = { color: lienzo(w, h), alto: lienzo(w, h), mr: lienzo(w, h) };
   const L = { color: C.color.getContext('2d'), alto: C.alto.getContext('2d'), mr: C.mr.getContext('2d') };
   const g = L.color.createLinearGradient(0, 0, 0, h);
