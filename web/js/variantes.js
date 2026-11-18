@@ -8,7 +8,6 @@ import { sumarCopias, esCantidadValida } from "./coleccion.js";
 /** Orden por defecto para elegir qué variante se ve en el álbum cuando no se ha elegido ninguna: la más vistosa primero. */
 export const PRIORIDAD = ["holo", "reverse", "normal"];
 export const NOMBRES = { normal: "Normal", holo: "Holo", reverse: "Reverse holo", firstEdition: "1.ª edición", wPromo: "Sello W" };
-export const nombreVariante = (v) => NOMBRES[v] || v;
 
 export const varianteValida = (v) => typeof v === "string" && /^[A-Za-z0-9-]{1,32}$/.test(v);
 const suma = (vs) => Object.values(vs).reduce((s, n) => s + n, 0);

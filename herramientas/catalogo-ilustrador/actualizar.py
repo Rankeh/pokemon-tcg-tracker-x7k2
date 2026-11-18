@@ -2,7 +2,7 @@
 descarga las imágenes que falten y, si el álbum necesita más hojas, genera su modelo 3D (web/prueba-3d/modelo/album-<n>h.glb).
 La colección de nadie se toca: las cartas nuevas aparecen como pendientes. Lo ejecuta cada semana .github/workflows/actualizar-artistas.yml.
 Uso (en la raíz del repo, con acceso a api.tcgdex.net y assets.tcgdex.net):  python herramientas/catalogo-ilustrador/actualizar.py"""
-import json, math, os, pathlib, shutil, subprocess, sys, tempfile
+import json, math, os, pathlib, subprocess, sys
 
 RAIZ = pathlib.Path(__file__).resolve().parents[2]
 POR_PAGINA = 9                                          # web/js/album/distribucion.js
@@ -26,9 +26,7 @@ def main():
         hojas = math.ceil(math.ceil(len(despues) / POR_PAGINA) / 2)
         modelo = RAIZ / 'web/prueba-3d/modelo' / ('album.glb' if hojas == 9 else 'album-%dh.glb' % hojas)
         if not modelo.exists():                         # el álbum ha crecido: un modelo con más hojas (Python puro, sin Blender)
-            with tempfile.TemporaryDirectory() as tmp:
-                subprocess.run([sys.executable, 'blender/exportar_glb.py', '--hojas', str(hojas), '--salida', tmp], cwd=RAIZ, check=True)
-                shutil.copy(pathlib.Path(tmp) / 'modelo' / 'album.glb', modelo)
+            subprocess.run([sys.executable, 'blender/exportar_glb.py', '--hojas', str(hojas)], cwd=RAIZ, check=True)
         linea = '%s: %d cartas (%d nuevas%s), modelo %s' % (a['ilustrador'], len(despues), len(nuevas), ', %d retiradas' % len(retiradas) if retiradas else '', modelo.name)
         print(linea, nuevas or '')
         resumen.append('- ' + linea + (': ' + ', '.join(nuevas) if nuevas else ''))

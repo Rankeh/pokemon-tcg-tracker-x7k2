@@ -1,5 +1,5 @@
 // Productores de texturas de Three.js para la caché: imagen local optimizada (mini), marcador de «sin imagen» y etiqueta de «pendiente».
-// Las imágenes salen de assets/cartas/ (las genera herramientas/texturas/PrepararTexturas.java); nunca se piden a servidores externos.
+// Las imágenes salen de assets/cartas/ (las descarga herramientas/texturas/descargar_cartas.py); nunca se piden a servidores externos.
 import * as THREE from 'three';
 import { dibujarMarcador, dibujarEtiquetaPendiente } from './marcadores.js';
 import { memoriaTexturaBytes } from './logica.js';

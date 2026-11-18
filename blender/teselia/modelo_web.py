@@ -1,9 +1,7 @@
 """
 Fase 3.5 — Modelo del álbum para la web como ÁRBOL DE NODOS PURO (sin Blender, sin Three.js).
 
-Una única fuente de verdad para dos caminos:
-  (a) glb.py            -> escribe album.glb en Python puro (se puede ejecutar y comprobar sin Blender)
-  (b) exportar_glb_blender.py -> reconstruye ESTE mismo árbol en Blender y usa su exportador glTF.
+Una única fuente de verdad: glb.py lo escribe como album.glb / album-<n>h.glb en Python puro (blender/exportar_glb.py).
 
 Convención de coordenadas: las de glTF/Three.js (Y arriba, +Z hacia quien mira, metros).
   - El álbum está tumbado sobre la mesa (plano XZ); el eje del lomo corre a lo largo de Z, en x = 0.
@@ -124,19 +122,6 @@ def lamina_xz(poligono, y, hacia_arriba, material, uv=None):
     ids = [m.vertice((x, y, z), n, f(x, z)) for x, z in poligono]
     for i in range(len(ids)):
         m.triangulo(c, ids[i], ids[(i + 1) % len(ids)], n)
-    return m
-
-
-def tiras_u(cx, cz, ancho, alto, grosor, y, hacia_arriba, material):
-    """Soldadura en U abierta por arriba (borde z-): dos laterales y la base, como tiras planas."""
-    m = Malla(material)
-    n = (0, 1, 0) if hacia_arriba else (0, -1, 0)
-    x0, x1, z0, z1 = cx - ancho / 2, cx + ancho / 2, cz - alto / 2, cz + alto / 2
-    rects = [(x0 - grosor, z0, x0, z1 + grosor), (x1, z0, x1 + grosor, z1 + grosor), (x0 - grosor, z1, x1 + grosor, z1 + grosor)]
-    for a, b, c, d in rects:
-        ids = [m.vertice((px, y, pz), n) for px, pz in ((a, b), (c, b), (c, d), (a, d))]
-        m.triangulo(ids[0], ids[1], ids[2], n)
-        m.triangulo(ids[0], ids[2], ids[3], n)
     return m
 
 

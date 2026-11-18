@@ -1,6 +1,7 @@
-"""
-Fase 3.5 — Genera web/prueba-3d/modelo/album.glb SIN Blender (Python puro): 9 hojas, 162 bolsillos sin cartas (las pone el JS según la colección).
-Uso (desde la raíz del repositorio):  python blender/exportar_glb.py [--hojas 9]
+"""Genera el modelo 3D del álbum (GLB) que usa el visor, en Python puro (sin Blender): tapas, lomo y N hojas con 18 bolsillos vacíos cada una
+(las cartas las pone el visor según la colección). Uso (en la raíz del repo):
+    python blender/exportar_glb.py              → web/prueba-3d/modelo/album.glb      (9 hojas: Teselia, 158 cartas)
+    python blender/exportar_glb.py --hojas 3    → web/prueba-3d/modelo/album-3h.glb   (álbumes más pequeños)
 """
 import argparse
 import json
@@ -14,34 +15,24 @@ sys.path.insert(0, AQUI)
 from teselia import glb, modelo_web  # noqa: E402
 
 
+def nombre_modelo(hojas):
+    """El mismo nombre que busca el visor (web/prueba-3d/js/main.js)."""
+    return "album.glb" if hojas == modelo_web.N_HOJAS_DEFECTO else "album-%dh.glb" % hojas
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--hojas", type=int, default=modelo_web.N_HOJAS_DEFECTO)
-    ap.add_argument("--salida", default=os.path.join(RAIZ, "web", "prueba-3d"))
-    ap.add_argument("--cartas-prueba", action="store_true", help="solo para depurar: hornea cartas de prueba en el GLB y escribe 12 PNG (NO es lo que usa la app real)")
+    ap.add_argument("--salida", default=os.path.join(RAIZ, "web", "prueba-3d", "modelo"))
     a = ap.parse_args()
     cfg = json.load(open(os.path.join(AQUI, "configuracion.json"), encoding="utf-8"))
-    modelo = modelo_web.construir(cfg, a.hojas, relleno=0.72 if a.cartas_prueba else 0.0)
-    os.makedirs(os.path.join(a.salida, "modelo"), exist_ok=True)
+    modelo = modelo_web.construir(cfg, a.hojas)
+    os.makedirs(a.salida, exist_ok=True)
     datos = glb.a_bytes(modelo)
-    ruta = os.path.join(a.salida, "modelo", "album.glb")
-    open(ruta, "wb").write(datos)
-    est = modelo_web.contar(modelo)
-    print("GLB:", ruta, "%.1f KB" % (len(datos) / 1024))
-    print("Estadísticas estáticas:", json.dumps(est, ensure_ascii=False))
-    print("Parámetros:", json.dumps(modelo["parametros"], ensure_ascii=False))
-    json.dump({"modelo": est, "parametros": modelo["parametros"], "bytes_glb": len(datos)},
-              open(os.path.join(a.salida, "modelo", "album.estadisticas.json"), "w", encoding="utf-8"), indent=1, ensure_ascii=False)
-    if a.cartas_prueba:
-        import numpy as np
-        from PIL import Image
-        from teselia import arte
-        os.makedirs(os.path.join(a.salida, "cartas"), exist_ok=True)
-        for i in range(12):
-            img = arte.carta(i, holo=(i % 5 == 4))[::-1]          # arte.carta devuelve de abajo arriba
-            rgb = (np.clip(img[..., :3], 0, 1) * 255 + 0.5).astype(np.uint8)
-            Image.fromarray(rgb).resize((256, 358), Image.LANCZOS).save(os.path.join(a.salida, "cartas", "c%02d.png" % i), optimize=True)
-        print("Cartas de prueba: 12 PNG 256x358 en", os.path.join(a.salida, "cartas"))
+    ruta = os.path.join(a.salida, nombre_modelo(a.hojas))
+    with open(ruta, "wb") as f:
+        f.write(datos)
+    print("GLB:", ruta, "%.1f KB" % (len(datos) / 1024), json.dumps(modelo_web.contar(modelo), ensure_ascii=False))
 
 
 if __name__ == "__main__":

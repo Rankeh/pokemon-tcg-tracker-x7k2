@@ -1,5 +1,5 @@
 // Utilidades de textura de la estantería (Canvas 2D): sombra de contacto y relieve → mapa de normales.
-// Las texturas pintadas (madera, hierba, agua, cielo…) están en web/diorama/pintura.js, compartidas con el álbum.
+// (Las texturas pintadas del tema diorama están en web/diorama/pintura.js.)
 
 const lienzo = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 

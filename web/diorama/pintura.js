@@ -128,14 +128,6 @@ export function texturaCopa(tam = 256, semilla = 13) {
   return c;
 }
 
-/** Madera de juguete (miel) con veta pintada a lo largo. */
-export function texturaMadera(w = 512, h = 512, semilla = 17, oscura = false) {
-  const p = oscura ? PALETA.maderaOscura : PALETA.madera;
-  const c = superficie(w, h, p[0], p, { n: w * 1.4, largo: w * 0.18, grosor: h * 0.012, desvio: 0.03, alfa: [0.25, 0.55], semilla });
-  pinceladas(c.getContext('2d'), { x: 0, y: 0, w, h }, oscura ? ['#5f3a1f'] : ['#9c6234', '#8f5a2f'], { n: w / 4, largo: w * 0.25, grosor: h * 0.004, desvio: 0.02, alfa: [0.25, 0.45], semilla: semilla + 1 });
-  return c;
-}
-
 /**
  * Fondo en arco (como un diorama recortado): cielo pintado con nubes, colinas y árboles lejanos. Fuera del arco, transparente.
  * `suelo` = fracción de abajo que queda tapada por la isla (ahí se pintan las copas lejanas).

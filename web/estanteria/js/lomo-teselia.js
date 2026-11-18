@@ -1,13 +1,11 @@
-// Lomo y tapas del álbum Teselia tal como se ven en la biblioteca (Canvas 2D), dirección editorial: negro mate, sello rojo «TCG», título en
-// grotesca fina. Se generan tres capas a la vez (color, altura → relieve, metal/rugosidad). La tapa delantera reproduce la del álbum 3D
-// (misma portada y banda de portada-tapa.js sobre la misma tela negra).
+// Lomos de la biblioteca (Canvas 2D), dirección editorial: negro mate, sello de la app, título en grotesca fina y marca de la colección.
+// Se generan tres capas a la vez (color, altura → relieve, metal/rugosidad). También el lomo y la portada de «Nuevo álbum».
+// (La portada y la banda de cada álbum son las mismas del visor: web/prueba-3d/js/portada-tapa.js.)
 import { dibujarMarca } from '../../editorial/marca.js';
 import { LIBRO } from './disposicion.js';
-import { dibujarPortada, dibujarBanda } from '../../prueba-3d/js/portada-tapa.js';
 
 const SANS = '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", "Segoe UI", Inter, Roboto, system-ui, sans-serif';
 const ROJO = '#e5432f';                                   // acento editorial (el mismo de la interfaz)
-export const COLORES = { tejido: '#161616', papel: '#f2f2f2' };     // tela negra de las tapas (la del álbum en el tema editorial)
 // metal/rugosidad: G = rugosidad, B = metal (convención de Three para roughnessMap/metalnessMap)
 
 const lienzo = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -92,34 +90,6 @@ export function dibujarLomoEditorial(ancho = 160, d = LOMO_TESELIA, grueso = LIB
   v.addColorStop(0, 'rgba(0,0,0,.45)'); v.addColorStop(0.16, 'rgba(0,0,0,0)'); v.addColorStop(0.84, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.45)');
   L.color.fillStyle = v; L.color.fillRect(0, 0, w, h);
   return C;
-}
-
-/** Tapa delantera (cara +x del libro de pie): tejido azul del álbum con la banda y la lámina de portada en sus sitios reales.
- *  u = 0 junto al lomo; la parte de arriba del lienzo es la parte de arriba del libro. `cartas` = { blanca, negra } (opcional). */
-export function dibujarTapa(cartas = {}, ancho = 512, diseno = undefined) {
-  const W = ancho, H = Math.round(ancho * LIBRO.alto / LIBRO.fondo), c = lienzo(W, H), ctx = c.getContext('2d');
-  const px = (m) => (m / LIBRO.fondo) * W, py = (m) => (m / LIBRO.alto) * H;
-  ctx.fillStyle = COLORES.tejido; ctx.fillRect(0, 0, W, H);
-  ctx.globalAlpha = 0.08;
-  for (let i = -H; i < W; i += 3) { ctx.strokeStyle = i % 6 ? '#000' : '#fff'; ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H, H); ctx.stroke(); }
-  ctx.globalAlpha = 1;
-  // medidas del GLB (en metros, desde el lomo): banda x 12–46 mm, panel x 55–244 mm, ambos ±141 mm en alto; lomo de 10 mm
-  const sub = (x0, x1, m, fn) => {
-    const x = px(0.01 + x0 + m), y = py(0.161 - 0.141 + m), w = px(x1 - x0 - 2 * m), h = py(0.282 - 2 * m);
-    const s = lienzo(Math.round(w), Math.round(h)); fn(s.getContext('2d'), s.width, s.height); ctx.drawImage(s, x, y, w, h);
-  };
-  sub(0.012, 0.046, 0.003, (k, w, h) => dibujarBanda(k, w, h, diseno));
-  sub(0.055, 0.244, 0.004, (k, w, h) => dibujarPortada(k, w, h, cartas, diseno));
-  return c;
-}
-
-/** Cantos de las hojas (arriba, abajo y delante): papel crema con líneas de hoja y las tapas azules en los bordes. u a lo ancho del grosor. */
-export function dibujarCantos(w = 64, h = 256) {
-  const c = lienzo(w, h), ctx = c.getContext('2d'), t = (0.003 / LIBRO.grueso) * w;
-  ctx.fillStyle = '#efe8da'; ctx.fillRect(0, 0, w, h);
-  for (let x = t + 2; x < w - t - 1; x += 2.2) { ctx.fillStyle = `rgba(120,100,80,${0.12 + 0.1 * Math.random()})`; ctx.fillRect(x, 0, 1, h); }
-  ctx.fillStyle = COLORES.tejido; ctx.fillRect(0, 0, t, h); ctx.fillRect(w - t, 0, t, h);
-  return c;
 }
 
 /** Lomo «Nuevo álbum» (editorial): negro mate, contorno fino discontinuo, «+» rojo y el texto en vertical. */

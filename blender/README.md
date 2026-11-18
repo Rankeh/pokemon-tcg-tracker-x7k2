@@ -1,91 +1,23 @@
-# Álbum Teselia — prueba de concepto en Blender (Fase 3.4.2)
+# Modelo 3D del álbum
 
-Escena independiente (no toca la app, la base de datos ni el catálogo). **Estos scripts no se han ejecutado en Blender
-todavía** (mi entorno no lo tiene): lo que sí está comprobado sin Blender es la geometría, el encuadre y que el flujo de
-Python no tiene errores (`python blender/pruebas_sin_blender.py`). El aspecto real del render hay que verlo en tu PC.
+Genera el GLB que usa el visor (`web/prueba-3d/modelo/`) en **Python puro**, sin Blender: tapas, lomo y N hojas con 18 bolsillos vacíos
+cada una (las cartas las coloca el visor según la colección).
 
-## v6 (Fase 3.4.5b): álbum sin anillas con cartas (sistema validado integrado)
-`blender\ejecutar_windows.bat previa escritorio` (álbum completo) y `blender\ejecutar_windows.bat previa detalle` (bolsillo central
-derecho, holográfico). Resultados en `salida\teselia_<vista>_previa.png` + `teselia_poc.blend`.
-Integrado: `hoja_grafito`, `carta_satinada` (+holo), `funda_pelicula` (UNA lámina por página, un reflejo continuo),
-`soldadura_discreta` (en U), texturas guardadas como PNG real en `salida\texturas\`. Bolsillos: derecha 7 cartas (1 holo, centro)
-y 2 vacíos; izquierda 4 cartas (1 holo) y 5 vacíos (`ocupados_*` y `holo_*` en `configuracion.json`).
-Mejoras de cubierta/lomo: azul noche con variación y **realce de aristas** (nodo Bevel), panel de lomo en relieve con costura,
-costura de cubierta crema. Luz: principal cálida + secundaria fría + 2 bordes, autoexposición. Escritorio a f/5,6 (profundidad).
+```bash
+python blender/exportar_glb.py
+```
+```bash
+python blender/exportar_glb.py --hojas 3
+```
+El primero genera `album.glb` (9 hojas, Teselia); con `--hojas n` sale `album-<n>h.glb`, que el visor elige solo según el número de cartas
+del álbum. `herramientas/catalogo-ilustrador/actualizar.py` lo ejecuta cuando un álbum de artista crece.
 
-## v5 (Fase 3.4.5): depuración de la carta ilustrada
-`blender\ejecutar_depuracion_windows.bat [todos|1|2|3]` → tres PNG independientes en `salida\`:
-`depuracion_1_carta_sin_funda.png`, `depuracion_2_carta_con_funda.png`, `depuracion_3_holografica.png`
-(+ `depuracion_paso*.json`, `depuracion_resumen.json`, `registro_depuracion.txt`, `texturas\Arte_*.png`).
-Misma cámara cenital y misma luz blanca neutra en los tres; la exposición se calibra en el paso 1 y se reutiliza.
-Cada paso registra `[verif]`: existencia, visibilidad (hide_render, visible_camera…), slots y nodos del material, enlaces
-(imagen→Base Color), datos de la imagen (fuente, tamaño, estadísticas de píxeles), UV (rango, área con signo), normales
-(orientación a cámara), oclusión (ray_cast desde la cámara) y **correlación textura↔render** sobre una rejilla de 24×34 puntos.
-Criterio: la ilustración es visible solo si correlación ≥0,85 (sin funda) / ≥0,75 (con funda) / ≥0,70 (holo), contraste ≥0,35
-y <5 % de píxeles saturados. Si el paso 2 falla se renderizan `depuracion_2b_*` (funda transparente pura) y `2c_*` (velo
-constante) para aislar si la causa es la geometría o el material de la funda. El paso 3 solo corre si 1 y 2 pasan.
+| Archivo | Qué hace |
+|---|---|
+| `teselia/modelo_web.py` | Árbol de nodos del álbum (tapa, hojas pivote, bolsillos) y sus mallas |
+| `teselia/geometria.py` | Utilidades de geometría (rectángulos redondeados, losas biseladas) |
+| `teselia/glb.py` | Escritor glTF binario |
+| `configuracion.json` | Medidas del álbum |
+| `pruebas_glb.py` | Pruebas: estructura del GLB, normales, UV, separación de piezas y nombres |
 
-## v4 (Fase 3.4.4): prueba de materiales de carta y funda
-Ejecuta `blender\ejecutar_materiales_windows.bat previa` (salida: `salida\materiales_prueba_previa.png`, `.blend` y registro).
-Escena `crear_prueba_materiales.py`: 3 bolsillos en fila — vacío · carta normal · carta holográfica — sobre una hoja negro grafito.
-
-**Por qué las fundas salían como baldosas blancas (diagnóstico):**
-1. *Exposición:* las luces eran ~8–10 veces demasiado fuertes (en Cycles una luz de área de 260 W a ~1,2 m da un píxel
-   ≈7,7 para un papel blanco; el correcto es ≈0,7). Todo saturaba a blanco, incluida la cubierta azul noche.
-2. *Funda con color difuso blanco:* el Principled con alfa 0,07 aún aportaba difuso blanco sobreexpuesto (7,7 × 0,07 ≈ 0,5
-   de blanco puro encima de la carta, que además también saturaba). Ahora la funda es solo Transparent + Glossy.
-3. *Nodo Mix de 4.x:* tiene varios sockets llamados «A»/«B»/«Result» (flotante, vector, color) y `inputs["A"]` devuelve el de
-   flotante; el color de la cubierta no llegaba al shader. Se sustituye por `ShaderNodeMixRGB` (sin ambigüedad).
-
-**Correcciones:** luces calibradas (28/6/12 W) + **autoexposición** (3 renders de 160 px que ajustan el EV hasta una luminancia
-media objetivo; se desactiva con `--exposicion X`); funda = Transparent+Glossy mezclados por una máscara pequeña (velo 3 %,
-dos bandas diagonales suaves, algo de Fresnel), sin transmisión ni refracción; soldadura gris translúcida abierta por arriba;
-carta satinada (rugosidad .40, barniz .10, fibra en relieve); holográfica = banda arcoíris SOFT_LIGHT enmascarada por el alfa
-de la imagen (solo la ilustración), rugosidad .40→.20 y metal .22 localizados.
-
-## v3 (Fase 3.4.3): álbum encuadernado sin anillas
-Modelo nuevo (se ha eliminado todo lo metálico): cubiertas acolchadas azul noche con canto redondeado y costura, **lomo
-continuo** redondeado y hojas **unidas al lomo**: cada hoja es una rejilla que desciende hacia el lomo (curvatura de la
-encuadernación) y su borde interior queda hundido en él. 8 hojas a la derecha y 6 a la izquierda (cantos visibles), una hoja
-visible por lado con 9 bolsillos. Cada bolsillo = hoja → marco de termosellado fino → carta (0,4 mm) → lámina de funda de
-una sola cara con alfa bajo y un único reflejo diagonal suave (sin Glossy ni refracción). Escena neutra: solo un suelo.
-Piezas independientes y con pivote en el eje del lomo (hojas), padres para bolsillos/costuras: preparado para animar.
-Luces: principal cálida grande, secundaria fría tenue, dos luces de borde alargadas (cálida/fría) y fondo neutro.
-
-Vistas: `escritorio` (álbum abierto, 16:9), `movil` (una página) y `detalle` (un bolsillo en primer plano):
-`blender\ejecutar_windows.bat previa detalle` · `blender\ejecutar_windows.bat final escritorio`.
-`python blender/previsualizar_sin_blender.py [escritorio|movil|detalle]` = vista geométrica (NO materiales ni luz).
-
-## Qué construía la v1/v2 (obsoleto)
-Archivador **abierto** sobre un atril de madera (inclinado 28°), en un escritorio de madera con pared al fondo:
-cubiertas con grosor y bisel + costura, lomo, 3 anillas metálicas con placa, pilas de hojas, una hoja visible por lado con
-9 bolsillos (soldadura + funda transparente), 14 cartas de prueba con diseños propios (9 a la derecha, 5 a la izquierda),
-taza y caja de mazo como props mínimos, luces de fondo desenfocadas (bokeh) y 3 luces (principal cálida, relleno, borde).
-Vista `escritorio`: dos páginas 16:9. Vista `movil`: una página, 1080×2340.
-
-## Cómo ejecutarlo en Windows (Blender 4.2)
-1. Instala Blender 4.2 LTS (gratis, blender.org). Ruta esperada: `C:\Program Files\Blender Foundation\Blender 4.2\blender.exe`.
-2. Doble clic en `blender\ejecutar_windows.bat` (render de **previa**, rápido) o desde una consola:
-   - `blender\ejecutar_windows.bat previa escritorio`
-   - `blender\ejecutar_windows.bat final escritorio`  (1920×1080)
-   - `blender\ejecutar_windows.bat final movil`
-   - Si Blender está en otra ruta: `set BLENDER_EXE="D:\Ruta\blender.exe"` antes.
-3. Resultados en `blender\salida\`: `teselia_<vista>_<modo>.png`, `teselia_poc.blend` (ábrelo para mirar/mover cosas),
-   `camara_<vista>.json` y `registro_<vista>_<modo>.txt` (consola completa).
-4. Compara con la web: abre `web/comparar-render.html` con Live Server (lado a lado o superpuesto).
-
-Equivalente manual: `blender --background --python blender/crear_escena.py -- --modo previa --vista escritorio --guardar-blend`.
-Opciones: `--sin-render`, `--exposicion 0.5` (más claro) / `-0.5` (más oscuro), `--config otro.json`.
-
-## Tiempos orientativos (GTX 1650 4 GB, CUDA) — estimaciones, no medidas
-previa 960×540 / 48 muestras: decenas de segundos · final 1920×1080 / 192: unos minutos · alta 3840×2160 / 384: bastante más.
-La GTX 1650 no tiene núcleos RT, así que se usa CUDA (no OptiX). Si no detecta GPU, usa la CPU (más lento).
-
-## Qué ajustar sin tocar código
-Todo está en `configuracion.json` (medidas en metros, colores, cámara, luces, calidad). Si el render sale oscuro/claro,
-usa `--exposicion`. Si algo falla, el `registro_*.txt` lista los avisos `[teselia] AVISO` (por ejemplo un nombre de
-socket que cambie en tu versión) — pégamelo y lo corrijo.
-
-## Estructura
-`crear_escena.py` (entrada) · `teselia/geometria.py` (pura, probada) · `modelos.py` · `materiales.py` ·
-`luces_camara.py` · `render.py` · `verificar_composicion.py` · `pruebas_sin_blender.py`.
+(La antigua prueba de concepto con escenas renderizadas en Blender se retiró en la 3.23; está en la rama `respaldo-antes-de-limpieza`.)

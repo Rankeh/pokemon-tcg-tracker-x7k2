@@ -1,7 +1,6 @@
-"""Fase 3.5 — Pruebas del modelo web y del GLB (Python puro) + ensayo en seco del exportador de Blender con bpy simulado.
+"""Pruebas del modelo web y del GLB (Python puro): estructura, devanado/normales, UV, separación de piezas y nombres del exportador.
 Uso:  python blender/pruebas_glb.py"""
-import json, math, os, struct, sys
-from unittest import mock
+import json, os, sys
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, AQUI)
@@ -97,21 +96,6 @@ ok(MW.SEP_FUNDA + p["grosor_hoja"] / 2 < MW.PASO - p["grosor_hoja"] / 2 - 0.0005
 ok(MW.ALTO_CARTA < MW.SEP_FUNDA, "la funda queda sobre la carta")
 est = MW.contar(modelo)
 ok(est["triangulos_instanciados"] < 40000, "ligero (3.7.6/7, presupuesto para iPhone): %d triángulos instanciados, %d únicos" % (est["triangulos_instanciados"], est["triangulos_unicos"]))
-
-print("Exportador de Blender (bpy simulado)")
-bpy = mock.MagicMock(name="bpy")
-bpy.data.objects.__iter__.return_value = iter([]); bpy.data.meshes.__iter__.return_value = iter([])
-sys.modules["bpy"] = bpy
-sys.argv = ["blender", "--", "--salida", os.path.join(AQUI, "salida", "_prueba.glb")]
-import runpy
-try:
-    runpy.run_path(os.path.join(AQUI, "exportar_glb_blender.py"), run_name="__main__")
-    ok(bpy.data.objects.new.call_count == len(nodos), "crea un objeto de Blender por nodo (%d)" % bpy.data.objects.new.call_count)
-    ok(bpy.data.meshes.new.call_count == len(modelo["mallas"]), "una malla de Blender por malla compartida")
-    kw = bpy.ops.export_scene.gltf.call_args.kwargs
-    ok(kw["export_format"] == "GLB" and kw["export_yup"] and kw["export_extras"], "llama al exportador glTF con GLB, Y arriba y extras")
-except Exception as ex:
-    import traceback; traceback.print_exc(); ok(False, "exportar_glb_blender.py con bpy simulado: %r" % ex)
 
 print("\n%d pruebas, %d fallos" % (total, len(fallos)))
 sys.exit(1 if fallos else 0)
