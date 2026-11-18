@@ -10,9 +10,8 @@
   <title>Álbum 3D Teselia</title>
   <script src="../editorial/modo.js"></script>
   <link rel="stylesheet" href="../editorial/editorial.css">
-  <link rel="stylesheet" href="../diorama/diorama.css">
   <link rel="stylesheet" href="css/prueba-3d.css">
-  <script>/* tema antes del primer pintado (evita el parpadeo): ?tema=editorial (por defecto) | diorama | claro | acogedor | noche */document.addEventListener('DOMContentLoaded', () => { const q = new URLSearchParams(location.search), t = q.get('tema'); document.body.dataset.tema = t === 'noche' || t === 'acogedor' || t === 'claro' || t === 'diorama' ? t : 'editorial'; if (q.get('vidrio') !== 'pleno') document.body.dataset.vidrio = 'ligero';   /* 3.7.26: ligero por defecto; ?vidrio=pleno recupera el desenfoque */ });</script>
+  <script>/* tema único (editorial), antes del primer pintado: evita el parpadeo */document.addEventListener('DOMContentLoaded', () => { document.body.dataset.tema = 'editorial'; });</script>
 </head>
 <body>
 <main class="app">

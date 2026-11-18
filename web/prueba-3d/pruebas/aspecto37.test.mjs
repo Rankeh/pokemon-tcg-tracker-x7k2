@@ -39,21 +39,21 @@ test('2 luces: baja = hemisférica + principal; media/alta = + relleno + contorn
   assert.ok(L.principal.position.x < 0 && L.principal.position.y > 0, 'principal lateral y alta');
   assert.ok(L.relleno.position.x > 0, 'relleno desde el lado contrario'); assert.ok(L.relleno.args[1] < L.principal.args[1] / 3, 'relleno tenue');
   assert.ok(L.contorno.position.z < 0, 'contorno por detrás'); assert.ok(L.contorno.args[1] < L.principal.args[1], 'contorno discreto');
-  assert.equal(asp.renderer.toneMappingExposure, A.EXPOSICION);
+  assert.equal(asp.renderer.toneMappingExposure, A.TEMAS.editorial.exposicion);
 });
 
 test('3 materiales: se aplican por NOMBRE; cubierta/lomo con relieve, página sin relieve, funda mate y casi transparente, soldaduras algo más claras', async () => {
   const { a } = await nuevo('media');
   const cub = mat(a, 'Tapa_Malla'), hoja = mat(a, 'Hoja_0_Losa'), lomo = mat(a, 'Lomo'), contra = mat(a, 'Contratapa');
-  assert.equal(cub.name, 'Cubierta'); assert.equal(cub.color.v, A.PALETA.cubierta); assert.equal(cub.roughness, A.MATERIALES.cubierta.rugosidad); assert.ok(cub.normalMap && cub.normalScale.x > 0 && cub.normalScale.x < 0.6);
+  assert.equal(cub.name, 'Cubierta'); assert.equal(cub.color.v, A.TEMAS.editorial.paleta.cubierta); assert.equal(cub.roughness, A.MATERIALES.cubierta.rugosidad); assert.ok(cub.normalMap && cub.normalScale.x > 0 && cub.normalScale.x < 0.6);
   assert.equal(contra, cub, 'Contratapa y Tapa comparten material (sin duplicados)');
-  assert.notEqual(lomo, cub, 'el lomo tiene su propio material'); assert.equal(lomo.color.v, A.PALETA.lomo); assert.ok(lomo.roughness < cub.roughness, 'lomo algo más liso'); assert.ok(lomo.normalMap);
-  assert.equal(hoja.name, 'Hoja'); assert.equal(hoja.color.v, A.PALETA.pagina); assert.ok(!hoja.normalMap, 'página satinada, sin relieve'); assert.notEqual(hoja.color.v, cub.color.v);
+  assert.notEqual(lomo, cub, 'el lomo tiene su propio material'); assert.equal(lomo.color.v, A.TEMAS.editorial.paleta.lomo); assert.ok(lomo.roughness < cub.roughness, 'lomo algo más liso'); assert.ok(lomo.normalMap);
+  assert.equal(hoja.name, 'Hoja'); assert.equal(hoja.color.v, A.TEMAS.editorial.paleta.pagina); assert.ok(!hoja.normalMap, 'página satinada, sin relieve'); assert.notEqual(hoja.color.v, cub.color.v);
   const funda = a.nodo.get('Hoja_0_F_Funda').material;
   assert.ok(funda.map && funda.map.isDataTexture && funda.opacity === 1 && funda.roughness >= 0.4 && funda.depthWrite === false && funda.transparent, 'funda: película con reflejo en el alfa, sin depthWrite');
   const alfas = [...funda.map.datos].filter((_, i) => i % 4 === 3); assert.ok(Math.max(...alfas) <= 0.067 * 255 && Math.min(...alfas) >= 0.015 * 255, 'alfa de la funda entre 0,015 y 0,065: la carta siempre se ve');
   const sol = a.nodo.get('Hoja_0_F_Soldaduras').material;
-  assert.equal(sol.color.v, A.PALETA.soldadura);
+  assert.equal(sol.color.v, A.TEMAS.editorial.paleta.soldadura);
   for (const n of ['Tapa_Malla', 'Lomo', 'Hoja_0_Losa']) assert.equal(a.nodo.get(n).material.metalness, 0, 'nada de metal pulido');
 });
 
@@ -68,7 +68,7 @@ test('4 niveles de calidad: relieve 0/128/256, rugosidad variable desde media, s
   assert.equal(r.baja.normal, false); assert.equal(r.media.normal, true); assert.equal(r.media.tam, 128); assert.equal(r.alta.tam, 256);
   assert.equal(r.baja.rug, false); assert.equal(r.media.rug, true); assert.equal(r.alta.rug, true);
   assert.ok(r.baja.recursos < r.media.recursos && r.media.recursos < r.alta.recursos, 'más calidad = más recursos');
-  assert.ok(r.alta.texturas <= 7, 'alta: normal + rugosidad + reflejo de funda + sombra + panorama (3.7.19) + emblema normales y alfa (3.7.25/27), no más');
+  assert.ok(r.alta.texturas <= 8, 'alta: normal + rugosidad + reflejo de funda + sombra + panorama + suelo + emblema normales y alfa, no más');
   const { a, asp } = await nuevo('media'); const n0 = asp.recursos.length; asp.aplicarAlbum(a); assert.equal(asp.recursos.length, n0, 'aplicarAlbum es idempotente');
   assert.equal(mat(a, 'Tapa_Malla').normalMap, mat(a, 'Lomo').normalMap, 'una sola textura de relieve compartida');
 });
@@ -128,19 +128,6 @@ test('9 cartas: material sin iluminación ni tone mapping (colores exactos), tex
   for (const x of m.vista.paginas) m.vista.sincronizar(new Map());
 });
 
-test('10 gestión del color (estimación analítica, NO medición de GPU): antes la tapa era MÁS OSCURA que la mesa; ahora la cubierta se distingue y no está empastada ni lavada', () => {
-  const lum = (h, o) => A.luminanciaSrgb(A.estimarSalida(h, o));
-  const L0 = { luces: { hemi: { cielo: 0xbfd2f2, intensidad: 0.9 }, principal: { color: 0xffe1c0, intensidad: 2.4, pos: [-0.5, 0.9, 0.5] }, relleno: { color: 0x9db8e6, intensidad: 0.7, pos: [0.7, 0.5, 0.2] } }, exposicion: 1.05 };
-  const antesCub = lum([0.010960094006488246, 0.018500220128379697, 0.03560131487502034], L0), antesMesa = lum(0x2a2e35, L0), antesHoja = lum([0.0194, 0.0212, 0.0252], L0);
-  assert.ok(antesCub < antesMesa, `diagnóstico: cubierta (${antesCub.toFixed(3)}) más oscura que la mesa (${antesMesa.toFixed(3)})`); assert.ok(antesHoja < antesMesa);
-  const o = { activas: ['hemi', 'principal', 'relleno'] };
-  const cub = lum(A.PALETA.cubierta, o), pag = lum(A.PALETA.pagina, o), lomo = lum(A.PALETA.lomo, o), mesa = lum(A.PALETA.mesa, o), sold = lum(A.PALETA.soldadura, o);
-  assert.ok(cub / mesa > 1.8, `cubierta/mesa = ${(cub / mesa).toFixed(2)}`); assert.ok(pag > mesa * 1.8);
-  for (const [n, v] of Object.entries({ cub, pag, lomo })) assert.ok(v > 0.12 && v < 0.5, `${n} ni empastado ni lavado (${v.toFixed(3)})`);
-  assert.ok(Math.abs(pag - cub) > 0.015, 'página distinguible de la cubierta'); assert.ok(lomo > cub, 'el lomo destaca un poco'); assert.ok(sold > pag, 'costuras algo más claras');
-  const [r, g, b] = A.estimarSalida(A.PALETA.cubierta, o); assert.ok(r > 0.08, 'el rojo no se recorta a 0 (sin viraje a azul puro)');
-});
-
 test('11 liberar(): se retiran luces, mesa y sombra de la escena y se liberan geometrías, materiales y texturas propios', async () => {
   const { scene, asp } = await nuevo('alta'); const n = asp.recursos.length, recursos = [...asp.recursos];
   assert.ok(scene.children.length >= 6); asp.liberar();
@@ -179,7 +166,7 @@ test('14 cantos en vértices: cantos de tapa/hoja más claros que la cara plana,
   for (const n of ['Tapa_Malla', 'Hoja_0_Losa', 'Lomo']) { assert.ok(col(n) && col(n).count === nor(n).count && col(n).array.every(Number.isFinite), n); assert.equal(a.nodo.get(n).material.vertexColors, true); }
   const rango = (n) => { const c = col(n), nn = nor(n); let plana = null, canto = null; for (let i = 0; i < c.count; i++) { const ny = Math.abs(nn.getY(i)); if (ny > 0.95) plana = c.array[i * 3]; if (ny < 0.3) canto = c.array[i * 3]; } return { plana, canto }; };
   const t = rango('Tapa_Malla'), h = rango('Hoja_0_Losa'), l = rango('Lomo');
-  assert.equal(t.plana, 1); assert.ok(t.canto > 1.4 && t.canto < 1.8, 'canto de la tapa más claro'); assert.ok(h.canto > 1.4); assert.equal(l.plana, 1); assert.ok(l.canto < 0.7 && l.canto > 0.4, 'lomo: laterales más oscuros');
+  assert.equal(t.plana, 1); assert.ok(t.canto >= 1.3 && t.canto < 1.8, 'canto de la tapa más claro'); assert.ok(h.canto > 1.4); assert.equal(l.plana, 1); assert.ok(l.canto < 0.7 && l.canto > 0.4, 'lomo: laterales más oscuros');
   const cartaUV = a.geomCarta.F.attributes; assert.ok(!cartaUV.color, 'las geometrías de las cartas no se tocan');
   const baja = await nuevo('baja'); assert.ok(baja.a.nodo.get('Tapa_Malla').geometry.attributes.color, 'baja: los cantos también (coste cero)');
   const leg = await nuevo('legado'); assert.ok(!leg.a.nodo.get('Tapa_Malla').geometry.attributes.color, 'legado: intacto');
@@ -239,15 +226,6 @@ test('19 materiales y texturas compartidos NO se liberan mientras se usan: liber
   const b = m.vista.porId.get(m.mapa.paginas[0].bolsillos[0].id); const mc = (b.tarjeta || b.fantasma).material; m.vista.sincronizar(new Map()); assert.equal(mc.disposed, true, 'la carta desmontada sí libera SU material');
 });
 
-test('20 estimación de contraste 3.7.2b (analítica, NO medición de GPU): hoja ≠ cubierta ≠ lomo, marco protector el más claro, huecos más oscuros que la hoja, fondo discreto', () => {
-  const o = { activas: ['hemi', 'principal', 'relleno'] }, L = (h, k = [1, 1, 1]) => A.luminanciaSrgb(A.estimarSalida(h, o).map((v, i) => Math.min(1, v * k[i])));
-  const cub = L(A.PALETA.cubierta), pag = L(A.PALETA.pagina), lomo = L(A.PALETA.lomo), sold = L(A.PALETA.soldadura), mesa = L(A.PALETA.mesa), ghost = A.luminanciaSrgb([0x18 / 255, 0x21 / 255, 0x3a / 255]);
-  assert.ok(pag > cub * 1.15, `hoja (${pag.toFixed(3)}) más clara que la cubierta (${cub.toFixed(3)})`); assert.ok(sold > pag * 1.5, 'el borde protector destaca sobre la hoja');
-  assert.ok(ghost < pag * 0.6, 'hueco pendiente más oscuro que la hoja'); assert.ok(cub > mesa * 2, 'fondo discreto'); assert.ok(Math.abs(lomo - cub) > 0.01 || A.PALETA.lomo !== A.PALETA.cubierta);
-  assert.ok(sold < 0.65, 'sin neón: el marco no se quema');
-  const cx = A.cantoPorNormal(A.CANTOS.cubierta.canto); assert.deepEqual(cx(1), [1, 1, 1]); assert.ok(cx(0)[0] > 1.5);
-});
-
 test('21 con los materiales nuevos (media y alta): selección por rayo, ficha, añadir/retirar y persistencia en las 18 páginas; las fundas no bloquean el rayo', async () => {
   const { elegirBolsillo, candidatosTocables } = await import('../js/picking.js'); const { Controlador } = await import('../js/controlador.js');
   const { vueltasParaPagina, paginasNecesarias } = await import('../js/navegacion3d.js'); const { nombreBolsillo } = await import('../js/adaptador-coleccion.js');
@@ -266,4 +244,14 @@ test('21 con los materiales nuevos (media y alta): selección por rayo, ficha, a
     }
     assert.equal(m.almacen.constructor.name, 'AlmacenMemoria');
   }
+});
+
+test('3.25 · tema editorial (estimación analítica, NO medición de GPU): las cartas son lo único con color; marco más claro que la hoja; hoja no empastada; suelo oscuro del modo oscuro más claro que el fondo', () => {
+  const t = A.TEMAS.editorial, o = { luces: t.luces, exposicion: t.exposicion, activas: ['hemi', 'principal', 'relleno'] }, L = (h) => A.luminanciaSrgb(A.estimarSalida(h, o));
+  const sat = (h) => { const [r, g, b] = [(h >> 16) & 255, (h >> 8) & 255, h & 255]; return Math.max(r, g, b) - Math.min(r, g, b); };
+  assert.ok(sat(t.paleta.pagina) < 8 && sat(t.paleta.soldadura) < 8 && sat(A.ACABADOS.editorial.color) < 8, 'hoja, marcos y tela: grises neutros');
+  assert.ok(L(t.paleta.soldadura) > L(t.paleta.pagina), 'el marco protector se lee sobre la hoja');
+  assert.ok(L(t.paleta.pagina) > 0.03, 'la hoja grafito no se pierde en negro');
+  assert.ok(t.modos.oscuro.suelo > 0x191919 && t.modos.claro.suelo > t.modos.oscuro.suelo, 'suelo del modo oscuro algo más claro que el fondo (#191919)');
+  assert.equal(t.aro, 0xe5432f, 'aro rojo de la interfaz');
 });

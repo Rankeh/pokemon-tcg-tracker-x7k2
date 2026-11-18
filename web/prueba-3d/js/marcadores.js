@@ -1,18 +1,10 @@
 // Marcadores visuales dibujados en un canvas (sin imágenes externas): carta SIN IMAGEN y etiqueta de carta PENDIENTE.
 // `lienzo` es cualquier objeto con getContext('2d') (canvas real en el navegador; doble en las pruebas).
-const COL_NOCHE = { fondo: '#1c2638', borde: '#7f93b8', texto: '#ece6da', suave: '#9aa3b2', acento: '#e8b25a' };
-const COL_ACOGEDOR = { fondo: '#efe2c6', borde: '#b3a07c', texto: '#4e3b28', suave: '#8a775d', acento: '#d8622a' };
-const PEND_NOCHE = { placa: '#18213a', borde: '#5a6d90', nombre: '#c3cde2', suave: '#8c9ab6' };
-const PEND_ACOGEDOR = { placa: '#dccfb3', borde: '#a8956f', nombre: '#4e3b28', suave: '#7d6a50' };     // placa hundida beis: más oscura que la hoja crema, texto marrón legible
-const COL_CLARO = { fondo: '#ecebe6', borde: '#b9b5ab', texto: '#1d1d1f', suave: '#6e6e73', acento: '#0a84ff' };
-const PEND_CLARO = { placa: '#dedcd5', borde: '#aaa69c', nombre: '#2c2c2e', suave: '#6e6e73' };     // gris cálido hundido respecto a la hoja, texto casi negro
-const COL_DIORAMA = { fondo: '#f6eedb', borde: '#d8c296', texto: '#3b2a1a', suave: '#7d6650', acento: '#4a923c' };
-const PEND_DIORAMA = { placa: '#e9dcbd', borde: '#cdb382', nombre: '#3b2a1a', suave: '#7d6650' };     // papel hundido: más oscuro que la hoja crema
-const COL_EDITORIAL = { fondo: '#1f1f1f', borde: '#3a3a3a', texto: '#f2f2f2', suave: '#9a9a9a', acento: '#e5432f' };
-const PEND_EDITORIAL = { placa: '#242424', borde: '#3d3d3d', nombre: '#e8e8e8', suave: '#8a8a8a' };     // placa hundida en la hoja grafito, texto claro
-let COL = COL_NOCHE, PEND = PEND_NOCHE;
-/** Tema de los marcadores dibujados en canvas (se llama una vez al arrancar, antes de crear texturas). */
-export function fijarTemaMarcadores(tema) { COL = { acogedor: COL_ACOGEDOR, claro: COL_CLARO, diorama: COL_DIORAMA, editorial: COL_EDITORIAL }[tema] || COL_NOCHE; PEND = { acogedor: PEND_ACOGEDOR, claro: PEND_CLARO, diorama: PEND_DIORAMA, editorial: PEND_EDITORIAL }[tema] || PEND_NOCHE; }
+// Colores del tema editorial: carta sin imagen sobre grafito y placa «pendiente» hundida en la hoja grafito, texto claro.
+const COL = { fondo: '#1f1f1f', borde: '#3a3a3a', texto: '#f2f2f2', suave: '#9a9a9a', acento: '#e5432f' };
+const PEND = { placa: '#242424', borde: '#3d3d3d', nombre: '#e8e8e8', suave: '#8a8a8a' };
+/** Se conserva por compatibilidad: hay un solo tema, así que no hace nada. */
+export function fijarTemaMarcadores() {}
 
 function ajustarTexto(ctx, texto, maxAncho) {
   let t = String(texto ?? '');

@@ -404,3 +404,8 @@ abierto, vuelve a la biblioteca (`‹ Biblioteca`).
 **osare**: 19 cartas físicas según TCGdex (de Escarlata y Púrpura a Megaevolución; se excluyen 3 de TCG Pocket), todas con imagen en español,
 con variantes (normal/reverse; holo en sus 7 IR/SIR). Portada con Tatsugiri y Pecharunt ex; lomo con marca rosa/amarillo/cian (`lomo.colores`).
 Modelo de 2 hojas (`album-2h.glb`). Está en `datos/albumes-artista.json`, así que también recibe cada lunes sus cartas nuevas.
+
+## 3.25 — Un solo tema (editorial)
+Se retiran los temas alternativos del álbum (`claro`, `acogedor`, `noche`, `diorama`): su CSS, la carpeta `web/diorama/`, sus paletas,
+luces, alfombra e isla en `aspecto.js` y sus marcadores. Las secciones anteriores de este documento los describen como historia.
+`elegirTema()` devuelve siempre `editorial`; un enlace antiguo con `?tema=…` abre el álbum normal.

@@ -9,7 +9,7 @@ const css = readFileSync(new URL('../css/prueba-3d.css', import.meta.url), 'utf8
 const bloque = css.slice(css.indexOf('3.7.5 ·'));
 const nuevo = async (tapa, nivel = 'media') => {
   const m = await crearMundo(); const scene = new T.Object3D();
-  const asp = new A.Aspecto({ renderer: {}, scene, nivel, tema: 'claro', tapa }); asp.aplicarAlbum(m.album);
+  const asp = new A.Aspecto({ renderer: {}, scene, nivel, tema: 'editorial', tapa }); asp.aplicarAlbum(m.album);
   return { m, asp, a: m.album };
 };
 
@@ -47,7 +47,7 @@ test('M3 acabado cuero: tapas y lomo cambian de color/rugosidad/relieve; página
 
 test('M4 grafito = comportamiento anterior; baja calidad: color y rugosidad del acabado siguen sin mapas', async () => {
   const g = await nuevo(undefined), mg = g.a.nodo.get('Tapa_Malla').material;
-  assert.equal(mg.color.v, A.TEMAS.claro.paleta.cubierta);
+  assert.equal(mg.color.v, A.TEMAS.editorial.paleta.cubierta);
   const b = await nuevo('fieltro', 'baja'), mb = b.a.nodo.get('Tapa_Malla').material;
   assert.equal(mb.color.v, A.ACABADOS.fieltro.color); assert.ok(!mb.normalMap, 'en baja no hay mapa de normales');
 });
@@ -66,13 +66,6 @@ test('M6 aro: entrada con rebote (escala 1,22 → sobrepasa → 1), solo escala 
   assert.ok(Math.abs(r.malla.scale.x - 1) < 1e-9 && Math.abs(r.mat.opacity - 0.95) < 1e-6 && !r.avanzar(1 / 60), 'termina y deja de pedir frames');
   const q = new Resaltado({ reducirMovimiento: () => true }); q.mostrar(nodo);
   assert.equal(q.malla.scale.x, 1); assert.equal(q.mat.opacity, 0.95);
-});
-
-test('M7 CSS: muelles, entrada/salida de ficha, brillo especular, hover solo con ratón y reduce-movimiento', () => {
-  for (const k of ['--muelle', '@keyframes ficha-entra', '@keyframes ficha-sale', '.ficha.saliendo', '--brillo', '@media (hover: hover)', 'prefers-reduced-motion: reduce']) assert.ok(bloque.includes(k), k);
-  assert.match(bloque, /cubic-bezier\(0\.34, 1\.56, 0\.64, 1\)/);
-  assert.match(bloque, /ficha-sale 0\.22s/, 'la salida dura lo mismo que SALIDA_MS');
-  assert.ok(!/body\[data-tema="(noche|acogedor)"\]/.test(bloque), 'solo afecta al tema claro');
 });
 
 test('M8 FichaUI.cerrar: sin animación se oculta al instante; con animación espera SALIDA_MS y reabrir cancela la salida', async () => {

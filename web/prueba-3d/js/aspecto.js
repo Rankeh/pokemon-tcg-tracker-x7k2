@@ -7,14 +7,6 @@ import { aabbMundo } from './encuadre.js';
 import { PORTADA, dibujarPortada, dibujarBanda, cargarCartas, tamLienzo } from './portada-tapa.js';
 
 // ------------------------------------------------------------------ parámetros artísticos (un solo sitio)
-export const PALETA = {
-  cubierta: 0x384559,      // grafito azul noche: más claro que la mesa, sin llegar al gris lavado
-  pagina: 0x4a4e58,        // grafito neutro y claramente más claro que la cubierta (se separan hoja y tapa)
-  lomo: 0x3f4d6b,          // el mismo azul noche, más saturado y claro: el lomo se lee como pieza aparte
-  soldadura: 0x7a8296,     // marco protector de cada bolsillo: plástico pulido, la pieza más clara (junto con los cantos) pero sin neón
-  funda: 0xf2f6ff,
-  mesa: 0x22262d,
-};
 export const MATERIALES = {
   cubierta: { rugosidad: 0.8, relieve: 0.5 },
   pagina: { rugosidad: 0.6, relieve: 0.0 },        // satinado suave
@@ -37,20 +29,8 @@ export const ACABADOS = {
 export const ACABADO_DEFECTO = 'tejido';          // el preferido del usuario (3.7.9); ?tapa=grafito sigue disponible
 export const elegirAcabado = (p) => (Object.prototype.hasOwnProperty.call(ACABADOS, (p || '').toLowerCase()) ? (p || '').toLowerCase() : ACABADO_DEFECTO);
 
-// Cantos: se pintan en los VÉRTICES (sin UV ni texturas ni mallas nuevas) según la normal: cara plana = 1, canto/bisel = multiplicador.
-export const CANTOS = {
-  cubierta: { canto: [1.55, 1.55, 1.6] },          // el bisel «atrapa» la luz: la tapa se separa del fondo y de las hojas
-  pagina: { canto: [1.75, 1.6, 1.35] },            // canto de hoja algo más claro y cálido (acento cálido controlado)
-  lomo: { curvatura: 0.55 },                       // oscurece los lados del cilindro: refuerza el redondeo y lo separa de las tapas
-};
+// Cantos: se pintan en los VÉRTICES (sin UV ni texturas ni mallas nuevas) según la normal: cara plana = 1, canto/bisel = multiplicador (valores del tema).
 export const FUNDA_REFLEJO = { tam: 64, base: 0.02, brillo: 0.045, ancho: 0.11 };       // alfa total ≤ 0,065 sobre la carta
-export const EXPOSICION = 1.15;
-export const LUCES = {
-  hemi: { cielo: 0xa9b9d6, suelo: 0x262a31, intensidad: 0.7 },                  // ambiente más bajo: deja que las caras laterales caigan y se lea el volumen
-  principal: { color: 0xfff1e0, intensidad: 3.3, pos: [-0.6, 0.62, 0.5] },      // lateral-izquierda y más rasante: revela relieve y cantos
-  relleno: { color: 0x9fb4dc, intensidad: 0.5, pos: [0.8, 0.3, 0.35] },         // lado contrario, tenue
-  contorno: { color: 0x8aa8ff, intensidad: 1.9, pos: [0.3, 0.5, -0.85] },       // por detrás: separa el álbum del fondo; frío y discreto
-};
 // Niveles: se comparte todo el código; cambian solo estos números.
 export const NIVELES = {
   baja: { luces: ['hemi', 'principal'], relieve: 0, mapaRugosidad: false, reflejoFunda: false, fisico: false, sombra: true, anisotropia: 1, entorno: false },
@@ -220,7 +200,7 @@ const aSrgb = (c) => { c = Math.min(1, Math.max(0, c)); return c <= 0.0031308 ? 
 export const hexLineal = (h) => [aLineal(((h >> 16) & 255) / 255), aLineal(((h >> 8) & 255) / 255), aLineal((h & 255) / 255)];
 const mat = (M, v) => M.map((f) => f[0] * v[0] + f[1] * v[1] + f[2] * v[2]);
 /** Color final aproximado (sRGB 0..1) de una superficie HORIZONTAL con albedo `hex` bajo el equipo de luces `luces` (modelo Lambert de Three r155+, ACES con exposición). */
-export function estimarSalida(hex, { luces = LUCES, exposicion = EXPOSICION, activas = ['hemi', 'principal', 'relleno'], aces = true } = {}) {
+export function estimarSalida(hex, { luces = TEMAS.editorial.luces, exposicion = TEMAS.editorial.exposicion, activas = ['hemi', 'principal', 'relleno'], aces = true } = {}) {
   const alb = Array.isArray(hex) ? hex : hexLineal(hex), E = [0, 0, 0];      // número sRGB (0xRRGGBB) o array lineal
   const suma = (c, k) => { for (let i = 0; i < 3; i++) E[i] += c[i] * k; };
   if (activas.includes('hemi')) suma(hexLineal(luces.hemi.cielo), luces.hemi.intensidad);        // normal hacia arriba: recibe el cielo
@@ -239,54 +219,9 @@ export function estimarSalida(hex, { luces = LUCES, exposicion = EXPOSICION, act
 export const luminanciaSrgb = (c) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
 
 // ------------------------------------------------------------------ clase Aspecto: aplica todo a la escena y lo libera
-// ------------------------------------------------------------------ TEMAS (3.7.3 · dirección «videojuego»): mismos materiales y niveles, distinta paleta/luz/escenario
-export const TEMAS = {
-  // CLARO (por defecto desde 3.7.4): estudio neutro estilo producto Apple. Grafito + blanco roto, un único acento (azul), suelo gris perla que se funde con el fondo, sin alfombra ni colores saturados.
-  claro: {
-    paleta: { cubierta: 0x343a43, pagina: 0xf0eee8, lomo: 0x424951, soldadura: 0xa8a49a, funda: 0xffffff, mesa: 0xe6e6ea },
-    luces: {
-      hemi: { cielo: 0xffffff, suelo: 0xb9b9c1, intensidad: 0.9 },
-      principal: { color: 0xfff6ec, intensidad: 2.2, pos: [-0.6, 0.62, 0.5] },
-      relleno: { color: 0xe6edff, intensidad: 0.5, pos: [0.8, 0.3, 0.35] },
-      contorno: { color: 0xffffff, intensidad: 1.3, pos: [0.3, 0.5, -0.85] },
-    },
-    cantos: { cubierta: { canto: [1.5, 1.5, 1.5] }, pagina: { canto: [0.9, 0.88, 0.82] }, lomo: { curvatura: 0.62 } },
-    exposicion: 1.12, sheen: 0xcfd6e2, aro: 0x0a84ff, sombraOpacidad: 0.32,
-    escenario: { suelo: [0xe6e6ea], tablones: false, alfombra: null, ladoSuelo: 3 },
-    entorno: { arriba: 0xf5f7fb, horizonte: 0xe3e6ed, abajo: 0xb6bbc6, ventana: 0xfff3e0, ganancia: 1.5, aro: 0xdfe9ff, ganancia2: 0.7 },
-  },
-  noche: { paleta: PALETA, luces: LUCES, cantos: CANTOS, exposicion: EXPOSICION, sheen: 0x7f93b8, aro: 0xe8b25a, sombraOpacidad: SOMBRA.opacidad, escenario: null,
-    entorno: { arriba: 0x2d3545, horizonte: 0x1b212d, abajo: 0x0d1117, ventana: 0xffdfae, ganancia: 1.8, aro: 0x9db4e8, ganancia2: 0.9 } },
-  acogedor: {
-    paleta: { cubierta: 0x3a7f92, pagina: 0xeadfc8, lomo: 0xb9733f, soldadura: 0xb48a58, funda: 0xffffff, mesa: 0xc9a47c },
-    luces: {
-      hemi: { cielo: 0xfff0dc, suelo: 0xb98a62, intensidad: 0.85 },
-      principal: { color: 0xffe3bd, intensidad: 2.3, pos: [-0.6, 0.62, 0.5] },
-      relleno: { color: 0xffc9b0, intensidad: 0.45, pos: [0.8, 0.3, 0.35] },
-      contorno: { color: 0xffd7a0, intensidad: 1.4, pos: [0.3, 0.5, -0.85] },
-    },
-    cantos: { cubierta: { canto: [1.3, 1.3, 1.25] }, pagina: { canto: [0.95, 0.8, 0.55] }, lomo: { curvatura: 0.62 } },      // cantos de hoja dorados
-    exposicion: 1.08, sheen: 0xffe6c4, aro: 0xf0701e, sombraOpacidad: 0.4,
-    entorno: { arriba: 0xffeeda, horizonte: 0xf4d6ae, abajo: 0x7f654a, ventana: 0xfff3da, ganancia: 1.5, aro: 0xffc9a0, ganancia2: 0.7 },
-    escenario: { suelo: [0xc9a47c], alfombra: { centro: 0xf3e3c8, anillo: 0xe9a39a, borde: 0xd98a82, costura: 0xfff4e0 }, radioAlfombra: 0.42, ladoSuelo: 3 },
-  },
-};
-// DIORAMA (3.9, por defecto): el álbum apoyado en una isla pintada (hierba, corte de tierra y agua, árboles) con cielo en arco detrás,
-// la misma ilustración que la estantería (web/diorama/). Luz de día: cielo azul de relleno, sol cálido y algo de rebote verde.
-TEMAS.diorama = {
-  paleta: { cubierta: 0x40597a, pagina: 0xf4ecdc, lomo: 0x36495f, soldadura: 0xc9b48a, funda: 0xffffff, mesa: 0x7cc65e },
-  luces: {
-    hemi: { cielo: 0xd6eeff, suelo: 0x8a7a50, intensidad: 0.95 },
-    principal: { color: 0xfff0d2, intensidad: 2.1, pos: [-0.6, 0.62, 0.5] },
-    relleno: { color: 0xbfe3ff, intensidad: 0.45, pos: [0.8, 0.3, 0.35] },
-    contorno: { color: 0xffffff, intensidad: 1.0, pos: [0.3, 0.5, -0.85] },
-  },
-  cantos: { cubierta: { canto: [1.3, 1.3, 1.25] }, pagina: { canto: [0.95, 0.88, 0.72] }, lomo: { curvatura: 0.62 } },
-  exposicion: 1.02, sheen: 0xffe6c4, aro: 0xffc94d, sombraOpacidad: 0.38,
-  entorno: { arriba: 0x8fcff5, horizonte: 0xd8eef9, abajo: 0x6b8a4a, ventana: 0xfff4d8, ganancia: 1.4, aro: 0xffffff, ganancia2: 0.5 },
-  escenario: { isla: { ancho: 0.74, fondo: 0.62, agua: 0.12, alto: 0.09 } },      // algo mayor que el álbum abierto: se ve flotar sobre el papel
-};
-// EDITORIAL (3.10, por defecto): la misma dirección que la biblioteca (catálogo de diseño gráfico). Estudio oscuro: suelo grafito que se funde
+// ------------------------------------------------------------------ TEMA (único desde la 3.25: editorial; los alternativos se retiraron)
+export const TEMAS = {};
+// EDITORIAL: la misma dirección que la biblioteca (catálogo de diseño gráfico). Estudio oscuro: suelo grafito que se funde
 // con el fondo, páginas grafito para que las cartas sean lo único con color, foco frontal cálido, contorno que recorta los cantos y aro rojo.
 TEMAS.editorial = {
   paleta: { cubierta: 0x40597a, pagina: 0x2e2e2e, lomo: 0x36495f, soldadura: 0x4a4a4a, funda: 0xffffff, mesa: 0x222222 },
@@ -306,7 +241,8 @@ TEMAS.editorial = {
 };
 export const NOMBRES_TEMA = Object.keys(TEMAS);
 export const TEMA_DEFECTO = 'editorial';
-export const elegirTema = (p) => (TEMAS[(p || '').toLowerCase()] ? (p || '').toLowerCase() : TEMA_DEFECTO);
+/** Se conserva por compatibilidad con enlaces antiguos (?tema=…): siempre devuelve el tema editorial. */
+export const elegirTema = () => TEMA_DEFECTO;
 
 const rgb = (h) => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
 /** Suelo de madera clara: tablones suaves, centro algo más luminoso y alfa que se desvanece hacia el borde (deja ver el fondo desenfocado de la página). RGBA8 sRGB. */
@@ -322,25 +258,10 @@ export function generarSuelo(tam = 128, color = 0xc79a6b, tablones = true) {
   }
   return out;
 }
-/** Alfombra redonda de juego: centro crema, anillo rosado, costura discontinua y borde; alfa circular con borde suave. RGBA8 sRGB. */
-export function generarAlfombra(tam = 512, p = TEMAS.acogedor.escenario.alfombra) {
-  const out = new Uint8Array(tam * tam * 4), C = { c: rgb(p.centro), a: rgb(p.anillo), b: rgb(p.borde), s: rgb(p.costura) };
-  for (let j = 0; j < tam; j++) for (let i = 0; i < tam; i++) {
-    const x = ((i + 0.5) / tam - 0.5) * 2, y = ((j + 0.5) / tam - 0.5) * 2, r = Math.hypot(x, y), ang = Math.atan2(y, x);
-    const px = 1.5 / tam * 2, mezcla = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t), paso = (e) => suavizar(e - px, e + px, r);      // bordes antialias (~1,5 px): sin escalones al ampliar
-    let col = mezcla(C.c, C.a, paso(0.64));
-    col = mezcla(col, C.b, paso(0.9));
-    col = mezcla(col, C.s, Math.max(0, 1 - Math.abs(r - 0.8) / (px * 1.2)) * 0.9);               // costura continua fina
-    const luz = 1.04 - 0.1 * r, k = (j * tam + i) * 4;
-    out[k] = Math.min(255, col[0] * luz); out[k + 1] = Math.min(255, col[1] * luz); out[k + 2] = Math.min(255, col[2] * luz);
-    out[k + 3] = Math.round(255 * (1 - suavizar(0.955, 0.985, r)));
-  }
-  return out;
-}
 
 /** Panorama equirectangular LDR (tam × tam/2) para scene.environment: gradiente cielo→horizonte→suelo, una «ventana» cálida (softbox,
  *  del lado de la luz principal) y una tira fría detrás (contorno). Es pequeño a propósito: Three lo convierte a PMREM una sola vez. RGBA8 sRGB. */
-export function generarEntorno(tam = ENTORNO.tam, p = TEMAS.claro.entorno) {
+export function generarEntorno(tam = ENTORNO.tam, p = TEMAS.editorial.entorno) {
   const alto = tam >> 1, out = new Uint8Array(tam * alto * 4);
   const A = rgb(p.arriba), H = rgb(p.horizonte), B = rgb(p.abajo), V = rgb(p.ventana), R = rgb(p.aro);
   const mezcla = (a, b, t) => a.map((x, i) => x + (b[i] - x) * t);
@@ -404,9 +325,9 @@ export function generarEmblemaAlfa(tam = EMBLEMA.tam) {
 const aclarar = (hex, f) => { const r = Math.min(255, ((hex >> 16) & 255) * f), g = Math.min(255, ((hex >> 8) & 255) * f), b = Math.min(255, (hex & 255) * f); return (r << 16 | g << 8 | b); };
 
 export class Aspecto {
-  constructor({ renderer, scene, nivel = 'media', origen = '', tema = 'noche', tapa = 'grafito', entorno = true, emblema = true, portada = false, disenoPortada = undefined }) {
+  constructor({ renderer, scene, nivel = 'media', origen = '', tema = TEMA_DEFECTO, tapa = 'grafito', entorno = true, emblema = true, portada = false, disenoPortada = undefined }) {
     this.tapa = elegirAcabado(tapa); this.acabado = ACABADOS[this.tapa];
-    this.tema = TEMAS[tema] ? tema : 'noche'; this.t = TEMAS[this.tema];
+    this.tema = TEMA_DEFECTO; this.t = TEMAS[this.tema];               // un solo tema (el parámetro se ignora)
     this.renderer = renderer; this.scene = scene; this.nivel = nivel; this.origen = origen;
     this.config = NIVELES[nivel] || null;                    // null = legado
     this.luces = {}; this.recursos = []; this.mallasPropias = []; this.sombra = null; this.mesa = null; this.materiales = new Map(); this.uvHechas = new WeakSet();
@@ -462,53 +383,15 @@ export class Aspecto {
     this._anadir(this.mesa);
   }
 
-  /** Escenario de juego: suelo de madera que se desvanece + alfombra redonda (2 planos, 2 texturas, 2 materiales; sin sombras ni postprocesado). */
+  /** Suelo que se funde con el fondo de la página (un plano con una textura de degradado; sin sombras ni postprocesado). */
   _montarEscenario(esc) {
-    if (esc.isla) { this._montarIsla(esc.isla); return; }
-    const plano = (nombre, lado, tex, y, orden) => {
-      const t = this._recurso(new THREE.DataTexture(tex.datos, tex.tam, tex.tam, THREE.RGBAFormat));
-      t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
-      const m = this._recurso(new THREE.MeshStandardMaterial({ map: t, roughness: 0.95, metalness: 0, transparent: true, depthWrite: false }));
-      m.envMapIntensity = this.entorno ? ENTORNO.intensidad.suelo : 1;
-      const o = new THREE.Mesh(this._recurso(new THREE.PlaneGeometry(lado, lado)), m);
-      o.rotation.x = -Math.PI / 2; o.position.y = y; o.renderOrder = orden; o.name = nombre; this._anadir(o); return o;
-    };
-    this.mesa = plano('Suelo', esc.ladoSuelo, { datos: generarSuelo(128, esc.suelo[0], esc.tablones !== false), tam: 128 }, -0.0008, -3);
-    if (esc.alfombra) this.alfombra = plano('Alfombra', esc.radioAlfombra * 2, { datos: generarAlfombra(512, esc.alfombra), tam: 512 }, -0.0005, -2);
-  }
-
-  /** 3.9 · Isla de diorama bajo el álbum (web/diorama/isla.js). Se crea ya un contenedor vacío (así `mesa` existe desde el principio) y la isla
-   *  se carga después, sin bloquear el arranque; en Node (pruebas, sin canvas) el contenedor se queda vacío. */
-  _montarIsla(p) {
-    const contenedor = new THREE.Object3D(); contenedor.name = 'Isla';
-    this.mesa = contenedor; this._anadir(contenedor);
-    if (typeof document === 'undefined') return;
-    import('../../diorama/isla.js').then(({ crearMaterialesIsla, crearIsla }) => {
-      if (this.mesa !== contenedor) return;                              // se liberó mientras cargaba
-      const rec = [], res = { baja: 0.5, media: 0.75, alta: 1 }[this.nivel] || 0.75;
-      const mat = crearMaterialesIsla({ anisotropia: this.config.anisotropia, res }, rec);
-      const isla = crearIsla({
-        ...p, radio: 0.028, semilla: 5, matas: 16,
-        // árboles pequeños en las esquinas de atrás, fuera de la huella del álbum abierto (x ±0,27, z ±0,16); sin cielo en arco: la cámara mira desde arriba
-        arboles: [[-p.ancho / 2 + 0.05, -(p.fondo - p.agua) / 2 + 0.05, 0.62], [p.ancho / 2 - 0.05, -(p.fondo - p.agua) / 2 + 0.06, 0.55], [p.ancho / 2 - 0.13, -(p.fondo - p.agua) / 2 + 0.03, 0.42]],
-      }, mat, rec);
-      isla.position.set(0, -0.0006, p.agua / 2 - 0.03);                // la tierra queda centrada bajo el álbum y el agua delante
-      contenedor.add(isla); this.recursos.push(...rec);
-      this.alCambiar?.();
-    }).catch((e) => console.warn('Isla del diorama no disponible:', e));
-  }
-
-  /** 3.11 · Modo claro/oscuro del tema (si lo tiene): repinta el suelo con el color del modo y ajusta la exposición. Sin reconstruir nada. */
-  aplicarModo(modo) {
-    const m = this.config && this.t.modos && this.t.modos[modo];
-    if (!m) return false;
-    this.modo = modo;
-    const t = this.mesa && this.mesa.material && this.mesa.material.map;
-    if (t && t.isDataTexture && t.image && t.image.data && t.image.width) {          // en los dobles de prueba la textura no publica `image`
-      t.image.data.set(generarSuelo(t.image.width, m.suelo, false)); t.needsUpdate = true;
-    }
-    this.renderer.toneMappingExposure = m.exposicion;
-    return true;
+    const t = this._recurso(new THREE.DataTexture(generarSuelo(128, esc.suelo[0], esc.tablones !== false), 128, 128, THREE.RGBAFormat));
+    t.colorSpace = THREE.SRGBColorSpace; t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
+    const m = this._recurso(new THREE.MeshStandardMaterial({ map: t, roughness: 0.95, metalness: 0, transparent: true, depthWrite: false }));
+    m.envMapIntensity = this.entorno ? ENTORNO.intensidad.suelo : 1;
+    const o = new THREE.Mesh(this._recurso(new THREE.PlaneGeometry(esc.ladoSuelo, esc.ladoSuelo)), m);
+    o.rotation.x = -Math.PI / 2; o.position.y = -0.0008; o.renderOrder = -3; o.name = 'Suelo'; this._anadir(o);
+    this.mesa = o;
   }
 
   _montarSombra() {
@@ -691,7 +574,7 @@ export class Aspecto {
 
   resumen() {
     return { nivel: this.nivel, origen: this.origen, luces: Object.keys(this.luces), relieve: this.config ? this.config.relieve : 0, mapaRugosidad: !!(this.config && this.config.mapaRugosidad),
-      tema: this.tema, tapa: this.tapa, escenario: !!this.alfombra, sombraContacto: !!this.sombra, entorno: !!this.entorno, emblema: !!this.emblema, portada: !!this.portada, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
+      tema: this.tema, tapa: this.tapa, sombraContacto: !!this.sombra, entorno: !!this.entorno, emblema: !!this.emblema, portada: !!this.portada, exposicion: this.renderer.toneMappingExposure, recursosPropios: this.recursos.length };
   }
 
   liberar() {
@@ -702,6 +585,6 @@ export class Aspecto {
     this.emblema = null;
     for (const o of [this.portada?.panel, this.portada?.banda]) if (o && o.parent) o.parent.remove(o);
     this.portada = null;
-    this.mallasPropias = []; this.recursos = []; this.luces = {}; this.sombra = null; this.mesa = null; this.alfombra = null; this.entorno = null;
+    this.mallasPropias = []; this.recursos = []; this.luces = {}; this.sombra = null; this.mesa = null; this.entorno = null;
   }
 }

@@ -9,7 +9,7 @@ pestañas `.e-pestanas`, botón de icono `.e-redondo`) y avisos (`.e-aviso`).
 
 - Biblioteca (`index.html`): carrusel de lomos (ver `web/estanteria/LEEME.md`).
 - Álbum (`web/prueba-3d/`): tema `editorial`, por defecto desde la 3.10 (estudio oscuro, páginas grafito, aro rojo, «‹ Biblioteca»).
-  Los demás temas siguen disponibles: `?tema=diorama`, `?tema=claro`, `?tema=acogedor`, `?tema=noche`.
+  Es el único tema del álbum (los alternativos se retiraron en 3.25; un `?tema=…` antiguo abre el editorial).
 
 ## Modo claro y modo oscuro (3.11)
 `modo.js` (script clásico en `<head>` de las dos páginas, antes del primer pintado) pone `<html data-modo="claro|oscuro">`. Por defecto sigue al

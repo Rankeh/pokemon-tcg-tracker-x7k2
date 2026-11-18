@@ -48,7 +48,7 @@ const camara = new THREE.PerspectiveCamera(FOV, 1, 0.02, 5);
 // Fase 3.7.2a: luces, mesa, sombra de contacto, materiales y tone mapping los gestiona Aspecto según el nivel de calidad (?calidad=baja|media|alta|legado).
 const calidad = elegirCalidad({ parametro: params.get('calidad'), tactil: matchMedia('(pointer: coarse)').matches,
   nucleos: navigator.hardwareConcurrency || 0, memoriaGb: navigator.deviceMemory || 0 });
-const tema = elegirTema(params.get('tema'));                 // ?tema=editorial (por defecto, 3.10: la dirección de la biblioteca) | diorama | claro | acogedor | noche
+const tema = elegirTema();                                    // tema único: editorial (la dirección visual de la biblioteca)
 document.body.dataset.tema = tema; fijarTemaMarcadores(tema);
 const tapa = elegirAcabado(params.get('tapa') || TEMAS[tema].acabado);   // ?tapa=grafito | fieltro | cuero | tejido | acolchado | editorial (por defecto, el del tema)
 const aspecto = new Aspecto({ renderer, scene, nivel: calidad.nivel, origen: calidad.origen, tema, tapa, entorno: params.get('ibl') !== '0', emblema: params.get('emblema') !== '0', portada: params.get('portada') !== '0', disenoPortada: albumActual.portada });   // ?portada=0: tapa lisa con el emblema bordado (3.7.25)   // ?ibl=0: sin entorno de estudio, para comparar en el iPhone

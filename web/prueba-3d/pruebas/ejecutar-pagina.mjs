@@ -31,8 +31,6 @@ async function sesion(viewport, fn, consulta = '') {
   pag.on('pageerror', (e) => errores.push(String(e))); pag.on('console', (m) => m.type() === 'error' && !/404/.test(m.text()) && errores.push(m.text()));     // 404 esperados: copia local de Three.js y manifiesto de imágenes (no existen en este entorno)
   // Three.js simulado en lugar del CDN (el entorno no tiene red ni WebGL)
   await pag.route('**/cdn.jsdelivr.net/**/build/three.module.js', (r) => r.fulfill({ contentType: 'text/javascript', body: `export * from '${base}/web/prueba-3d/pruebas/three-navegador.mjs';` }));
-  // 3.9: la isla del diorama usa RoundedBoxGeometry; con Three.js simulado no se puede montar (Aspecto lo captura y sigue sin isla)
-  await pag.route('**/cdn.jsdelivr.net/**/geometries/RoundedBoxGeometry.js', (r) => r.fulfill({ contentType: 'text/javascript', body: 'export class RoundedBoxGeometry { constructor() { throw new Error("doble: sin geometría redondeada"); } }' }));
   await pag.route('**/cdn.jsdelivr.net/**/GLTFLoader.js', (r) => r.fulfill({ contentType: 'text/javascript', body: `export * from '${base}/web/prueba-3d/pruebas/gltfloader-doble.mjs';` }));
   await pag.goto(`${base}/web/prueba-3d/index.html?bd=prueba371-${Math.random().toString(36).slice(2)}${consulta}`);
   await pag.waitForFunction(() => window.__album3d && document.getElementById('cargando').hidden, null, { timeout: 20000 });
@@ -218,27 +216,17 @@ for (const vp of [{ width: 390, height: 844 }, { width: 430, height: 932 }]) {
 }
 
 // ------------------------------------------------------------------ 3.7.3: tema de interfaz aplicado de verdad (estilos calculados por Chromium real; el 3D es simulado)
-for (const [consulta, esperado] of [['', 'editorial'], ['&tema=diorama', 'diorama'], ['&tema=claro', 'claro'], ['&tema=acogedor', 'acogedor'], ['&tema=noche', 'noche']]) {
+for (const consulta of ['', '&tema=claro']) {                         // 3.25: un solo tema; un ?tema= antiguo sigue abriendo el editorial
   await sesion({ width: 390, height: 844 }, async (pag) => {
-    await pag.waitForTimeout(900);                                  // 3.7.5: las animaciones de entrada (0,7 s) y las transiciones de color deben haber terminado
-    const r = await pag.evaluate(() => { const css = (sel, p) => getComputedStyle(document.querySelector(sel))[p];
-      return { tema: document.body.dataset.tema, boton: css('#b-sig', 'backgroundColor'), principal: css('#b-abrir', 'backgroundColor'), h1: css('h1', 'backgroundColor'), texto: css('h1', 'color'), modo: document.documentElement.dataset.modo, fuente: css('body', 'fontFamily'), escenario: !!window.__album3d.scene.children.find((o) => o.name === 'Alfombra'), isla: !!window.__album3d.scene.children.find((o) => o.name === 'Isla'), volver: !!document.querySelector('#b-biblioteca[href="../../index.html"]'), suelo: !!window.__album3d.scene.children.find((o) => o.name === 'Suelo'), aro: window.__album3d.resaltado.mat.color.v, ancho: document.documentElement.scrollWidth <= innerWidth }; });
-    ok(r.tema === esperado, `tema «${esperado}»${consulta ? ' (' + consulta.slice(1) + ')' : ' por defecto'}`);
-    if (esperado === 'claro') {
-      ok(r.h1.startsWith('rgba(255, 255, 255, 0.9') && r.principal === 'rgb(10, 132, 255)', `claro: cabecera de vidrio blanco (ligero 3.7.26, alfa 0,92) y «Abrir» en azul sistema (${r.h1} / ${r.principal})`);
-      ok(/apple|SF Pro|Segoe|system-ui/i.test(r.fuente), 'claro: tipografía del sistema'); ok(r.escenario === false && r.suelo, 'claro: suelo perla sin alfombra'); ok(r.aro === 0x0a84ff, 'claro: aro de selección azul');
-    } else if (esperado === 'acogedor') {
-      ok(r.h1 === 'rgb(255, 246, 228)' && r.principal === 'rgb(124, 195, 94)' && r.boton === 'rgb(127, 167, 217)', `acogedor: cabecera crema, «Abrir» verde, flechas azules (${r.h1} / ${r.principal} / ${r.boton})`);
-      ok(/rounded|Nunito|Segoe|Trebuchet/i.test(r.fuente), 'acogedor: tipografía redondeada del sistema'); ok(r.escenario, 'acogedor: suelo y alfombra en la escena'); ok(r.aro === 0xf0701e, 'acogedor: aro de selección naranja');
-    } else if (esperado === 'editorial') {
-      ok(r.suelo && !r.isla && !r.escenario, 'editorial: suelo oscuro que se funde, sin isla ni alfombra'); ok(r.aro === 0xe5432f, 'editorial: aro de selección rojo');
-      ok(r.principal === r.texto, `editorial (modo ${r.modo}): «Abrir» relleno con el color del texto (${r.principal} / ${r.texto})`); ok(r.volver, 'editorial: botón para volver a la biblioteca');
-    } else if (esperado === 'diorama') {
-      ok(r.isla && !r.escenario, 'diorama: isla bajo el álbum, sin alfombra'); ok(r.aro === 0xffc94d, 'diorama: aro de selección amarillo sol');
-      ok(/rounded|Nunito|Segoe|Trebuchet/i.test(r.fuente), 'diorama: tipografía redondeada'); ok(r.volver, 'diorama: botón para volver a la biblioteca');
-    } else { ok(!r.escenario && r.aro === 0xe8b25a, 'noche: escena y aro como en 3.7.2'); }
-    ok(r.ancho, `${esperado}: sin desbordamiento horizontal en 390 px`);
-    if (process.env.CAPTURAS) { await pag.click('#b-abrir'); await dormir(2200); await pag.screenshot({ path: `${process.env.CAPTURAS}/ui-${esperado}-vertical.png` }); }
+    await pag.waitForTimeout(900);
+    const r = await pag.evaluate(() => { const css = (sel, p) => getComputedStyle(document.querySelector(sel))[p], hay = (n) => !!window.__album3d.scene.children.find((o) => o.name === n);
+      return { tema: document.body.dataset.tema, principal: css('#b-abrir', 'backgroundColor'), texto: css('h1', 'color'), modo: document.documentElement.dataset.modo, otros: hay('Alfombra') || hay('Isla'), volver: !!document.querySelector('#b-biblioteca[href="../../index.html"]'), suelo: hay('Suelo'), aro: window.__album3d.resaltado.mat.color.v, ancho: document.documentElement.scrollWidth <= innerWidth }; });
+    const q = consulta ? ` (${consulta.slice(1)})` : '';
+    ok(r.tema === 'editorial', 'tema editorial' + q);
+    ok(r.suelo && !r.otros, 'editorial: suelo oscuro que se funde, sin isla ni alfombra' + q); ok(r.aro === 0xe5432f, 'editorial: aro de selección rojo' + q);
+    ok(r.principal === r.texto, `editorial (modo ${r.modo}): «Abrir» relleno con el color del texto (${r.principal} / ${r.texto})`); ok(r.volver, 'botón para volver a la biblioteca');
+    ok(r.ancho, 'sin desbordamiento horizontal en 390 px' + q);
+    if (process.env.CAPTURAS && !consulta) { await pag.click('#b-abrir'); await dormir(2200); await pag.screenshot({ path: `${process.env.CAPTURAS}/ui-editorial-vertical.png` }); }
   }, consulta);
 }
 

@@ -33,7 +33,7 @@ test('E2 cableado: media/alta montan scene.environment (equirect sRGB) y bajan l
     assert.equal(scene.environment.mapping, T.EquirectangularReflectionMapping);
     assert.equal(scene.environment.colorSpace, T.SRGBColorSpace);
     assert.equal(scene.environment.ancho, A.ENTORNO.tam); assert.equal(scene.environment.alto, A.ENTORNO.tam / 2);
-    assert.equal(asp.luces.hemi.intensity, A.TEMAS.noche.luces.hemi.intensidad * A.ENTORNO.compensacionHemi, 'hemisférica compensada');
+    assert.equal(asp.luces.hemi.intensity, A.TEMAS.editorial.luces.hemi.intensidad * A.ENTORNO.compensacionHemi, 'hemisférica compensada');
     assert.equal(asp.resumen().entorno, true);
   }
   for (const [nivel, opts] of [['baja', {}], ['legado', {}], ['media', { entorno: false }]]) {
@@ -128,13 +128,6 @@ test('E9 (3.7.23) plano héroe: dentro de los límites de la órbita y clarament
   const dim = dimensiones({ ancho_tapa: 0.26, alto_tapa: 0.322, y_base: 0.0015, grosor_tapa: 0.003, n_hojas: 9, paso: 0.004, ancho_hoja: 0.24 });
   const c = calcularEncuadre({ puntos: puntosVista({ vueltas: 0, dim }), aspect: 390 / 663, az: h.az * GRAD, el: h.el * GRAD, reservado: { arriba: 0.1, abajo: 0.12 }, margen: 0.035 });
   assert.ok(c.radio > 0.1 && c.radio < 2, 'el encuadre héroe converge (radio razonable): ' + c.radio.toFixed(3));
-});
-
-test('E10 (3.7.24/26) vidrio ligero: la regla CSS existe, quita el backdrop-filter y es el modo por defecto (?vidrio=pleno lo devuelve)', async () => {
-  const css = await (await import('node:fs/promises')).readFile(new URL('../css/prueba-3d.css', import.meta.url), 'utf8');
-  assert.match(css, /body\[data-vidrio="ligero"\][^{]*\{[^}]*backdrop-filter: none !important/);
-  const html = await (await import('node:fs/promises')).readFile(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(html, /q\.get\('vidrio'\) !== 'pleno'/, 'ligero por defecto, pleno opcional');
 });
 
 test('E11 (3.7.25) emblema: alfa 1 dentro y 0 fuera del parche, orla y rombo en relieve sobre la tela base', async () => {

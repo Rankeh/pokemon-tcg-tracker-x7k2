@@ -7,7 +7,7 @@ La prueba `web/prueba-3d/` carga Three.js 0.160.0 desde jsDelivr. Para usarla **
     iwr "$v/build/three.module.js" -OutFile web/vendor/three/build/three.module.js
     iwr "$v/examples/jsm/loaders/GLTFLoader.js" -OutFile web/vendor/three/examples/jsm/loaders/GLTFLoader.js
     iwr "$v/examples/jsm/utils/BufferGeometryUtils.js" -OutFile web/vendor/three/examples/jsm/utils/BufferGeometryUtils.js
-    # estantería y isla del diorama del álbum:
+    # estantería:
     New-Item -ItemType Directory -Force web/vendor/three/examples/jsm/geometries | Out-Null
     iwr "$v/examples/jsm/geometries/RoundedBoxGeometry.js" -OutFile web/vendor/three/examples/jsm/geometries/RoundedBoxGeometry.js
 
