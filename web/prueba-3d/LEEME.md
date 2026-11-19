@@ -445,3 +445,14 @@ está en `datos/albumes-artista.json`, así que se refresca cada lunes como los 
   antes llegaba al 53 % y el brillo tapaba la franja de datos bajo la ilustración.
 - Álbum 3D: el arcoíris se suma a la luz de la carta, así que se baja a una alfa efectiva ≤ 0,12 (antes 0,30) y menos destellos (`BRILLO`).
 - Ficha y carta ampliada: `soft-light` en lugar de `color-dodge`, que quemaba los tonos claros.
+
+## 3.31 — La misma colección en el móvil y en el ordenador
+- Con sesión iniciada, la colección se sincroniza con la cuenta (tabla `copias` de Supabase, ver `supabase/LEEME.md`). IndexedDB sigue siendo
+  la fuente de verdad de cada navegador: sin cuenta o sin conexión todo funciona igual.
+- Cada cambio (también «Añadir/Eliminar todas», importar y deshacer) apunta en `meta` qué carta cambió y cuándo, en la misma transacción.
+  `sincronizar()` lee lo nuevo de la cuenta (repasando los últimos 5 minutos), lo aplica si es más reciente que lo pendiente de aquí y sube lo
+  pendiente; el servidor tampoco deja que una escritura vieja pise una nueva. Las bajas viajan como cantidad 0.
+- Primera vez en cada navegador: foto de la colección local (para deshacer desde la página de cuenta) y se juntan las dos sin borrar nada.
+- Las horas de Postgres (microsegundos, `+00:00`) se leen con `instante()`, porque Safari no siempre las entiende con `Date.parse`.
+- Pruebas: `pruebas/ejecutar-sincronizacion.mjs` (dos «dispositivos» con IndexedDB real y un servidor de prueba con la misma regla).
+  Además se probó contra Supabase real con una cuenta temporal, ya borrada.

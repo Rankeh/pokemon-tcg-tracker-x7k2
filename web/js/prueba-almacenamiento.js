@@ -1,4 +1,5 @@
 // Página de prueba de la Fase 2: demuestra que el almacenamiento funciona. La interfaz real llega en la Fase 3.
+import { iniciarSincronizacion } from "./sincronizacion.js";
 import { Almacen, solicitarPersistencia } from "./almacen.js";
 import { validarCatalogo, progreso, huerfanas, estaConseguida } from "./coleccion.js";
 import { crearCopia, nombreArchivoCopia, prepararImportacion, textoConfirmacion } from "./copias.js";
@@ -134,6 +135,8 @@ async function iniciar() {
   }
   const persistente = await solicitarPersistencia();
   await recargarTodo();
+  // 3.31 · con sesión iniciada, lo que se importe aquí también llega a la cuenta (y lo que venga de la cuenta se muestra)
+  iniciarSincronizacion(almacen, { alCambiar: () => recargarTodo() });
   $("exportar").addEventListener("click", exportar);
   $("importar").addEventListener("click", () => $("archivo").click());
   $("archivo").addEventListener("change", (e) => {

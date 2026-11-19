@@ -17,6 +17,10 @@ y donde marcas las cartas que tienes (con variantes, precios de Cardmarket y cop
 
 Los álbumes de artista (y los precios del de Pikachu) se actualizan solos cada lunes (`.github/workflows/actualizar-artistas.yml`).
 
+## Móvil y ordenador
+Con una cuenta (botón **Cuenta** de la biblioteca), la colección se sincroniza sola entre dispositivos: al abrir un álbum, al volver a la
+pestaña, cada minuto y poco después de cada cambio. Sin cuenta o sin conexión todo sigue funcionando y se guarda en el navegador.
+
 ## Estructura
 | Carpeta | Qué hay |
 |---|---|
@@ -26,6 +30,7 @@ Los álbumes de artista (y los precios del de Pikachu) se actualizan solos cada 
 | `web/js/` | Colección: IndexedDB (`almacen.js`), reglas, variantes, copias de seguridad, cuenta (Supabase) |
 | `web/prueba-almacenamiento.html` | Exportar e importar copias de seguridad de la colección |
 | `datos/` | Catálogos y precios (se generan desde TCGdex) |
+| `supabase/` | Migraciones de la base de datos de las cuentas (perfiles y colección sincronizada) |
 | `herramientas/` | Generadores: catálogo de Teselia (Java), catálogos de artista, imágenes, precios y cartas proxy (Python) |
 | `blender/` | Generador del modelo 3D del álbum (`album.glb`, `album-<n>h.glb`) en Python puro |
 
@@ -44,7 +49,7 @@ node web/pruebas/node.mjs && node web/pruebas/node-album.mjs
 python blender/pruebas_glb.py
 ```
 En navegador (Chromium + Playwright, IndexedDB real en bases de datos desechables):
-`node web/prueba-3d/pruebas/ejecutar-pagina.mjs`, `ejecutar-navegador.mjs`, `ejecutar-completar.mjs`, `ejecutar-variantes.mjs` y `ejecutar-teclado.mjs`.
+`node web/prueba-3d/pruebas/ejecutar-pagina.mjs`, `ejecutar-navegador.mjs`, `ejecutar-completar.mjs`, `ejecutar-variantes.mjs`, `ejecutar-teclado.mjs` y `ejecutar-sincronizacion.mjs`.
 
 GitHub ejecuta todas estas pruebas en cada subida a `main` y en cada pull request (`.github/workflows/pruebas.yml`).
 

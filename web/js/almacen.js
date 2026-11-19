@@ -5,7 +5,9 @@ import { normalizar, cambiarVariante, clasificar, fijarMostrar, cambiarTotal, aF
 export const NOMBRE_BD = "coleccion-teselia";
 export const VERSION_BD = 1;
 const ALMACEN_COPIAS = "copias"; // { id: "svp-208", cantidad: 2, actualizado: "2026-...", variantes?: { normal: 1, reverse: 1 }, mostrar?: "reverse" } (3.16)
-const ALMACEN_META = "meta";     // { clave: "antesDeImportar", ... }
+const ALMACEN_META = "meta";     // { clave: "antesDeImportar", ... } · 3.31: "sync:pendientes", "sync:estado", "antesDeSincronizar"
+const PENDIENTES = "sync:pendientes";   // { clave, ids: { "<id carta>": "<ISO del cambio>" } }: cambios locales aún sin subir a la cuenta
+const ESTADO_SYNC = "sync:estado";      // { clave, usuario, ultimaLectura }: con qué cuenta se sincroniza y hasta dónde se ha leído
 
 /** Convierte una petición de IndexedDB (basada en eventos) en una Promise. */
 function promesa(peticion) {
@@ -33,10 +35,35 @@ export async function solicitarPersistencia() {
   }
 }
 
+/** 3.31 · Apunta en `meta` (dentro de la MISMA transacción que el cambio) qué cartas han cambiado y cuándo, para subirlas a la cuenta. */
+async function marcarPendientes(tx, ids, ahora) {
+  if (!ids.length) return;
+  const meta = tx.objectStore(ALMACEN_META);
+  const fila = (await promesa(meta.get(PENDIENTES))) || { clave: PENDIENTES, ids: {} };
+  for (const id of ids) fila.ids[id] = ahora;
+  meta.put(fila);
+}
+/** 3.31 · Milisegundos de una hora ISO, también con el formato de Postgres («…10:00:00.123456+00:00»), que Safari (iPhone) no siempre
+ *  entiende con Date.parse. NaN si no es una hora. */
+export function instante(iso) {
+  if (typeof iso !== "string") return NaN;
+  const m = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})(?:[.,](\d+))?(Z|[+-]\d{2}(?::?\d{2})?)?$/.exec(iso.trim());
+  if (!m) return NaN;
+  const frac = ((m[3] || "") + "000").slice(0, 3);
+  let zona = m[4] || "Z";
+  if (/^[+-]\d{2}$/.test(zona)) zona += ":00"; else if (/^[+-]\d{4}$/.test(zona)) zona = zona.slice(0, 3) + ":" + zona.slice(3);
+  return Date.parse(`${m[1]}T${m[2]}.${frac}${zona}`);
+}
+
+/** Fila guardada → { cantidad, variantes, mostrar } comparable (para saber si algo cambió de verdad). */
+const huella = (f) => JSON.stringify(f ? [f.cantidad, f.variantes || {}, f.mostrar || null] : [0, {}, null]);
+
 export class Almacen {
   constructor(db) {
     this.db = db;
+    this.alCambiar = null;          // 3.31: aviso tras cada cambio guardado (la sincronización lo usa para subirlo enseguida)
   }
+  _avisar() { try { this.alCambiar?.(); } catch { /* un oyente roto no debe romper el guardado */ } }
 
   /** Abre (o crea) la base de datos. `nombre` permite usar una distinta en las pruebas. */
   static abrir(nombre = NOMBRE_BD) {
@@ -79,13 +106,17 @@ export class Almacen {
   /** 3.16 · Lee la fila, aplica `cambio(registro)` y guarda en UNA transacción (los toques rápidos no se pisan). Devuelve { antes, despues, registro }. */
   async _modificar(id, cambio) {
     if (typeof id !== "string" || id === "") throw new TypeError("id de carta no válido");
-    const tx = this.db.transaction(ALMACEN_COPIAS, "readwrite");
+    const tx = this.db.transaction([ALMACEN_COPIAS, ALMACEN_META], "readwrite");
     const almacen = tx.objectStore(ALMACEN_COPIAS);
-    const previo = normalizar(await promesa(almacen.get(id)));
+    const filaPrevia = await promesa(almacen.get(id));
+    const previo = normalizar(filaPrevia);
     const nuevo = cambio(previo);
-    const fila = aFila(id, nuevo);
+    const ahora = new Date().toISOString();
+    const fila = aFila(id, nuevo, ahora);
     if (fila) almacen.put(fila); else almacen.delete(id);
+    if (huella(fila) !== huella(filaPrevia && normalizar(filaPrevia))) await marcarPendientes(tx, [id], ahora);
     await terminada(tx);
+    this._avisar();
     return { antes: previo.cantidad, despues: nuevo.cantidad, registro: nuevo };
   }
 
@@ -160,23 +191,120 @@ export class Almacen {
         if (cantidad > (previas.get(id)?.cantidad ?? 0)) { const f = aFila(id, registro(id, cantidad), ahora); if (f) almacen.put(f); }
       }
     }
+    await this._marcarDiferencias(tx, filasPrevias, ahora);
     await terminada(tx);
+    this._avisar();
+  }
+
+  /** 3.31 · Compara las filas de antes con las de ahora (misma transacción) y apunta como pendientes las cartas que cambiaron. */
+  async _marcarDiferencias(tx, filasPrevias, ahora) {
+    const ahoraFilas = new Map((await promesa(tx.objectStore(ALMACEN_COPIAS).getAll())).map((f) => [f.id, f]));
+    const ids = [...new Set([...filasPrevias.keys(), ...ahoraFilas.keys()])]
+      .filter((id) => huella(filasPrevias.get(id) && normalizar(filasPrevias.get(id))) !== huella(ahoraFilas.get(id) && normalizar(ahoraFilas.get(id))));
+    await marcarPendientes(tx, ids, ahora);
   }
 
   /** Deshace la última importación (vuelve a la foto guardada). Devuelve false si no hay ninguna. */
   async deshacerImportacion() {
     const foto = await promesa(this.db.transaction(ALMACEN_META, "readonly").objectStore(ALMACEN_META).get("antesDeImportar"));
     if (!foto) return false;
+    return this._volverAFoto(foto, "antesDeImportar");
+  }
+
+  /** Vuelve a una foto { copias: [...] } guardada en meta y la borra. Las cartas que cambian quedan pendientes de subir (3.31). */
+  async _volverAFoto(foto, clave) {
     const tx = this.db.transaction([ALMACEN_COPIAS, ALMACEN_META], "readwrite");
     const almacen = tx.objectStore(ALMACEN_COPIAS);
+    const filasPrevias = new Map((await promesa(almacen.getAll())).map((f) => [f.id, f]));
     almacen.clear();
     const ahora = new Date().toISOString();
     for (const f of foto.copias) {                                  // fotos antiguas: { id, cantidad }; desde 3.16 también variantes y visible
       const fila = f && typeof f.id === "string" && aFila(f.id, normalizar(f), ahora);
       if (fila) almacen.put(fila);
     }
-    tx.objectStore(ALMACEN_META).delete("antesDeImportar");
+    tx.objectStore(ALMACEN_META).delete(clave);
+    await this._marcarDiferencias(tx, filasPrevias, ahora);
     await terminada(tx);
+    this._avisar();
     return true;
+  }
+
+  // ------------------------------------------------------------------ 3.31 · sincronización con la cuenta (ver sincronizacion.js)
+  async _meta(clave) { return promesa(this.db.transaction(ALMACEN_META, "readonly").objectStore(ALMACEN_META).get(clave)); }
+  async _ponerMeta(fila) { const tx = this.db.transaction(ALMACEN_META, "readwrite"); tx.objectStore(ALMACEN_META).put(fila); await terminada(tx); }
+
+  /** { usuario, ultimaLectura } de la última sincronización, o null si este navegador nunca se ha sincronizado. */
+  async estadoSincronizacion() { const f = await this._meta(ESTADO_SYNC); return f ? { usuario: f.usuario, ultimaLectura: f.ultimaLectura ?? null, ultima: f.ultima ?? null } : null; }
+  async guardarEstadoSincronizacion(e) { await this._ponerMeta({ clave: ESTADO_SYNC, ...e }); }
+
+  /** Cambios locales sin subir: Map id -> ISO. */
+  async pendientes() { const f = await this._meta(PENDIENTES); return new Map(Object.entries(f?.ids || {})); }
+
+  /** Filas a subir para esos ids: { carta, cantidad, variantes, mostrar, actualizado } (sin fila local = cantidad 0: la carta se quitó). */
+  async filasParaSubir(pendientes) {
+    const tx = this.db.transaction(ALMACEN_COPIAS, "readonly"), almacen = tx.objectStore(ALMACEN_COPIAS);
+    const res = [];
+    for (const [id, cuando] of pendientes) {
+      const r = normalizar(await promesa(almacen.get(id)));
+      res.push({ carta: id, cantidad: r.cantidad, variantes: r.variantes, mostrar: r.mostrar && r.variantes[r.mostrar] > 0 ? r.mostrar : null, actualizado: cuando });
+    }
+    return res;
+  }
+
+  /** Quita de pendientes las cartas ya subidas, SOLO si no han vuelto a cambiar mientras tanto (misma hora). */
+  async confirmarSubidas(subidas) {
+    const tx = this.db.transaction(ALMACEN_META, "readwrite"), meta = tx.objectStore(ALMACEN_META);
+    const fila = await promesa(meta.get(PENDIENTES));
+    if (fila) { for (const s of subidas) if (fila.ids[s.carta] === s.actualizado) delete fila.ids[s.carta]; meta.put(fila); }
+    await terminada(tx);
+  }
+
+  /**
+   * Aplica filas que vienen de la cuenta ({ carta, cantidad, variantes, mostrar, actualizado }) en UNA transacción.
+   * Gana la versión más reciente: si aquí hay un cambio pendiente más nuevo que la fila remota, se conserva el local (y se subirá).
+   * Devuelve los ids que cambiaron en este navegador.
+   */
+  async aplicarRemotas(filas) {
+    const tx = this.db.transaction([ALMACEN_COPIAS, ALMACEN_META], "readwrite");
+    const almacen = tx.objectStore(ALMACEN_COPIAS), meta = tx.objectStore(ALMACEN_META);
+    const pend = (await promesa(meta.get(PENDIENTES))) || { clave: PENDIENTES, ids: {} };
+    const cambiadas = [];
+    for (const f of filas) {
+      if (!f || typeof f.carta !== "string" || !f.carta || !esCantidadValida(f.cantidad) || isNaN(instante(f.actualizado))) continue;   // datos raros: se ignoran
+      const local = pend.ids[f.carta];
+      if (local && !(instante(f.actualizado) >= instante(local))) continue;         // lo de aquí es más nuevo (o no se puede comparar): se conserva
+      if (local) delete pend.ids[f.carta];                                         // lo remoto es más nuevo: gana y ya no hay nada que subir
+      const actual = await promesa(almacen.get(f.carta));
+      const fila = aFila(f.carta, normalizar({ cantidad: f.cantidad, variantes: f.variantes || {}, mostrar: f.mostrar || null }), f.actualizado);
+      if (huella(fila) === huella(actual && normalizar(actual))) continue;         // ya estaba igual
+      if (fila) almacen.put(fila); else almacen.delete(f.carta);
+      cambiadas.push(f.carta);
+    }
+    meta.put(pend);
+    await terminada(tx);
+    return cambiadas;
+  }
+
+  /** Primera sincronización con una cuenta: foto de la colección (para deshacer) y TODAS las cartas locales pendientes de subir,
+   *  cada una con la hora de su último cambio. Así se juntan las dos colecciones sin borrar nada. */
+  async prepararPrimeraSincronizacion(usuario) {
+    const tx = this.db.transaction([ALMACEN_COPIAS, ALMACEN_META], "readwrite");
+    const filas = await promesa(tx.objectStore(ALMACEN_COPIAS).getAll()), meta = tx.objectStore(ALMACEN_META);
+    meta.put({ clave: "antesDeSincronizar", fecha: new Date().toISOString(), usuario,
+      copias: filas.map((f) => ({ id: f.id, cantidad: f.cantidad, ...(f.variantes ? { variantes: f.variantes } : {}), ...(f.mostrar ? { mostrar: f.mostrar } : {}) })) });
+    const pend = (await promesa(meta.get(PENDIENTES))) || { clave: PENDIENTES, ids: {} };
+    const ahora = new Date().toISOString();
+    for (const f of filas) if (!pend.ids[f.id]) pend.ids[f.id] = isNaN(instante(f.actualizado)) ? ahora : f.actualizado;
+    meta.put(pend);
+    meta.put({ clave: ESTADO_SYNC, usuario, ultimaLectura: null, ultima: null });
+    await terminada(tx);
+  }
+
+  /** ¿Hay foto de antes de la primera sincronización? { fecha, cartas } o null. */
+  async fotoAntesDeSincronizar() { const f = await this._meta("antesDeSincronizar"); return f ? { fecha: f.fecha, cartas: f.copias.length } : null; }
+  /** Vuelve a la colección de antes de la primera sincronización (lo que cambie se sube a la cuenta en la siguiente). */
+  async deshacerSincronizacion() {
+    const foto = await this._meta("antesDeSincronizar");
+    return foto ? this._volverAFoto(foto, "antesDeSincronizar") : false;
   }
 }

@@ -98,3 +98,12 @@ test('3.30 · brillo holo: la ventana de la ilustración acaba donde la medida (
   assert.ok(!css.includes('color-dodge') && css.includes('soft-light'), 'ficha: soft-light en vez de color-dodge');
   assert.ok(css.includes('inset(10.5% 8% 53% 8%)') && css.includes('8% 47%, 92% 47%'), 'la ficha usa la misma ventana que el 3D');
 });
+
+test('3.31 · instante(): horas ISO del navegador y de Postgres (microsegundos, +00:00), que Safari no siempre entiende', async () => {
+  const { instante } = await import('../../js/almacen.js');
+  const ms = Date.UTC(2026, 10, 19, 10, 0, 0, 123);
+  for (const t of ['2026-11-19T10:00:00.123Z', '2026-11-19T10:00:00.123456+00:00', '2026-11-19 10:00:00.123456+00', '2026-11-19T11:00:00.123+01:00', '2026-11-19T10:00:00.1234+0000'])
+    assert.equal(instante(t), ms, t);
+  assert.equal(instante('2026-11-19T10:00:00Z'), Date.UTC(2026, 10, 19, 10));
+  for (const t of [null, undefined, '', 'ayer', '2026-11-19']) assert.ok(isNaN(instante(t)), String(t));
+});

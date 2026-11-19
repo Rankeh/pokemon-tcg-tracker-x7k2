@@ -2,6 +2,7 @@
 // Regla de oro heredada: primero se guarda en IndexedDB y SOLO si se confirma se actualiza la ficha y el 3D.
 import * as THREE from 'three';
 import { Almacen } from '../../js/almacen.js';
+import { iniciarSincronizacion } from '../../js/sincronizacion.js';
 import { ModeloColeccion } from '../../js/album/modelo.js';
 import { crearMapa, AdaptadorColeccion } from './adaptador-coleccion.js';
 import { cargarAlbum } from './album3d.js';
@@ -25,7 +26,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.30';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.31';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -620,6 +621,21 @@ async function arrancar() {
     deshacer: async () => { await almacen.deshacerImportacion(); await releer(); },
     avisar: (t) => { avisar(t); const id = ++idAviso; setTimeout(() => { if (id === idAviso) avisar(''); }, 5000); },
   });
+  // 3.31 · con sesión iniciada, la colección se sincroniza con la cuenta (lo que marques aquí aparece en tus otros dispositivos y al revés)
+  if (almacen && !soloLectura && !params.get('bd')) {             // ?bd=… (pruebas) nunca toca la cuenta
+    let primeraAvisada = false;
+    iniciarSincronizacion(almacen, {
+      alCambiar: async (ids, r) => {                               // han llegado cambios de otro dispositivo
+        try {
+          await releer(); cambioAMano();
+          if (ctrl.fichaAbierta) ficha.actualizar(adaptador.fichaDe(ctrl.seleccion.nombre));
+          for (const id of ids) vista.actualizarAcabado?.(id);
+        } catch (e) { console.warn('No se pudieron mostrar los cambios sincronizados:', e); }
+        if (r.primera && !primeraAvisada) { primeraAvisada = true; avisar('Colección sincronizada con tu cuenta.'); setTimeout(() => avisar(''), 4000); }
+      },
+      alEstado: (e) => { if (e.estado === 'error') console.warn('Sincronización:', e.error?.message || e.error); },
+    });
+  }
   addEventListener('visibilitychange', async () => {            // volver de la app original (otra pestaña) → releer lo guardado
     if (document.visibilityState !== 'visible' || ctrl.fichaAbierta) return;
     try { await adaptador.cargar(); vista.refrescar(); pintarProgreso(); cambioAMano(); } catch (e) { /* si falla se sigue con lo que hay */ }
