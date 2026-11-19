@@ -9,6 +9,7 @@
 | `js/album/distribucion.js`, `js/album/modelo.js` | Orden por Pokédex y reparto en páginas; modelo de la colección sobre el almacén |
 | `js/imagen.js`, `css/base.css`, `css/tokens.css` | Página de copias de seguridad y página de cuenta |
 | `js/cuenta.js`, `js/supabase-config.js`, `cuenta.html` | Cuenta de usuario (Supabase Auth) y estado de la sincronización |
+| `js/pwa.js` | App instalable: registra `sw.js` (raíz) y el consejo para instalarla en el iPhone |
 | `js/sincronizacion.js` | Sincroniza la colección con la cuenta: gana el cambio más reciente de cada carta; las bajas viajan como 0 |
 | `prueba-almacenamiento.html` | Exportar e importar la colección |
 | `estanteria/` | Biblioteca (pantalla principal) |

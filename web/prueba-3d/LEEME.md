@@ -456,3 +456,13 @@ está en `datos/albumes-artista.json`, así que se refresca cada lunes como los 
 - Las horas de Postgres (microsegundos, `+00:00`) se leen con `instante()`, porque Safari no siempre las entiende con `Date.parse`.
 - Pruebas: `pruebas/ejecutar-sincronizacion.mjs` (dos «dispositivos» con IndexedDB real y un servidor de prueba con la misma regla).
   Además se probó contra Supabase real con una cuenta temporal, ya borrada.
+
+## 3.32 — App instalable y sin conexión (PWA)
+- `manifest.webmanifest` (raíz): pantalla completa, iconos 192/512 y «maskable» (`web/editorial/icono-*.png`, generados del símbolo).
+- `sw.js` (raíz): código, páginas, catálogos y precios **primero la red** (sin red, la copia; las páginas esperan 5 s como mucho);
+  imágenes, modelos y Three.js **primero la copia** (las propias se revalidan en segundo plano). Supabase y otros sitios nunca se guardan.
+  Al instalarse guarda el núcleo de `precache.json`; al abrir la app con conexión revisa la lista y baja lo que falte (las 235 miniaturas).
+  `precache.json` lo genera `herramientas/pwa/generar_precache.py` (también el proceso semanal) y las pruebas comprueban que está al día.
+- El registro va DESPUÉS del import map de Three.js: un módulo cargado antes haría que el navegador ignorase el import map.
+- En las pruebas automáticas (`navigator.webdriver`) no se registra salvo con `?sw=1`, para no tapar los dobles de Three.js.
+- Prueba: `pruebas/ejecutar-app.mjs` (service worker real en Chromium: guarda, abre el álbum sin conexión, primero la red, Supabase fuera).

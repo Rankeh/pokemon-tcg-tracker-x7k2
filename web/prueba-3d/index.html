@@ -12,6 +12,11 @@
   <link rel="stylesheet" href="../editorial/editorial.css">
   <link rel="stylesheet" href="css/prueba-3d.css">
   <script>/* tema único (editorial), antes del primer pintado: evita el parpadeo */document.addEventListener('DOMContentLoaded', () => { document.body.dataset.tema = 'editorial'; });</script>
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Biblioteca TCG">
 </head>
 <body>
 <main class="app">
@@ -103,8 +108,10 @@ addEventListener('unhandledrejection', (e) => window.__errores.push('Promesa: ' 
     console.error(e);
     const c = document.getElementById('cargando');
     c.hidden = false;
-    c.textContent = 'No se pudo cargar Three.js (' + origen + '). Sin internet, copia Three.js en web/vendor/three/ (ver web/vendor/LEEME.md). ' + e.message;
+    c.textContent = 'No se pudo cargar Three.js (' + origen + '). Sin internet, abre antes la app con conexión una vez (o copia Three.js en web/vendor/three/). ' + e.message;
   }
+  // 3.32 · app instalable y sin conexión. Va DESPUÉS del import map: un módulo cargado antes haría que el navegador lo ignorase
+  import('../js/pwa.js').then((m) => m.registrarApp()).catch((e) => console.warn(e));
 })();
 </script>
 </body>

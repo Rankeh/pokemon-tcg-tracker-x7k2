@@ -31,6 +31,8 @@ jobs:
         run: node web/pruebas/node.mjs && node web/pruebas/node-album.mjs
       - name: Modelo 3D (GLB)
         run: python blender/pruebas_glb.py
+      - name: Lista de la app sin conexión al día
+        run: python herramientas/pwa/generar_precache.py --comprobar
 
   navegador:
     name: Navegador (Chromium + IndexedDB real)
@@ -57,3 +59,5 @@ jobs:
         run: node web/prueba-3d/pruebas/ejecutar-teclado.mjs
       - name: Sincronización entre dispositivos
         run: node web/prueba-3d/pruebas/ejecutar-sincronizacion.mjs
+      - name: App instalable y sin conexión
+        run: node web/prueba-3d/pruebas/ejecutar-app.mjs

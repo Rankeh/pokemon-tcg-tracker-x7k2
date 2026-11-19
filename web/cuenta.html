@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="icon" href="editorial/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="editorial/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="editorial/apple-touch-icon.png">
@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="editorial/editorial.css">
   <style>
     body { margin: 0; min-height: 100vh; }
-    main { max-width: 440px; margin: 0 auto; padding: 32px 16px 64px; }
+    main { max-width: 440px; margin: 0 auto; padding: max(32px, calc(env(safe-area-inset-top) + 16px)) max(16px, env(safe-area-inset-right)) max(64px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
     .arriba { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
     h1 { font: 300 2.4rem/1.05 var(--e-fuente); letter-spacing: -.01em; margin: 0 0 6px; }
     h2 { font: 300 1.4rem/1.2 var(--e-fuente); margin: 0 0 4px; }
@@ -35,6 +35,12 @@
     @keyframes latido { to { opacity: .25; } }
     @media (prefers-reduced-motion: reduce) { .punto { animation: none !important; } }
   </style>
+  <meta name="theme-color" content="#1c1c1c">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Biblioteca TCG">
 </head>
 <body class="e-fondo">
 <main>
@@ -90,5 +96,6 @@
   </section>
 </main>
 <script type="module" src="js/cuenta.js"></script>
+<script type="module">import { registrarApp } from './js/pwa.js'; registrarApp();</script>
 </body>
 </html>

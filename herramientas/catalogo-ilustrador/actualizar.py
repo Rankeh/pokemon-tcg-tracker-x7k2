@@ -31,6 +31,8 @@ def main():
         linea = '%s: %d cartas (%d nuevas%s), modelo %s' % (a.get('ilustrador') or a['id'], len(despues), len(nuevas), ', %d retiradas' % len(retiradas) if retiradas else '', modelo.name)
         print(linea, nuevas or '')
         resumen.append('- ' + linea + (': ' + ', '.join(nuevas) if nuevas else ''))
+    # la app instalada (sw.js) guarda las miniaturas de precache.json: las cartas nuevas también tienen que estar en la lista
+    subprocess.run([sys.executable, 'herramientas/pwa/generar_precache.py'], cwd=RAIZ, check=True)
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as f: f.write('## Álbumes generados desde TCGdex\n' + '\n'.join(resumen) + '\n')
 

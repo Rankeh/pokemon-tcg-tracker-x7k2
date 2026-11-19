@@ -12,6 +12,11 @@
   <script src="web/editorial/modo.js"></script>
   <link rel="stylesheet" href="web/editorial/editorial.css">
   <link rel="stylesheet" href="web/estanteria/css/estanteria.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Biblioteca TCG">
 </head>
 <body class="e-fondo">
   <canvas id="lienzo" tabindex="-1" aria-label="Biblioteca de álbumes. Desliza a los lados para elegir un álbum; toca la portada para abrirlo."></canvas>
@@ -76,6 +81,8 @@
     document.body.classList.add('sin-3d');
     document.getElementById('cargando').textContent = 'No se pudo cargar la biblioteca 3D. Puedes abrir tus álbumes desde la lista.';
   }
+  // 3.32 · app instalable y sin conexión. Va DESPUÉS del import map: un módulo cargado antes haría que el navegador lo ignorase
+  import('./web/js/pwa.js').then((m) => { m.registrarApp(); m.mostrarConsejoInstalar(); }).catch((e) => console.warn(e));
 })();
 </script>
 </body>

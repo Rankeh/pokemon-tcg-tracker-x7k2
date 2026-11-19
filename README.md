@@ -17,6 +17,13 @@ y donde marcas las cartas que tienes (con variantes, precios de Cardmarket y cop
 
 Los álbumes de artista (y los precios del de Pikachu) se actualizan solos cada lunes (`.github/workflows/actualizar-artistas.yml`).
 
+## Instalarla como app
+En el iPhone, abre la web en Safari → **Compartir** → **Añadir a pantalla de inicio** (en Android o en Chrome de escritorio, «Instalar»).
+Se abre a pantalla completa y funciona **sin conexión**: el código, los catálogos, los modelos 3D y las miniaturas de las cartas se guardan
+en el dispositivo (`sw.js`, lista en `precache.json`, generada con `herramientas/pwa/generar_precache.py`). Con conexión, el código y los
+datos se piden siempre primero a la red, así que los cambios publicados se ven al momento. La app instalada guarda sus datos aparte de
+Safari: entra con tu cuenta en ella para traer tu colección.
+
 ## Móvil y ordenador
 Con una cuenta (botón **Cuenta** de la biblioteca), la colección se sincroniza sola entre dispositivos: al abrir un álbum, al volver a la
 pestaña, cada minuto y poco después de cada cambio. Sin cuenta o sin conexión todo sigue funcionando y se guarda en el navegador.
@@ -49,7 +56,7 @@ node web/pruebas/node.mjs && node web/pruebas/node-album.mjs
 python blender/pruebas_glb.py
 ```
 En navegador (Chromium + Playwright, IndexedDB real en bases de datos desechables):
-`node web/prueba-3d/pruebas/ejecutar-pagina.mjs`, `ejecutar-navegador.mjs`, `ejecutar-completar.mjs`, `ejecutar-variantes.mjs`, `ejecutar-teclado.mjs` y `ejecutar-sincronizacion.mjs`.
+`node web/prueba-3d/pruebas/ejecutar-pagina.mjs`, `ejecutar-navegador.mjs`, `ejecutar-completar.mjs`, `ejecutar-variantes.mjs`, `ejecutar-teclado.mjs`, `ejecutar-sincronizacion.mjs` y `ejecutar-app.mjs`.
 
 GitHub ejecuta todas estas pruebas en cada subida a `main` y en cada pull request (`.github/workflows/pruebas.yml`).
 
