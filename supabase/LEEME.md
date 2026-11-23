@@ -32,4 +32,6 @@ Si ya tenías cuenta con el mismo correo (verificado), Supabase une las dos: es 
 ## Funciones (Edge Functions)
 | Función | Qué hace |
 |---|---|
-| `functions/imagen-limitless` | Intermediario de imágenes de cartas de limitlesstcg: Limitless no envía CORS y el 3D no podría usarlas. `?buscar=1&set&num&id` → `{ ruta }`; `?ruta=` → la imagen con CORS. Solo acepta rutas con la forma exacta de una imagen de carta de ese servidor. Sin sesión (imágenes públicas, también para visitantes). |
+| `functions/imagen-limitless` | Intermediario de imágenes de cartas con CORS para el 3D. `?buscar=1&id&num[&set]` → `{ ruta }` (carpeta de limitlesstcg, cartas desde 2011) o `{ pio }` (cartas antiguas: la imagen que enseña la página de limitlesstcg o pokemontcg.io, su fuente). `?ruta=` / `?pio=` / `?tcgdex=` → la imagen (la última, porque muchas imágenes de TCGdex llevan la cabecera CORS duplicada y los navegadores las rechazan). Solo acepta rutas con la forma exacta de una imagen de carta. Sin sesión. |
+
+`functions/imagen-limitless-sonda` fue una prueba temporal y ya no hace nada (responde 410): se puede borrar desde el panel (Edge Functions).

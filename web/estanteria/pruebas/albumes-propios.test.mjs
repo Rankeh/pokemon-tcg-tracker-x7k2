@@ -55,3 +55,23 @@ test('3.40 · selección propia: el nombre propuesto sigue siendo el del Pokémo
   const r2 = registroDe('mio-a-0000', { tipo: 'lista', ids: ['x1-001'], origen: { tipo: 'ilustrador', ilustrador: 'Alguien' } }, 'Mía', cat, { cartas: {} });
   assert.equal(r2.subtitulo, 'Colección de artista', 'con origen: las etiquetas del origen');
 });
+
+test('3.41 · Pokémon: da igual mayúsculas o tildes, y solo el nombre exacto (sin «Gengar ex» ni «M-Gengar EX»)', async () => {
+  const { generarCatalogo, plano } = await import('../../js/generador-album.js');
+  assert.equal(plano('  FLABÉBÉ  '), 'flabebe');
+  const lista = [{ id: 's1-1', name: 'Gengar' }, { id: 's1-2', name: 'Gengar ex' }, { id: 's1-3', name: 'M-Gengar EX' }, { id: 's2-9', name: 'GENGAR' }];
+  const pedidas = [], original = globalThis.fetch;
+  globalThis.fetch = async (u) => {
+    const p = decodeURIComponent(String(u)).replace('https://api.tcgdex.net/v2/', ''); pedidas.push(p);
+    const r = (d) => ({ ok: true, status: 200, json: async () => d });
+    if (/cards\?name=/.test(p)) return r(lista);
+    const c = /^en\/cards\/(.+)$/.exec(p); if (c) return r({ id: c[1], localId: '1', name: lista.find((x) => x.id === c[1]).name, set: { id: c[1].split('-')[0] }, image: 'https://assets.tcgdex.net/x' });
+    if (/sets\//.test(p)) return r({ serie: { id: 'sv' }, cards: [] });
+    return { ok: false, status: 404, json: async () => null };
+  };
+  try {
+    const { catalogo } = await generarCatalogo({ tipo: 'pokemon', pokemon: 'gengar' });
+    assert.deepEqual(catalogo.cartas.map((x) => x.id).sort(), ['s1-1', 's2-9']);
+    assert.ok(pedidas.some((p) => p.endsWith('cards?name=gengar')) && !pedidas.some((p) => p.includes('eq:')), 'búsqueda «contiene» (sin «eq:», que sí distingue mayúsculas)');
+  } finally { globalThis.fetch = original; }
+});

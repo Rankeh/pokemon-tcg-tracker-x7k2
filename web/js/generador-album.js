@@ -78,6 +78,8 @@ async function pedir(ruta, { senal, intentos = 3 } = {}) {
   }
 }
 const q = encodeURIComponent;
+/** PURO · texto para comparar nombres: sin tildes, sin mayúsculas y sin espacios de más. */
+export const plano = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 
 /** Expansiones de TCGdex para elegir (sin las de TCG Pocket), de la más reciente a la más antigua. [{ id, nombre, cartas }] */
 export async function listarExpansiones({ senal } = {}) {
@@ -98,8 +100,10 @@ async function idsDe(def, senal) {
   }
   if (def.tipo === "ilustrador") return ((await pedir("en/cards?illustrator=" + q("eq:" + def.ilustrador), { senal })) || []).map((c) => c.id);
   if (def.tipo === "pokemon") {        // el nombre puede estar en castellano o en inglés
-    const [en, es] = await Promise.all(["en", "es"].map((l) => pedir(l + "/cards?name=" + q("eq:" + def.pokemon), { senal })));
-    const ids = [...new Set([...(en || []), ...(es || [])].map((c) => c.id))];
+    // 3.41 · da igual mayúsculas o tildes: TCGdex busca «contiene» sin distinguirlas y aquí se queda solo el nombre exacto
+    // («gengar» → Gengar, pero no Gengar ex ni M-Gengar EX)
+    const [en, es] = await Promise.all(["en", "es"].map((l) => pedir(l + "/cards?name=" + q(def.pokemon), { senal })));
+    const ids = [...new Set([...(en || []), ...(es || [])].filter((c) => plano(c.name) === plano(def.pokemon)).map((c) => c.id))];
     return def.expansion ? ids.filter((id) => id.startsWith(def.expansion + "-")) : ids;
   }
   throw new Error("Tipo de álbum desconocido");
@@ -178,18 +182,22 @@ export async function buscarCartas(texto, { senal, max = 60 } = {}) {
   const vistos = new Map();
   for (const c of [...(es || []), ...(en || [])]) {
     if (vistos.has(c.id) || /\/tcgp\//.test(c.image || "") || fueraSets.has(c.id.slice(0, c.id.lastIndexOf("-")))) continue;
-    vistos.set(c.id, { id: c.id, nombre: c.name, numero: c.localId, imagen: c.image ? c.image + "/low.webp" : null });
+    vistos.set(c.id, { id: c.id, nombre: c.name, numero: c.localId, expansion: c.id.slice(0, c.id.lastIndexOf("-")), imagen: c.image ? c.image + "/low.webp" : null });
   }
   return [...vistos.values()].slice(0, max);
 }
 
-/** 3.39 · Imagen de la carta en limitlesstcg: { url, idioma } o null. Nunca lanza (sin imagen se ve el marcador, como siempre). */
+/** 3.39 · Imagen de la carta en limitlesstcg: { url, idioma } o null. Nunca lanza (sin imagen se ve el marcador, como siempre).
+ *  3.41 · también cartas antiguas: la que enseña la página de limitlesstcg o pokemontcg.io (su fuente para esas cartas). El código de la
+ *  expansión es opcional: si falta, el intermediario se lo pregunta a TCGdex. */
 export async function buscarEnLimitless(codigo, numero, expansion, senal) {
-  if (!numero) return null;                    // sin código oficial (promos) también: el intermediario conoce esas expansiones por su id
+  if (!numero || !expansion) return null;
   try {
-    const r = await fetch(`${FUNCION_LIMITLESS}?buscar=1&set=${q(codigo)}&num=${q(numero)}&id=${q(expansion)}`, { signal: senal });
-    const ruta = r.ok ? (await r.json()).ruta : null;
-    return ruta ? { url: `${FUNCION_LIMITLESS}?ruta=${q(ruta)}`, idioma: /_ES_LG\.png$/.test(ruta) ? "es" : "en" } : null;
+    const r = await fetch(`${FUNCION_LIMITLESS}?buscar=1&num=${q(numero)}&id=${q(expansion)}${codigo ? "&set=" + q(codigo) : ""}`, { signal: senal });
+    const d = r.ok ? await r.json() : null;
+    if (d?.ruta) return { url: `${FUNCION_LIMITLESS}?ruta=${q(d.ruta)}`, idioma: /_ES_LG\.png$/.test(d.ruta) ? "es" : "en" };
+    if (d?.pio) return { url: `${FUNCION_LIMITLESS}?pio=${q(d.pio)}`, idioma: "en" };
+    return null;
   } catch { return null; }
 }
 /** URL de la imagen grande de la carta: la de TCGdex o, si no tiene, la de limitlesstcg. */

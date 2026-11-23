@@ -63,7 +63,7 @@ async function preparar(ctx) {
   await ctx.route('**/functions/v1/imagen-limitless**', (r) => {            // intermediario de limitlesstcg (Supabase), simulado
     const q = new URL(r.request().url()).searchParams; pedidasImg.push(r.request().url());
     if (q.get('buscar')) return r.fulfill({ contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
-      body: JSON.stringify({ ruta: q.get('set') === 'TST' && q.get('num') === '004' ? 'TST/TST_004_R_ES_LG.png' : null }), status: q.get('num') === '004' ? 200 : 404 });
+      body: JSON.stringify({ ruta: q.get('id') === 'x1' && q.get('num') === '004' ? 'TST/TST_004_R_ES_LG.png' : null }), status: q.get('num') === '004' ? 200 : 404 });   // con o sin código
     return r.fulfill({ contentType: 'image/png', headers: { 'access-control-allow-origin': '*' }, body: imagen });
   });
   await ctx.route('**/assets.tcgdex.net/**', (r) => { pedidasImg.push(r.request().url()); r.fulfill({ contentType: 'image/webp', headers: { 'access-control-allow-origin': '*' }, body: imagen }); });
@@ -142,10 +142,10 @@ if (abrio) {
   ok(JSON.stringify(v.orden) === '["Charmander","Charizard ex","Pikachu"]', 'en orden de Pokédex');
   await marcar('x1-004', 1);
   await pag.click('#b-abrir'); await pag.waitForFunction(() => !window.__album3d.album.estado.animando, null, { timeout: 60000 }); await dormir(1500);
-  ok(pedidasImg.some((u) => u.endsWith('/es/sv/x1/002/low.webp')), 'la carta marcada se pinta con la imagen pequeña de TCGdex (en español)');
+  ok(pedidasImg.some((u) => u.endsWith('?tcgdex=' + encodeURIComponent('es/sv/x1/002/low.webp'))), 'la carta marcada se pinta con la imagen pequeña de TCGdex en español (vía el intermediario: su CORS va duplicado)');
   await pag.evaluate(() => { const a = window.__album3d; a.ctrl.ultimoCierre = -Infinity; a.ctrl.seleccionar(a.adaptador.mapa.porId.get('x1-002').nombre); });
   await dormir(800);
-  ok((await pag.getAttribute('#f-imagen img', 'src') || '').endsWith('/es/sv/x1/002/high.webp'), 'la ficha usa la imagen grande de TCGdex');
+  ok((await pag.getAttribute('#f-imagen img', 'src') || '').endsWith('?tcgdex=' + encodeURIComponent('es/sv/x1/002/high.webp')), 'la ficha usa la imagen grande de TCGdex');
   ok((await pag.textContent('#ficha')).includes('Rara Ilustración Especial') && (await pag.textContent('#ficha')).includes('5'), 'ficha con rareza en castellano y precio');
   await pag.click('#f-cerrar'); await dormir(600);
   await pag.evaluate(() => { const a = window.__album3d; a.ctrl.ultimoCierre = -Infinity; a.ctrl.seleccionar(a.adaptador.mapa.porId.get('x1-004').nombre); }); await dormir(800);
@@ -153,7 +153,10 @@ if (abrio) {
 }
 
 // 3) por Pokémon y por ilustrador (sugerencias)
-await crear('pokemon', async () => { await pag.fill('#n-pok', 'Pikachu'); }, async () => {
+await crear('pokemon', async () => { await pag.fill('#n-pok', 'pikachu'); }, async () => {      // 3.41: en minúsculas
+  await pag.fill('#n-buscar', 'mewtwo'); await pag.waitForSelector('#n-resultados button', { timeout: 10000 });
+  await pag.waitForFunction(() => document.querySelector('#n-resultados img')?.src.includes('imagen-limitless?ruta='), null, { timeout: 10000 }).catch(() => {});
+  ok(await pag.evaluate(() => document.querySelector('#n-resultados img')?.src.includes('imagen-limitless?ruta=')), 'buscador: un resultado sin imagen en TCGdex se rellena con la de limitlesstcg');
   await pag.fill('#n-buscar', 'Charizard'); await pag.waitForSelector('#n-resultados button', { timeout: 10000 });
   ok(await pag.locator('#n-resultados button').count() === 1, 'añadir: buscar «Charizard» encuentra la carta física (no la de TCG Pocket)');
   await pag.click('#n-resultados button'); await pag.waitForFunction(() => document.getElementById('n-cuenta').textContent.startsWith('2 de 2'), null, { timeout: 10000 });
@@ -161,7 +164,7 @@ await crear('pokemon', async () => { await pag.fill('#n-pok', 'Pikachu'); }, asy
 });
 await crear('ilustrador', async () => { await dormir(300); await pag.fill('#n-ilu', 'ilus'); await pag.click('#n-ilu-lista button'); await pag.fill('#n-nombre', 'Mi ilustradora'); });
 p = await propios();
-ok(p.albumes.some((a) => a.tipo === 'lista' && a.nombre === 'Pikachu' && a.cartas === 2), 'álbum de Pikachu + Charizard añadido a mano (selección propia, 2 cartas)');
+ok(p.albumes.some((a) => a.tipo === 'lista' && a.nombre === 'Pikachu' && a.cartas === 2), 'álbum de «pikachu» (escrito en minúsculas) + Charizard añadido a mano (selección propia, 2 cartas)');
 ok(p.albumes.some((a) => a.tipo === 'ilustrador' && a.nombre === 'Mi ilustradora' && a.cartas === 3), 'álbum de ilustrador con nombre propio (3 cartas, sin la de otra persona); sin tocar la selección sigue siendo «de ilustrador» (recibe cartas nuevas)');
 
 // 3b) 3.40 · editar las cartas de un álbum: quitar una. Las marcadas no se tocan

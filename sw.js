@@ -10,8 +10,8 @@ const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/', SUPABASE_JS = 'http
 const ESPERA_PAGINA_MS = 5000;                     // una página que no llega en 5 s (cobertura mala) se sirve de la copia guardada
 
 const TCGDEX_IMG = 'https://assets.tcgdex.net/';
-const LIMITLESS_IMG = 'https://untiwlxjdklqjwjbvdym.supabase.co/functions/v1/imagen-limitless?ruta=';   // 3.39: imágenes de limitlesstcg (no cambian)
-const esRecurso = (url) => url.startsWith(THREE) || url.startsWith(SUPABASE_JS) || url.startsWith(TCGDEX_IMG) || url.startsWith(LIMITLESS_IMG) ||
+const LIMITLESS_IMG = 'https://untiwlxjdklqjwjbvdym.supabase.co/functions/v1/imagen-limitless?';   // 3.39/3.41: imágenes de limitlesstcg y pokemontcg.io (no cambian)
+const esRecurso = (url) => url.startsWith(THREE) || url.startsWith(SUPABASE_JS) || url.startsWith(TCGDEX_IMG) || (url.startsWith(LIMITLESS_IMG) && !url.includes('buscar=')) ||
   (url.startsWith(RAIZ) && /\.(webp|png|jpg|jpeg|svg|glb)$/i.test(new URL(url).pathname));
 const delNucleo = (url) => url.startsWith(RAIZ);
 

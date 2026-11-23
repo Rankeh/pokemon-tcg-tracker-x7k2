@@ -102,3 +102,22 @@ test('3.15 · toda carta sin imagen oficial en el manifiesto tiene arte descarga
   for (const r of Object.values(ARTE)) assert.equal(r, r.toLowerCase(), 'nombre en minúsculas (GitHub Pages): ' + r);
   assert.deepEqual(rutasArte('swsh12.5gg-GG19'), ['assets/proxies/arte/swsh12.5gg-gg19.png']);
 });
+
+test('3.41 · imagen de cartas antiguas (pokemontcg.io vía el intermediario): ligera en el bolsillo, alta resolución en la ficha', async () => {
+  const { urlRemota } = await import('../js/texturas3d.js');
+  const F = 'https://untiwlxjdklqjwjbvdym.supabase.co/functions/v1/imagen-limitless';
+  const c = { imagen: null, imagenAlternativa: F + '?pio=ecard3%2FH9_hires.png' };
+  assert.equal(urlRemota(c, 'low'), F + '?pio=ecard3%2FH9.png');
+  assert.equal(urlRemota(c, 'high'), F + '?pio=ecard3%2FH9_hires.png');
+  assert.equal(urlRemota({ imagenAlternativa: 'https://otro.sitio/x.png' }), null, 'solo del intermediario');
+});
+
+test('3.41 · imágenes en español de TCGdex: por el intermediario (su cabecera CORS va duplicada); las inglesas, directas', async () => {
+  const { conCors } = await import('../../js/supabase-url.js');
+  const { urlRemota } = await import('../js/texturas3d.js');
+  const F = 'https://untiwlxjdklqjwjbvdym.supabase.co/functions/v1/imagen-limitless';
+  assert.equal(conCors('https://assets.tcgdex.net/es/sv/sv03/223/low.webp'), F + '?tcgdex=es%2Fsv%2Fsv03%2F223%2Flow.webp');
+  assert.equal(conCors('https://assets.tcgdex.net/en/sv/sv03/223/low.webp'), 'https://assets.tcgdex.net/en/sv/sv03/223/low.webp');
+  assert.equal(conCors('assets/cartas/mini/x.webp'), 'assets/cartas/mini/x.webp', 'las locales no se tocan');
+  assert.equal(urlRemota({ imagen: 'https://assets.tcgdex.net/es/sv/sv03/223/high.webp' }, 'low'), F + '?tcgdex=es%2Fsv%2Fsv03%2F223%2Flow.webp');
+});

@@ -1,6 +1,6 @@
 // Ficha de carta (DOM): panel inferior en móvil y tarjeta lateral en escritorio. Solo muestra datos y avisa de los botones; no guarda nada.
 import { rutasArte, rutaProxy } from './proxies.js';
-import { urlRemota } from './texturas3d.js';
+import { urlsRemotas } from './texturas3d.js';
 import { lineaPrecio, enlaceCardmarket, precioDe, eur } from './precios.js';
 import { sinClasificar, tipoBrillo } from '../../js/variantes.js';
 export const SALIDA_MS = 220;
@@ -57,7 +57,7 @@ export class FichaUI {
     };
     // sin copia oficial en el manifiesto: arte real descargado (arte/) → carta proxy propia → marcador
     const cadena = e ? [this.rutaBase + e.grande, this.rutaBase + e.mini].filter(Boolean)
-      : [...rutasArte(d.id), rutaProxy(d.id), ...(this.remotas ? [urlRemota(d, 'high'), urlRemota(d, 'low')] : [])].filter(Boolean);
+      : [...new Set([...rutasArte(d.id), rutaProxy(d.id), ...(this.remotas ? [...urlsRemotas(d, 'high'), ...urlsRemotas(d, 'low')] : [])].filter(Boolean))];
     if (!cadena.length) return marcador();
     const img = new Image(); img.alt = `${d.nombre}, ${d.nombreExpansion || d.expansion} ${d.numero}`; img.decoding = 'async';
     img.crossOrigin = 'anonymous';                                 // 3.37: las de TCGdex llegan con CORS y la app instalada puede guardarlas

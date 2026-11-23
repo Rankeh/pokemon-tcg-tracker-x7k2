@@ -2,9 +2,10 @@
 // 3.40 · Paso 2: elegir las cartas (quitar las que no quieras y añadir cualquier otra buscándola por nombre). El mismo paso sirve para
 // «Editar cartas» de un álbum ya creado. Las cartas que tengas marcadas nunca se tocan: quitar una del álbum no la quita de tu colección.
 // La lógica de los datos está en web/js/generador-album.js y web/js/albumes-propios.js; aquí solo la interfaz.
-import { listarExpansiones, listarIlustradores, generarCatalogo, armarCatalogo, buscarCartas, imagenDe, MAX_CARTAS } from '../../js/generador-album.js';
+import { listarExpansiones, listarIlustradores, generarCatalogo, armarCatalogo, buscarCartas, buscarEnLimitless, imagenDe, MAX_CARTAS } from '../../js/generador-album.js';
 import { crearAlbumPropio, editarCartasAlbum, nombrePropuesto } from '../../js/albumes-propios.js';
 import { ordenarPorPokedex } from '../../js/album/distribucion.js';
+import { conCors, conRespaldo } from '../../js/supabase-url.js';
 
 const $ = (id) => document.getElementById(id);
 /** PURO · texto para buscar: sin tildes ni mayúsculas. */
@@ -17,8 +18,8 @@ export function filtrar(lista, texto, clave = (x) => x, max = 40) {
   for (const x of lista) { const k = plano(clave(x)); if (k.startsWith(t)) empieza.push(x); else if (k.includes(t)) contiene.push(x); }
   return [...empieza, ...contiene].slice(0, max);
 }
-/** PURO · miniatura de una carta para la rejilla: la pequeña de TCGdex o la de limitlesstcg. */
-export const miniatura = (c) => { const u = imagenDe(c); return u ? u.replace(/\/high\.webp$/, '/low.webp') : null; };
+/** PURO · miniatura de una carta para la rejilla: la pequeña de TCGdex o la de limitlesstcg / pokemontcg.io (la ligera). */
+export const miniatura = (c) => { const u = imagenDe(c); return u ? conCors(u.replace(/\/high\.webp$/, '/low.webp').replace(/_hires\.png$/, '.png')) : null; };
 
 export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
   const d = $('d-nuevo'), estado = $('n-estado'), barra = $('n-progreso'), crear = $('n-crear');
@@ -109,7 +110,11 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     // sin imagen (o si falla): un hueco con forma de carta, con su nombre y número, como el marcador del álbum
     const hueco = () => { const h = document.createElement('div'); h.className = 'n-img n-sin'; h.textContent = `${c.nombre} · ${c.numero || ''}`; return h; };
     let img;
-    if (url) { img = new Image(); img.crossOrigin = 'anonymous'; img.loading = 'lazy'; img.decoding = 'async'; img.alt = ''; img.src = url; img.className = 'n-img'; img.onerror = () => img.replaceWith(hueco()); }
+    if (url) {
+      const intentos = conRespaldo(url);                               // 3.41: si TCGdex falla por su CORS duplicado, por el intermediario
+      img = new Image(); img.crossOrigin = 'anonymous'; img.loading = 'lazy'; img.decoding = 'async'; img.alt = ''; img.className = 'n-img'; img.src = intentos[0];
+      img.onerror = () => { const otra = intentos[intentos.indexOf(img.src) + 1]; if (otra) img.src = otra; else img.replaceWith(hueco()); };
+    }
     else img = hueco();
     const n = document.createElement('span'); n.textContent = c.nombre;
     b.append(img, n); b.onclick = () => alPulsar(b);
@@ -142,10 +147,23 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
       try { res = await buscarCartas(texto); } catch { if (mia === busqueda) decir('No se pudo buscar en TCGdex.', true); return; }
       if (mia !== busqueda) return;                                   // ya se escribió otra cosa
       decir(res.length ? '' : 'Ninguna carta con ese nombre.');
-      $('n-resultados').replaceChildren(...res.map((r) => tarjeta({ ...r, miniatura: r.imagen }, {
+      const filas = res.map((r) => [r, tarjeta({ ...r, miniatura: conCors(r.imagen) }, {
         estado: elegidas.has(r.id) ? 'anadida' : '',
         alPulsar: (b) => anadir(r, b),
-      })));
+      })]);
+      $('n-resultados').replaceChildren(...filas.map(([, li]) => li));
+      // 3.41 · las que TCGdex no tiene en imagen: se pide la de limitlesstcg (o pokemontcg.io, para las antiguas), de 3 en 3
+      const sinImagen = filas.filter(([r]) => !r.imagen);
+      const siguiente = async () => {
+        for (let f = sinImagen.shift(); f && mia === busqueda; f = sinImagen.shift()) {
+          const [r, li] = f, alt = await buscarEnLimitless('', r.numero, r.expansion);
+          if (!alt || mia !== busqueda) continue;
+          r.imagen = miniatura({ imagenAlternativa: alt.url });
+          const hueco = li.querySelector('.n-sin');
+          if (hueco) { const img = new Image(); img.crossOrigin = 'anonymous'; img.decoding = 'async'; img.alt = ''; img.className = 'n-img'; img.src = r.imagen; hueco.replaceWith(img); }
+        }
+      };
+      for (let i = 0; i < 3; i++) siguiente();
     }, 300);
   });
   async function anadir(r, b) {

@@ -3,6 +3,7 @@
 // Fulgor Negro) como «foto» de portada; abajo, el título en grotesca fina, las expansiones en rojo y el sello de la app (web/editorial/marca.js).
 // La banda junto al lomo repite el sello y el título en vertical. Se dibuja con Canvas 2D; sin las ilustraciones locales se dibuja igual.
 import { dibujarMarca } from '../../editorial/marca.js';
+import { conRespaldo } from '../../js/supabase-url.js';
 
 export const PORTADA = {
   margen: 0.004,               // m de panel que quedan a la vista alrededor de la lámina
@@ -31,8 +32,9 @@ export function cargarCartas(base = new URL('../assets/cartas/grande/', import.m
     img.decoding = 'async';
     if (/^https:/.test(id)) img.crossOrigin = 'anonymous';     // 3.37: portada de un álbum creado en la app (imagen de TCGdex, con CORS)
     img.onload = () => resolver(img);
-    img.onerror = () => resolver(null);
-    img.src = /^https:/.test(id) ? id : new URL(id.toLowerCase() + '.webp', base).href;   // los archivos van en minúsculas (GitHub Pages)
+    const intentos = /^https:/.test(id) ? conRespaldo(id) : [];          // 3.41: si TCGdex falla por su CORS, por el intermediario
+    img.onerror = () => { const otra = intentos.indexOf(img.src) + 1; if (otra > 0 && intentos[otra]) img.src = intentos[otra]; else resolver(null); };
+    img.src = /^https:/.test(id) ? intentos[0] : new URL(id.toLowerCase() + '.webp', base).href;   // los archivos van en minúsculas (GitHub Pages)
   });
   return Promise.all([una(ids[0]), una(ids[1])]).then(([blanca, negra]) => ({ blanca, negra }));
 }

@@ -532,3 +532,13 @@ Botón «Continuar con Google» en la página de cuenta (Supabase OAuth). Hay qu
 - Si no se toca la selección, el álbum sigue siendo «de expansión / ilustrador / Pokémon» y recibe las cartas nuevas al actualizarse; si se
   quita o añade alguna, queda como selección propia (`{ tipo: 'lista', ids, origen }`): se le actualizan los precios, no las cartas.
 - El aviso para instalar la app en el iPhone pasa arriba (abajo tapaba «Crear álbum»); la portada de «Nuevo álbum» dice «Crea el tuyo».
+
+## 3.41 — Buscador sin mayúsculas y ninguna carta sin imagen
+- El campo «Pokémon» ya no distingue mayúsculas ni tildes («gengar» = «Gengar»; sigue sin incluir «Gengar ex» ni «M-Gengar EX»).
+- Cartas antiguas (antes de 2011): el intermediario de Supabase toma la imagen que enseña la página de limitlesstcg.com o, si no, la de
+  pokemontcg.io (la fuente de limitlesstcg para esas cartas). Ligera en el bolsillo, en alta resolución en la ficha.
+- Las cartas sin imagen de los resultados del buscador la piden al intermediario (de 3 en 3).
+- Muchas imágenes de TCGdex (todas en español y algunas antiguas en inglés) llevan la cabecera CORS duplicada y los navegadores las rechazan
+  para el 3D: las de español van por el intermediario (`?tcgdex=`) y las demás, si fallan, se reintentan por él (`conRespaldo`).
+- Colección Clásica del 30.º Aniversario: limitlesstcg la numera en otro orden (su CC18 es N, no Gengar); tabla cruzada por nombre.
+- Con todo esto, el álbum de Gengar (27 cartas) y la búsqueda «haunter» (32) salen sin ningún hueco.

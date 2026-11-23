@@ -24,11 +24,14 @@ def arte_limitless(catalogo):
             s = json.load(urllib.request.urlopen('https://api.tcgdex.net/v2/en/sets/' + urllib.parse.quote(c['expansion']), timeout=30))
             codigo = (s.get('abbreviation') or {}).get('official') or s.get('tcgOnline') or ''
             q = urllib.parse.urlencode({'buscar': 1, 'set': codigo, 'num': c['numero'], 'id': c['expansion']})
-            ruta = json.load(urllib.request.urlopen(LIMITLESS + '?' + q, timeout=60)).get('ruta')
+            hallada = json.load(urllib.request.urlopen(LIMITLESS + '?' + q, timeout=60))
         except Exception as e:
             print('  sin arte en limitlesstcg para', c['id'], '·', e); continue
-        if not ruta: continue
-        datos = urllib.request.urlopen(LIMITLESS + '?ruta=' + urllib.parse.quote(ruta), timeout=60).read()
+        # 3.41 · «ruta»: carpeta de limitlesstcg (2011+); «pio»: cartas antiguas (pokemontcg.io, la fuente de limitlesstcg para ellas)
+        clave = 'ruta' if hallada.get('ruta') else 'pio' if hallada.get('pio') else None
+        if not clave: continue
+        ruta = hallada[clave]
+        datos = urllib.request.urlopen(LIMITLESS + '?' + clave + '=' + urllib.parse.quote(ruta), timeout=60).read()
         if datos[:4] == b'\x89PNG':
             ARTE.mkdir(parents=True, exist_ok=True); destino.write_bytes(datos); nuevas.append(c['id']); print('  arte de limitlesstcg:', c['id'], ruta)
             # en el manifiesto de imágenes (rutas relativas a assets/cartas/): el visor la usa como cualquier otra, sin listas a mano

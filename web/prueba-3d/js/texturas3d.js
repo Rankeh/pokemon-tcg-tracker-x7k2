@@ -5,14 +5,25 @@ import * as THREE from 'three';
 import { dibujarMarcador, dibujarEtiquetaPendiente } from './marcadores.js';
 import { memoriaTexturaBytes } from './logica.js';
 import { rutaProxy, rutasArte } from './proxies.js';
-import { FUNCION_LIMITLESS } from '../../js/supabase-url.js';
+import { FUNCION_LIMITLESS, conCors, porIntermediario } from '../../js/supabase-url.js';
 
 export const TAM_MINI = { w: 256, h: 358 };
 /** 3.37 · imagen de TCGdex de la carta («low» ≈ 245×337 para el bolsillo, «high» para la ficha), o null. Solo de assets.tcgdex.net. */
+/** 3.41 · la de urlRemota y, si es de TCGdex y puede fallar por su CORS duplicado, la misma por el intermediario. */
+export const urlsRemotas = (carta, calidad = 'low') => {
+  const u = urlRemota(carta, calidad);
+  if (!u) return [];
+  const original = typeof carta?.imagen === 'string' ? carta.imagen.replace(/\/high\.webp$/, '/' + calidad + '.webp') : null;
+  return [...new Set([u, porIntermediario(original)].filter(Boolean))];
+};
 export const urlRemota = (carta, calidad = 'low') => {
-  if (typeof carta?.imagen === 'string' && /^https:\/\/assets\.tcgdex\.net\/.+\/high\.webp$/.test(carta.imagen)) return carta.imagen.replace(/\/high\.webp$/, '/' + calidad + '.webp');
+  if (typeof carta?.imagen === 'string' && /^https:\/\/assets\.tcgdex\.net\/.+\/high\.webp$/.test(carta.imagen)) return conCors(carta.imagen.replace(/\/high\.webp$/, '/' + calidad + '.webp'));
   // 3.39 · sin imagen en TCGdex: la de limitlesstcg, a través del intermediario de Supabase (con CORS)
   if (typeof carta?.imagenAlternativa === 'string' && carta.imagenAlternativa.startsWith(FUNCION_LIMITLESS + '?ruta=')) return carta.imagenAlternativa;
+  // 3.41 · cartas antiguas (pokemontcg.io): la versión normal para el bolsillo (la de alta resolución pesa ~850 KB) y la grande para la ficha
+  if (typeof carta?.imagenAlternativa === 'string' && carta.imagenAlternativa.startsWith(FUNCION_LIMITLESS + '?pio=')) {
+    return calidad === 'low' ? carta.imagenAlternativa.replace(/_hires\.png$/, '.png') : carta.imagenAlternativa;
+  }
   return null;
 };
 export const TAM_ETIQUETA = { w: 128, h: 179 };
@@ -29,7 +40,7 @@ export function crearProductores({ manifiesto, rutaBase = 'assets/cartas/', anis
     mini: (carta) => async () => {
       const e = manifiesto && manifiesto.cartas && manifiesto.cartas[carta.id];
       if (!e) {                                                  // sin copia oficial: arte real descargado → carta proxy propia → (marcador)
-        const candidatas = [...rutasArte(carta.id), rutaProxy(carta.id), remotas && urlRemota(carta, 'low')].filter(Boolean);   // remotas: solo álbumes creados en la app
+        const candidatas = [...new Set([...rutasArte(carta.id), rutaProxy(carta.id), ...(remotas ? urlsRemotas(carta, 'low') : [])].filter(Boolean))];   // remotas: solo álbumes creados en la app
         for (const r of candidatas) {                            // 3.15: una sola carga por candidata (antes se cargaba dos veces) y vale sin proxy
           try { return { textura: preparar(await new THREE.TextureLoader().loadAsync(r)), bytes: memoriaTexturaBytes(TAM_MINI.w, TAM_MINI.h) }; } catch { /* siguiente */ }
         }
