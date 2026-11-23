@@ -3,8 +3,6 @@
 export const PROXIES = {
   'svp-208': 'assets/proxies/svp-208.png', 'svp-209': 'assets/proxies/svp-209.png', 'svp-210': 'assets/proxies/svp-210.png',
   'svp-211': 'assets/proxies/svp-211.png', 'svp-212': 'assets/proxies/svp-212.png',
-  // 3.33 · Shinji Kanda: sin imagen en TCGdex ni en limitlesstcg
-  'swshp-SWSH284': 'assets/proxies/swshp-swsh284.png', '30th-c-030': 'assets/proxies/30th-c-030.png',
 };
 export const rutaProxy = (id) => PROXIES[id] || null;
 // 3.15 · Arte real descargado (limitlesstcg.com, en español) de cartas que TCGdex no tiene y que no necesitan proxy. Nombre de archivo en
@@ -17,6 +15,8 @@ export const ARTE = {
   'swsh9tg-TG05': 'assets/proxies/arte/swsh9tg-tg05.png', 'swsh12tg-TG05': 'assets/proxies/arte/swsh12tg-tg05.png',
   'swsh11tg-TG18': 'assets/proxies/arte/swsh11tg-tg18.png', 'swsh12tg-TG21': 'assets/proxies/arte/swsh12tg-tg21.png',
   'mep-024': 'assets/proxies/arte/mep-024.png',
+  // 3.35 · Shinji Kanda: Moltres de Galar (promo SWSH284; limitlesstcg solo la tiene en inglés) y Magikarp de la Colección Clásica (30C CC30)
+  'swshp-SWSH284': 'assets/proxies/arte/swshp-swsh284.png', '30th-c-030': 'assets/proxies/arte/30th-c-030.png',
 };
 // Si has ejecutado herramientas/proxies/descargar_arte.py existe también el arte real en esta ruta; la app lo prueba primero.
 export const rutasArte = (id) => (ARTE[id] ? [ARTE[id]] : PROXIES[id] ? ['png', 'webp'].map((e) => 'assets/proxies/arte/' + id + '.' + e) : []);

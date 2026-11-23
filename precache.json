@@ -428,7 +428,7 @@
   "web/prueba-3d/assets/cartas/mini/swshp-swsh160.webp",
   "web/prueba-3d/assets/cartas/mini/swshp-swsh161.webp",
   "web/prueba-3d/assets/cartas/mini/swshp-swsh162.webp",
-  "web/prueba-3d/assets/proxies/30th-c-030.png",
+  "web/prueba-3d/assets/proxies/arte/30th-c-030.png",
   "web/prueba-3d/assets/proxies/arte/mep-024.png",
   "web/prueba-3d/assets/proxies/arte/svp-208.png",
   "web/prueba-3d/assets/proxies/arte/svp-209.png",
@@ -444,12 +444,12 @@
   "web/prueba-3d/assets/proxies/arte/swsh12tg-tg05.png",
   "web/prueba-3d/assets/proxies/arte/swsh12tg-tg21.png",
   "web/prueba-3d/assets/proxies/arte/swsh9tg-tg05.png",
+  "web/prueba-3d/assets/proxies/arte/swshp-swsh284.png",
   "web/prueba-3d/assets/proxies/svp-208.png",
   "web/prueba-3d/assets/proxies/svp-209.png",
   "web/prueba-3d/assets/proxies/svp-210.png",
   "web/prueba-3d/assets/proxies/svp-211.png",
-  "web/prueba-3d/assets/proxies/svp-212.png",
-  "web/prueba-3d/assets/proxies/swshp-swsh284.png"
+  "web/prueba-3d/assets/proxies/svp-212.png"
  ],
  "externos": [
   "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",

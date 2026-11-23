@@ -1,4 +1,4 @@
-// Proxies de las cartas sin imagen (las 5 promos de Teselia y, desde 3.33, 2 de Shinji Kanda): existen, tienen tamaño de mini, y el productor `mini` los usa solo si no hay copia oficial.
+// Proxies de las cartas sin imagen (las 5 promos de Teselia; el resto ya tiene arte real de limitlesstcg): existen, tienen tamaño de mini, y el productor `mini` los usa solo si no hay copia oficial.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

@@ -10,10 +10,8 @@ W, H = 256, 358
 FUENTES = '/usr/share/fonts/truetype/dejavu/'
 COLORES = {'svp-208': ((244, 160, 60), (150, 60, 20)), 'svp-209': ((245, 214, 70), (140, 110, 20)),
            'svp-210': ((110, 200, 170), (30, 90, 80)), 'svp-211': ((170, 130, 210), (70, 40, 110)),
-           'svp-212': ((150, 150, 225), (50, 50, 120)),
-           # 3.33 · Shinji Kanda: ni TCGdex ni limitlesstcg tienen su imagen
-           'swshp-SWSH284': ((175, 90, 170), (70, 25, 80)),        # Moltres de Galar (promo Espada y Escudo)
-           '30th-c-030': ((240, 120, 80), (150, 45, 35))}          # Magikarp (Colección Clásica del 30.º Aniversario)
+           'svp-212': ((150, 150, 225), (50, 50, 120))}
+# (3.35: las 2 proxies de Shinji Kanda se sustituyeron por su arte real de limitlesstcg; ver descargar_arte.py)
 
 def fuente(n, t):
     try: return ImageFont.truetype(FUENTES + n, t)

@@ -484,3 +484,8 @@ está en `datos/albumes-artista.json`, así que se refresca cada lunes como los 
   el bloque se rellenan con las siguientes: no quedan huecos en medio. Si el bloque obligara a añadir una página, va como cartas sueltas.
 - Los álbumes sin V-UNIÓN quedan exactamente igual que antes (lo comprueba `pruebas/mosaico.test.mjs`).
 - Los dos Armarouge de Akira Egawa (SVI 041 y su reimpresión PAF 015, misma ilustración) se quedan los dos, juntos.
+
+## 3.35 — Arte real también para las 2 cartas de Shinji Kanda que iban con proxy
+- Moltres de Galar (promo SWSH284): limitlesstcg guarda las promos de Espada y Escudo en `SP/SP_<número>_R_<idioma>_LG.png`; esta solo
+  existe en inglés. Magikarp de la Colección Clásica del 30.º Aniversario: carpeta `30C` con número `CC30` (`30C_030` es otra carta).
+- Se quitan sus 2 proxies: ya ninguna carta de ningún álbum usa proxy (las 5 promos de Teselia tienen también su arte descargado).

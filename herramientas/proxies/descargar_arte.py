@@ -28,7 +28,9 @@ EXTRA = {'swsh12.5gg-gg19': 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.co
          'swsh12.5gg-gg69': L + 'CRZ/CRZ_GG69_R_ES_LG.png', 'swsh12.5gg-gg70': L + 'CRZ/CRZ_GG70_R_ES_LG.png',
          'swsh9tg-tg05': L + 'BRS/BRS_TG5_R_ES_LG.png', 'swsh12tg-tg05': L + 'SIT/SIT_TG5_R_ES_LG.png',
          'swsh11tg-tg18': L + 'LOR/LOR_TG18_R_ES_LG.png', 'swsh12tg-tg21': L + 'SIT/SIT_TG21_R_ES_LG.png',
-         'mep-024': L + 'MEP/MEP_024_R_ES_LG.png'}
+         'mep-024': L + 'MEP/MEP_024_R_ES_LG.png',
+         # 3.35 · promos de Espada y Escudo: carpeta SP (solo en inglés la SWSH284); Colección Clásica del 30.º: 30C con número «CC»
+         'swshp-swsh284': L + 'SP/SP_284_R_EN_LG.png', '30th-c-030': L + '30C/30C_CC30_R_ES_LG.png'}
 for id_, url in EXTRA.items():
     try:
         datos = urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'}), timeout=20).read()
