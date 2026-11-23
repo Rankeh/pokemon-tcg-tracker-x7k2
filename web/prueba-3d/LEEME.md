@@ -506,3 +506,12 @@ Botón «Continuar con Google» en la página de cuenta (Supabase OAuth). Hay qu
 - Al abrir uno con más de 7 días y conexión, se vuelve a pedir a TCGdex en segundo plano (cartas nuevas, precios).
 - Pruebas: `pruebas/ejecutar-crear.mjs` (Three.js real, TCGdex simulado), `estanteria/pruebas/albumes-propios.test.mjs`, sincronización de
   álbumes en `ejecutar-sincronizacion.mjs`; y probado contra TCGdex y Supabase reales (cuenta temporal ya borrada).
+
+## 3.38 — Cuenta de administrador
+- Los álbumes de la web (Teselia, artistas, Pikachu 30…) solo los ve **el administrador** (tabla `administradores` de Supabase; hoy, la
+  cuenta de Google del dueño). Sin cuenta, o con otra, la biblioteca empieza vacía: solo «Nuevo álbum». Abrir uno por su dirección dice
+  que es privado. `web/js/admin.js` lo pregunta a Supabase y lo recuerda (funciona sin conexión).
+- Es una cuestión de qué se enseña, no de seguridad: los catálogos e imágenes de esos álbumes siguen siendo archivos públicos del repositorio.
+- La app instalada solo descarga las miniaturas de esos álbumes para el administrador.
+- Si el 3D no carga, `estanteria/js/lista.js` pinta igualmente la lista de álbumes y el botón «Nuevo álbum» (antes la lista era fija en el HTML).
+- En las pruebas automáticas se siguen viendo; `?visitante` prueba la vista de un visitante.

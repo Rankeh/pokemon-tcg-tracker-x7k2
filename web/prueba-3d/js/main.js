@@ -14,6 +14,7 @@ import { Metricas } from './metricas.js';
 import { Aspecto, elegirCalidad, elegirTema, elegirAcabado, TEMAS } from './aspecto.js';
 import { albumPorId, conCifras } from '../../estanteria/js/albumes.js';
 import { montarMenu, copiasParaCompletar, copiasSinAlbum, compartidasCon } from './completar.js';
+import { adminGuardado, comprobarAdmin } from '../../js/admin.js';
 import { esPropio, listarTodos, cargarAlbum as cargarAlbumColeccion, actualizarAlbumPropio } from '../../js/albumes-propios.js';
 import { fijarTemaMarcadores } from './marcadores.js';
 import { Diagnostico } from './diagnostico.js';
@@ -26,7 +27,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.37';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.38';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -556,6 +557,11 @@ async function arrancar() {
   // Persistencia: LA MISMA base de datos de la app original ('coleccion-teselia'). ?bd=otro-nombre solo para pruebas con datos ajenos.
   let modelo, soloLectura = false, almacen = null;
   try { almacen = await Almacen.abrir(params.get('bd') || undefined); } catch (e) { almacen = null; }
+  // 3.38 · los álbumes de la web solo los abre el administrador (en las pruebas automáticas, también)
+  const verFijos = adminGuardado() || (navigator.webdriver && !params.has('visitante')) || await comprobarAdmin();
+  if (!esPropio(albumActual.id) && !verFijos) {
+    throw new Error('Este álbum es privado. Crea los tuyos desde la biblioteca, con «Nuevo álbum».');
+  }
   // 3.37 · el álbum: de la web (catálogo y precios en datos/) o creado en la app (todo en el dispositivo)
   const carga = await cargarAlbumColeccion(albumActual.id, almacen);
   if (!carga) {
@@ -617,7 +623,7 @@ async function arrancar() {
   const releer = async () => { await adaptador.cargar(); vista.refrescar(); pintarProgreso(); pedirFrame(); };
   let idAviso = 0;
   let otrosAlbumes = null;                                        // catálogos de los demás álbumes (solo para avisar de cartas compartidas)
-  const cargarOtros = async () => otrosAlbumes || (otrosAlbumes = await Promise.all((await listarTodos(almacen)).filter((a) => a.id !== albumActual.id)
+  const cargarOtros = async () => otrosAlbumes || (otrosAlbumes = await Promise.all((await listarTodos(almacen, { fijos: verFijos })).filter((a) => a.id !== albumActual.id)
     .map(async (a) => ({ nombre: a.nombre, ids: (await cargarAlbumColeccion(a.id, almacen)).catalogo.cartas.map((c) => c.id) }))));   // 3.37: también los creados en la app
   menuAlbum = montarMenu({ boton: $('b-opciones'), menu: $('menu-album'), todas: $('m-todas'), quitar: $('m-quitar'), deshacer: $('m-deshacer'),
     dialogo: $('d-todas'), titulo: $('d-todas-t'), texto: $('d-todas-txt'), aceptar: $('d-aceptar'), cancelar: $('d-cancelar') }, {

@@ -70,9 +70,9 @@ export async function actualizarAlbumPropio(almacen, id, { senal } = {}) {
   return registro;
 }
 
-/** Biblioteca completa: los álbumes de la web y los creados en la app (si se puede leer el dispositivo). Cada uno con `cartas` = nº real. */
-export async function listarTodos(almacen) {
-  const fijos = await listarAlbumes();
+/** Biblioteca: los álbumes de la web (solo si `fijos`: el administrador, 3.38) y los creados en la app. Cada uno con `cartas` = nº real. */
+export async function listarTodos(almacen, { fijos: conFijos = true } = {}) {
+  const fijos = conFijos ? await listarAlbumes() : [];
   let propios = [];
   try { propios = almacen ? (await almacen.albumesPropios()).map((a) => ({ ...a.registro, cartas: a.datos.catalogo.cartas.length })) : []; }
   catch (e) { console.warn("No se pudieron leer los álbumes creados en la app:", e); }

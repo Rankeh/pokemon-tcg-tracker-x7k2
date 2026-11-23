@@ -1,6 +1,8 @@
 // 3.32 · App instalable (PWA): registra el service worker (sw.js, en la raíz) y, en el iPhone con Safari, explica cómo instalarla.
 // En las pruebas automáticas (navigator.webdriver) no se registra, salvo con ?sw=1: un service worker taparía los dobles de Three.js.
 
+import { adminGuardado } from "./admin.js";
+
 const RAIZ = new URL("../../", import.meta.url);
 
 /** ¿Se está usando como app instalada (pantalla de inicio)? */
@@ -17,7 +19,7 @@ export async function registrarApp() {
   if (navigator.webdriver && !new URLSearchParams(location.search).has("sw")) return null;
   try {
     const reg = await navigator.serviceWorker.register(new URL("sw.js", RAIZ), { scope: RAIZ.pathname });
-    const avisar = () => { if (navigator.onLine !== false) (reg.active || reg.waiting || reg.installing)?.postMessage({ tipo: "revisar" }); };
+    const avisar = () => { if (navigator.onLine !== false) (reg.active || reg.waiting || reg.installing)?.postMessage({ tipo: "revisar", completa: adminGuardado() }); };
     // al abrirse con conexión, el service worker revisa si falta algo por guardar (un álbum nuevo, miniaturas…)
     if (reg.active) avisar(); else navigator.serviceWorker.ready.then(avisar);
     return reg;

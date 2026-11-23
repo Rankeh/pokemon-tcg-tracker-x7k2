@@ -65,6 +65,12 @@ await pag.evaluate(() => navigator.serviceWorker.ready);
 await pag.reload(); await pag.evaluate(() => navigator.serviceWorker.ready);
 ok(await pag.evaluate(() => !!navigator.serviceWorker.controller), 'service worker instalado y controlando la página');
 const contar = () => pag.evaluate(async () => { const r = {}; for (const k of await caches.keys()) r[k] = (await (await caches.open(k)).keys()).map((q) => q.url); return r; });
+// 3.38 · un visitante (sin la cuenta del administrador) no descarga las imágenes de los álbumes de la web
+await dormir(2500);
+ok(!((await contar())['recursos-v1'] || []).some((u) => u.includes('/mini/')), 'visitante: no se descargan las miniaturas de los álbumes de la web');
+// como administrador (sesión guardada + «es admin»), sí: al volver a abrir la app, en segundo plano
+await pag.evaluate(() => { localStorage.setItem('sb-prueba-auth-token', '{}'); localStorage.setItem('cuenta.admin', '1'); });
+await pag.reload(); await pag.evaluate(() => navigator.serviceWorker.ready);
 let copias = {};
 for (let i = 0; i < 120; i++) {
   copias = await contar();
@@ -87,6 +93,7 @@ await pag.waitForFunction(() => window.__album3d && document.getElementById('car
 // ------------------------------------------------ SIN CONEXIÓN
 await ctx.setOffline(true);
 await pag.goto(`${base}/index.html?sw=1`);
+await pag.waitForFunction(() => document.querySelectorAll('#lista-albumes a').length > 0 || document.body.classList.contains('sin-3d'), null, { timeout: 15000 }).catch(() => {});
 ok(await pag.evaluate(() => document.querySelectorAll('#lista-albumes a').length) === 6, 'sin conexión: la biblioteca abre (lista de los 6 álbumes)');
 await pag.goto(`${base}/web/prueba-3d/index.html?album=pikachu-30&sw=1&bd=prueba-app-${Math.random().toString(36).slice(2)}`);
 const abrio = await pag.waitForFunction(() => window.__album3d && document.getElementById('cargando').hidden, null, { timeout: 30000 }).then(() => true, () => false);

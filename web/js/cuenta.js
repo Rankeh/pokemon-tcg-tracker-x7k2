@@ -2,6 +2,7 @@
 import { supabase, SUPABASE_URL, SUPABASE_CLAVE_PUBLICABLE } from "./supabase-config.js";
 import { Almacen } from "./almacen.js";
 import { iniciarSincronizacion, conectarSupabase } from "./sincronizacion.js";
+import { comprobarAdmin } from "./admin.js";
 
 const $ = (sel) => document.querySelector(sel);
 const mensaje = $("#mensaje");
@@ -74,6 +75,7 @@ async function pintarSesion() {
   const meta = session.user.user_metadata || {};
   $("#usuario").textContent = perfil?.nombre_usuario || meta.full_name || meta.name || session.user.email;
   $("#correo").textContent = session.user.email;
+  comprobarAdmin().then((si) => { $("#admin").hidden = !si; });          // 3.38
   arrancarSincronizacion();
 }
 
@@ -138,6 +140,7 @@ $("#form-entrar").addEventListener("submit", async (e) => {
 
 $("#salir").addEventListener("click", async () => {
   await supabase.auth.signOut();
+  try { localStorage.removeItem("cuenta.admin"); } catch { /* nada */ }
   avisar("Sesión cerrada. Tu colección sigue guardada en este navegador.");
 });
 

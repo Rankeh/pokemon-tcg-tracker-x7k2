@@ -82,6 +82,17 @@ const propios = () => pag.evaluate(async (bd) => { const { Almacen } = await imp
   const r = (await a.albumesPropios()).map((x) => ({ id: x.id, nombre: x.registro.nombre, cartas: x.datos.catalogo.cartas.length, portada: x.registro.portada.cartas, tipo: x.registro.definicion.tipo }));
   const pend = (await a.albumesParaSubir()).map((x) => x.id); a.cerrar(); return { albumes: r, pend }; }, bd);
 
+// 0) 3.38 · visitante (sin la cuenta del administrador): biblioteca vacía, solo «Nuevo álbum»; los álbumes de la web, cerrados
+await pag.evaluate(() => localStorage.removeItem('biblioteca.sel'));
+await pag.goto(`${base}/index.html?bd=${bd}&visitante`);
+await pag.waitForFunction(() => document.body.classList.contains('lista'), null, { timeout: 90000 });
+const vis = await pag.evaluate(() => ({ items: window.__biblioteca.estado().items, enlaces: document.querySelectorAll('#lista-albumes a').length, contador: document.getElementById('contador').textContent }));
+ok(JSON.stringify(vis.items) === '["nuevo"]' && vis.enlaces === 0, 'visitante: la biblioteca solo tiene «Nuevo álbum» ' + JSON.stringify(vis));
+ok((await pag.textContent('#i-titulo')) === 'Nuevo álbum' && (await pag.textContent('#abrir')).includes('Crear'), 'visitante: lo primero que ve es «Crear álbum»');
+await pag.goto(`${base}/web/prueba-3d/index.html?album=osare&bd=${bd}&visitante`); await dormir(2500);
+ok((await pag.textContent('#cargando')).includes('privado'), 'visitante: un álbum de la web, aunque se escriba su dirección, está cerrado');
+await pag.goto(`${base}/web/prueba-3d/pruebas/integracion.html`).catch(() => {});
+
 // 1) por expansión, eligiendo en el buscador
 await crear('expansion', async () => {
   await dormir(400);
@@ -143,7 +154,7 @@ ok(!p.albumes.some((a) => a.id === exp.id) && p.pend.includes(exp.id), 'quitado 
 ok(sigue === 1, 'la carta marcada de ese álbum sigue en la colección');
 await pag.goto(`${base}/web/prueba-3d/index.html?album=${exp.id}&bd=${bd}`); await dormir(3000);
 ok((await pag.textContent('#cargando')).includes('otro dispositivo'), 'abrir un álbum que no está aquí lo explica');
-const inesperados = errores.filter((e) => !/otro dispositivo/.test(e));     // el aviso del álbum que no está aquí es esperado
+const inesperados = errores.filter((e) => !/otro dispositivo|privado/.test(e));     // los avisos de «no está aquí» y «privado» son esperados
 ok(inesperados.length === 0, 'sin errores de JS' + (inesperados.length ? ': ' + inesperados.join(' | ') : ''));
 await ctx.close(); await nav.close(); servidor.close();
 console.log(`\n${total} comprobaciones, ${fallos} fallos`);

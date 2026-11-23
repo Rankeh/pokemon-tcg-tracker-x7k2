@@ -6,6 +6,7 @@ Proyecto `pokemon-tcg-tracker` (región eu-west-3). La web solo usa la **clave p
 |---|---|
 | `20261117122005_crear_perfiles.sql` | Tabla `perfiles` (nombre de usuario), creada sola al registrarse |
 | `20261119181116_crear_copias_sincronizadas.sql` | Tabla `copias`: la colección de cada cuenta, para verla igual en el móvil y en el ordenador |
+| `20261123120000_crear_administradores.sql` | Tabla `administradores`: la cuenta del dueño (solo ella ve los álbumes de la web). Nadie puede añadirse desde la web |
 | `20261123110000_crear_albumes_propios.sql` | Tabla `albumes`: los álbumes creados en la app (definición y catálogo), en todos tus dispositivos |
 | `20261123100000_perfil_tolerante_google.sql` | El perfil toma el nombre de Google; si choca o no cabe, se crea sin nombre (nunca bloquea el registro) |
 

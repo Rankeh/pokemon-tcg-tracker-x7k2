@@ -23,13 +23,13 @@ async function guardarLista(cache, urls, { reintentar = false } = {}) {
   }
 }
 /** Revisa precache.json y guarda lo que falte: el núcleo se refresca entero, las miniaturas y Three.js solo si faltan. */
-async function actualizarCopias({ refrescarNucleo }) {
+async function actualizarCopias({ refrescarNucleo, completa = false }) {
   let lista;
   try { const r = await fetch(new URL('precache.json', RAIZ).href, { cache: 'no-cache' }); if (!r.ok) return; lista = await r.json(); } catch { return; }
   await guardarLista(await caches.open(NUCLEO), lista.nucleo, { reintentar: refrescarNucleo });
   const rec = await caches.open(RECURSOS);
   await guardarLista(rec, lista.externos);
-  await guardarLista(rec, lista.miniaturas);
+  if (completa) await guardarLista(rec, lista.miniaturas);     // 3.38: las imágenes de los álbumes de la web, solo para el administrador
 }
 
 self.addEventListener('install', (e) => {
@@ -53,7 +53,7 @@ self.addEventListener('activate', (e) => {
 
 // la página avisa al abrirse con conexión: se revisa la lista en segundo plano (álbumes nuevos, miniaturas que faltan)
 self.addEventListener('message', (e) => {
-  if (e.data?.tipo === 'revisar') e.waitUntil(actualizarCopias({ refrescarNucleo: false }));
+  if (e.data?.tipo === 'revisar') e.waitUntil(actualizarCopias({ refrescarNucleo: false, completa: Boolean(e.data.completa) }));
 });
 
 async function primeroRed(req, { espera = 0 } = {}) {

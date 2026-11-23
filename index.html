@@ -99,7 +99,7 @@
 
   <!-- Los mismos álbumes como enlaces: lector de pantalla, teclado (Tab) y respaldo si no hay WebGL -->
   <nav class="lista-albumes" aria-label="Álbumes de la biblioteca">
-    <ul id="lista-albumes"><li><a href="web/prueba-3d/index.html">Teselia — Llama Blanca · Fulgor Negro</a></li><li><a href="web/prueba-3d/index.html?album=asako-ito">Asako Ito — Colección de artista</a></li><li><a href="web/prueba-3d/index.html?album=osare">osare — Colección de artista</a></li><li><a href="web/prueba-3d/index.html?album=pikachu-30">Pikachu — 30.º aniversario</a></li><li><a href="web/prueba-3d/index.html?album=akira-egawa">Akira Egawa — Colección de artista</a></li><li><a href="web/prueba-3d/index.html?album=shinji-kanda">Shinji Kanda — Colección de artista</a></li></ul>
+    <ul id="lista-albumes"></ul>
   </nav>
 
 <script>
@@ -122,6 +122,7 @@
     console.error(e);
     document.body.classList.add('sin-3d');
     document.getElementById('cargando').textContent = 'No se pudo cargar la biblioteca 3D. Puedes abrir tus álbumes desde la lista.';
+    import('./web/estanteria/js/lista.js').then((m) => m.pintarListaSin3D()).catch((e2) => console.error(e2));   // 3.38: la lista, sin 3D
   }
   // 3.32 · app instalable y sin conexión. Va DESPUÉS del import map: un módulo cargado antes haría que el navegador lo ignorase
   import('./web/js/pwa.js').then((m) => { m.registrarApp(); m.mostrarConsejoInstalar(); }).catch((e) => console.warn(e));

@@ -10,6 +10,7 @@ import { listarTodos } from '../../js/albumes-propios.js';
 import { Almacen } from '../../js/almacen.js';
 import { iniciarSincronizacion } from '../../js/sincronizacion.js';
 import { montarCreador } from './creador.js';
+import { adminGuardado, comprobarAdmin } from '../../js/admin.js';
 import { LIBRO, grosorAlbum } from './disposicion.js';
 import { poses, mover, elementos, series, altoVisible, CARRUSEL } from './carrusel.js';
 import { crearFabricaLibros } from './libros.js';
@@ -253,10 +254,14 @@ reducir.addEventListener?.('change', pedirFrame);
 
 // ------------------------------------------------------------------ arranque
 let almacen = null, creador = null;
+// 3.38 · los álbumes de la web solo los ve el administrador; el resto empieza con la biblioteca vacía (y «Nuevo álbum").
+// En las pruebas automáticas se ven (salvo con ?visitante), para seguir probándolos.
+const enPruebas = navigator.webdriver && !params.has('visitante');
+let verFijos = adminGuardado() || enPruebas;
 /** Lee los álbumes (los de la web y los creados en la app) y repinta la lista, el contador y los filtros. */
 async function cargarLista() {
   // 3.16 · nº de cartas real de cada álbum (leído de su catálogo): los álbumes que crecen no tienen cifras escritas a mano
-  albumes = await Promise.all((await listarTodos(almacen)).map(async (a) => {
+  albumes = await Promise.all((await listarTodos(almacen, { fijos: verFijos })).map(async (a) => {
     if (a.propio) return conCifras(a, a.cartas);                         // 3.37: el catálogo está en el dispositivo
     try { return conCifras(a, (await (await fetch(a.catalogo)).json()).cartas.length); } catch { return conCifras(a, a.cartas); }
   }));
@@ -290,6 +295,8 @@ async function iniciar() {
   document.body.classList.add('lista');
   console.info(`Biblioteca · ${FASE} · calidad ${calidad.nivel} (${eleccion.origen}) · ${albumes.length} álbum(es)`);
   window.__biblioteca = { FASE, THREE, scene, camara, renderer, calidad, recargar, estado: () => ({ sel, items: items.map((i) => i.id), filtro }) };
+  // 3.38 · ¿eres el administrador? (Supabase). Si ha cambiado (acabas de entrar, o de salir), se rehace la biblioteca
+  comprobarAdmin().then((si) => { if ((si || enPruebas) !== verFijos) { verFijos = si || enPruebas; recargar(); } });
   // 3.37 · con sesión iniciada, los álbumes creados en otro dispositivo aparecen aquí (y los quitados desaparecen)
   if (almacen && !params.get('bd')) iniciarSincronizacion(almacen, { alCambiar: (ids, r) => { if (r.albumes?.length) recargar(); } });
 }
