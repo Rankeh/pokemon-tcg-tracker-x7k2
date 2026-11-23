@@ -152,13 +152,13 @@ function actualizarUi() {
     $('i-sub').textContent = a.subtitulo.toUpperCase();
     $('i-meta').textContent = (a.meta || `${a.cartas} cartas`).toUpperCase();
     $('abrir').textContent = 'Abrir álbum';
-    $('quitar-album').hidden = !a.propio;                                // solo los creados en la app
+    $('acciones-album').hidden = !a.propio;                              // editar y quitar: solo los creados en la app
   } else {
     $('i-titulo').textContent = 'Nuevo álbum';
     $('i-sub').textContent = 'EXPANSIÓN, ILUSTRADOR O POKÉMON';
     $('i-meta').textContent = 'CON LAS CARTAS DE TCGDEX';
     $('abrir').textContent = 'Crear álbum';
-    $('quitar-album').hidden = true;
+    $('acciones-album').hidden = true;
   }
   $('ant').disabled = sel === 0; $('sig').disabled = sel === items.length - 1;
   $('posicion').textContent = `${String(sel + 1).padStart(2, '0')} / ${String(items.length).padStart(2, '0')}`;
@@ -281,7 +281,9 @@ async function recargar(id = null) {
 
 async function iniciar() {
   try { almacen = await Almacen.abrir(params.get('bd') || undefined); } catch (e) { console.warn('Sin almacenamiento: no se pueden crear álbumes.', e); }
-  creador = montarCreador({ almacen, alCrear: (reg) => { recargar(reg.id); avisar(`Álbum «${reg.nombre}» creado con ${reg.cartas} cartas.`); } });
+  creador = montarCreador({ almacen, alCrear: (reg) => { recargar(reg.id); avisar(`Álbum «${reg.nombre}» creado con ${reg.cartas} cartas.`); },
+    alEditar: (reg) => { cache.delete(reg.id); libros.olvidar(reg.id); recargar(reg.id); avisar(`«${reg.nombre}»: ${reg.cartas} cartas.`); } });   // 3.40: portada y lomo nuevos
+  $('editar-album').onclick = () => { const a = items[sel]?.album; if (a?.propio) creador.editar(a.id); };
   $('quitar-album').onclick = async () => {
     const a = items[sel]?.album;
     if (!a?.propio || !confirm(`¿Quitar «${a.nombre}» de la biblioteca?\n\nLas cartas que tengas marcadas NO se borran: siguen en tu colección y en los demás álbumes.`)) return;
@@ -298,6 +300,10 @@ async function iniciar() {
   // 3.38 · ¿eres el administrador? (Supabase). Si ha cambiado (acabas de entrar, o de salir), se rehace la biblioteca
   comprobarAdmin().then((si) => { if ((si || enPruebas) !== verFijos) { verFijos = si || enPruebas; recargar(); } });
   // 3.37 · con sesión iniciada, los álbumes creados en otro dispositivo aparecen aquí (y los quitados desaparecen)
-  if (almacen && !params.get('bd')) iniciarSincronizacion(almacen, { alCambiar: (ids, r) => { if (r.albumes?.length) recargar(); } });
+  if (almacen && !params.get('bd')) iniciarSincronizacion(almacen, { alCambiar: (ids, r) => {
+    if (!r.albumes?.length) return;
+    for (const id of r.albumes) { cache.delete(id); libros.olvidar(id); }   // 3.40: editados en otro dispositivo → lomo y portada nuevos
+    recargar();
+  } });
 }
 iniciar().catch((e) => { console.error(e); document.body.classList.add('sin-3d'); });

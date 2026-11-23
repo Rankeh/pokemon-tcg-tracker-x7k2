@@ -523,3 +523,12 @@ Botón «Continuar con Google» en la página de cuenta (Supabase OAuth). Hay qu
 - Álbumes creados en la app: al crearlos, cada carta sin imagen en TCGdex se busca ahí (`imagenAlternativa`); bolsillo, ficha y portada la usan.
 - Álbumes de la web: el proceso de cada lunes (`actualizar.py → arte_limitless`) baja el arte de las cartas nuevas sin imagen y lo apunta
   en el manifiesto de imágenes. Si no está en ningún sitio, la carta sale con el marcador «Sin imagen», como siempre.
+
+## 3.40 — Elegir las cartas de cada álbum
+- «Nuevo álbum» tiene ahora dos pasos: qué (expansión, ilustrador o Pokémon) y **qué cartas**: rejilla con todas, elegidas; tocar una la
+  quita o la vuelve a poner; «Todas» / «Ninguna»; y un buscador por nombre para **añadir cualquier otra carta** (sin TCG Pocket).
+- **«Editar cartas»** (biblioteca, en los álbumes creados) abre el mismo selector, y permite cambiar el nombre. Quitar una carta del álbum
+  no la quita de tu colección.
+- Si no se toca la selección, el álbum sigue siendo «de expansión / ilustrador / Pokémon» y recibe las cartas nuevas al actualizarse; si se
+  quita o añade alguna, queda como selección propia (`{ tipo: 'lista', ids, origen }`): se le actualizan los precios, no las cartas.
+- El aviso para instalar la app en el iPhone pasa arriba (abajo tapaba «Crear álbum»); la portada de «Nuevo álbum» dice «Crea el tuyo».

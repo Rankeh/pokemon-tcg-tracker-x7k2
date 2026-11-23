@@ -1,7 +1,8 @@
 // 3.37 · Crea en el navegador el catálogo de un álbum nuevo desde TCGdex (api.tcgdex.net), con las mismas reglas que
 // herramientas/catalogo-ilustrador/generar.py: solo cartas físicas (sin TCG Pocket), nombres e imágenes en español si existen,
 // categoría por rareza, variantes (con el reverse que TCGdex no registra en Sol y Luna), arte completo y precios de Cardmarket.
-// Tres tipos de álbum:  { tipo: 'expansion', expansion }  ·  { tipo: 'ilustrador', ilustrador }  ·  { tipo: 'pokemon', pokemon, expansion? }
+// Tipos de álbum:  { tipo: 'expansion', expansion }  ·  { tipo: 'ilustrador', ilustrador }  ·  { tipo: 'pokemon', pokemon, expansion? }
+//                  · 3.40: { tipo: 'lista', ids, origen }  (cartas elegidas a mano; `origen` = la definición de la que se partió, si la hay)
 
 import { FUNCION_LIMITLESS } from "./supabase-url.js";
 
@@ -89,6 +90,7 @@ export async function listarIlustradores({ senal } = {}) { return (await pedir("
 
 /** Ids de cartas que entran en el álbum (antes de mirar sus detalles). */
 async function idsDe(def, senal) {
+  if (def.tipo === "lista") return [...new Set(def.ids || [])];
   if (def.tipo === "expansion") {
     const s = await pedir("en/sets/" + q(def.expansion), { senal }) || await pedir("es/sets/" + q(def.expansion), { senal });
     if (!s) throw new Error("No existe la expansión " + def.expansion);
@@ -109,7 +111,7 @@ async function idsDe(def, senal) {
  */
 export async function generarCatalogo(def, { progreso = () => {}, senal } = {}) {
   const ids = await idsDe(def, senal);
-  if (!ids.length) throw new Error("TCGdex no tiene cartas para eso. Revisa el nombre (exacto, como en las cartas).");
+  if (!ids.length) throw new Error(def.tipo === "lista" ? "El álbum no tiene ninguna carta." : "TCGdex no tiene cartas para eso. Revisa el nombre (exacto, como en las cartas).");
   if (ids.length > MAX_CARTAS * 1.3) throw new Error(`Son ${ids.length} cartas: el máximo de un álbum es ${MAX_CARTAS}. Prueba con algo más concreto.`);
   const sets = new Map();                                       // id → { serie, en, es } (una petición por expansión, no por carta)
   const datosSet = (id) => {
@@ -148,16 +150,37 @@ export async function generarCatalogo(def, { progreso = () => {}, senal } = {}) 
   };
   const cola = [...ids];
   await Promise.all(Array.from({ length: Math.min(EN_PARALELO, cola.length) }, async () => { while (cola.length) await una(cola.shift()); }));
-  if (!cartas.length) throw new Error("Ninguna de esas cartas es física (todas son de TCG Pocket).");
+  if (!cartas.length) throw new Error(def.tipo === "lista" ? "Ninguna de esas cartas está en TCGdex." : "Ninguna de esas cartas es física (todas son de TCG Pocket).");
   if (cartas.length > MAX_CARTAS) throw new Error(`Son ${cartas.length} cartas: el máximo de un álbum es ${MAX_CARTAS}. Prueba con algo más concreto.`);
-  cartas.sort((a, b) => a.id.localeCompare(b.id, "es", { numeric: true }));
+  return armarCatalogo(def, cartas, precios, fuera);
+}
+
+/** PURO · catálogo y precios con el formato de datos/catalogo/ a partir de cartas ya preparadas (3.40: también las elegidas a mano). */
+export function armarCatalogo(def, cartas, precios = {}, fuera = []) {
+  cartas = [...cartas].sort((a, b) => a.id.localeCompare(b.id, "es", { numeric: true }));
   const hoy = new Date().toISOString().slice(0, 10);
   return {
     catalogo: { generado: hoy, fuente: "TCGdex (datos MIT), creado en la app", definicion: def,
       totales: { total: cartas.length, imagenEspanol: cartas.filter((c) => c.idiomaImagen === "es").length, sinImagen: cartas.filter((c) => !c.imagenCarga).length, excluidas: fuera },
       cartas },
-    precios: { fecha: hoy, fuente: "Cardmarket vía TCGdex (api.tcgdex.net)", unidad: "EUR", nota: "Precio del mercado europeo; Cardmarket no separa por idioma de la carta.", cartas: precios },
+    precios: { fecha: hoy, fuente: "Cardmarket vía TCGdex (api.tcgdex.net)", unidad: "EUR", nota: "Precio del mercado europeo; Cardmarket no separa por idioma de la carta.",
+      cartas: Object.fromEntries(Object.entries(precios).filter(([id]) => cartas.some((c) => c.id === id))) },
   };
+}
+
+/** 3.40 · Busca cartas por nombre en TCGdex (contiene; castellano o inglés) para añadirlas a mano. Sin TCG Pocket. [{ id, nombre, numero, imagen }] */
+export async function buscarCartas(texto, { senal, max = 60 } = {}) {
+  const t = String(texto || "").trim();
+  if (t.length < 2) return [];
+  const [es, en, pocket] = await Promise.all([pedir("es/cards?name=" + q(t), { senal }), pedir("en/cards?name=" + q(t), { senal }),
+    pedir("en/series/tcgp", { senal }).catch(() => null)]);
+  const fueraSets = new Set((pocket?.sets || []).map((s) => s.id));
+  const vistos = new Map();
+  for (const c of [...(es || []), ...(en || [])]) {
+    if (vistos.has(c.id) || /\/tcgp\//.test(c.image || "") || fueraSets.has(c.id.slice(0, c.id.lastIndexOf("-")))) continue;
+    vistos.set(c.id, { id: c.id, nombre: c.name, numero: c.localId, imagen: c.image ? c.image + "/low.webp" : null });
+  }
+  return [...vistos.values()].slice(0, max);
 }
 
 /** 3.39 · Imagen de la carta en limitlesstcg: { url, idioma } o null. Nunca lanza (sin imagen se ve el marcador, como siempre). */

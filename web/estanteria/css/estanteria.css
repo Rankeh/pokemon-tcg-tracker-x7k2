@@ -78,9 +78,10 @@ body.lista .cargando, body.sin-3d .cargando { opacity: 0; }
 }
 
 /* 3.37 · quitar un álbum creado en la app (discreto, debajo de «Abrir») */
-.info .quitar-album[hidden] { display: none; }
-.info .quitar-album { display: block; margin: 8px auto 0; min-height: 30px; border-color: transparent; color: var(--e-suave); }
-.info .quitar-album:hover { border-color: var(--e-linea); color: var(--e-texto); }
+.info .acciones-album[hidden] { display: none; }
+.info .acciones-album { display: flex; justify-content: center; gap: 4px; margin-top: 8px; }
+.info .acciones-album .e-caja { min-height: 30px; border-color: transparent; color: var(--e-suave); }
+.info .acciones-album .e-caja:hover { border-color: var(--e-linea); color: var(--e-texto); }
 
 /* 3.37 · ventana «Nuevo álbum» */
 .nuevo-album { width: min(520px, calc(100% - 24px)); max-height: calc(100dvh - 32px); box-sizing: border-box; padding: 0; overflow: auto;
@@ -110,3 +111,30 @@ body.lista .cargando, body.sin-3d .cargando { opacity: 0; }
 .nuevo-album progress::-webkit-progress-value { background: var(--e-rojo); }
 .nuevo-album .n-acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 .nuevo-album .n-acciones .e-caja { min-height: 40px; padding: 0 18px; }
+
+/* 3.40 · paso 2: elegir las cartas */
+.nuevo-album .n-cabeza { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.nuevo-album .n-cabeza p { margin: 0; }
+.nuevo-album .n-botones { display: flex; gap: 4px; }
+.nuevo-album .n-botones .e-caja { min-height: 30px; }
+.nuevo-album .n-ayuda { margin: 6px 0 10px; color: var(--e-suave); font: 400 .85rem/1.3 var(--e-fuente); }
+.nuevo-album .n-rejilla { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px;
+  max-height: 46vh; overflow: auto; }
+.nuevo-album .n-rejilla:empty { display: none; }
+.nuevo-album .n-resultados { margin-top: 8px; max-height: 30vh; }
+.nuevo-album .n-rejilla button { position: relative; display: flex; flex-direction: column; gap: 3px; width: 100%; padding: 0; border: 0; background: transparent;
+  color: var(--e-texto); font: 400 .68rem/1.2 var(--e-fuente); text-align: center; cursor: pointer; }
+.nuevo-album .n-rejilla .n-img { aspect-ratio: 63 / 88; width: 100%; border-radius: 4px; background: var(--e-control); object-fit: cover; display: grid; place-items: center;
+  outline: 2px solid transparent; outline-offset: 1px; transition: opacity .15s ease, outline-color .15s ease; }
+.nuevo-album .n-rejilla span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.nuevo-album .n-rejilla button[aria-pressed="true"] .n-img { outline-color: var(--e-rojo); }
+.nuevo-album .n-rejilla button[aria-pressed="false"] .n-img { opacity: .3; }
+.nuevo-album .n-rejilla button[aria-pressed="false"] span { color: var(--e-tenue); }
+.nuevo-album .n-rejilla button:focus-visible .n-img { outline-color: var(--e-texto); }
+.nuevo-album .n-rejilla button::after { content: ""; position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--e-rojo) center / 10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1.5 5.2 4 7.5 8.5 2.5' fill='none' stroke='white' stroke-width='1.6'/%3E%3C/svg%3E"); }
+.nuevo-album .n-rejilla button[aria-pressed="false"]::after { background: rgba(0, 0, 0, .55); }
+.nuevo-album .n-resultados button[data-estado="anadida"]::after { background-color: var(--e-rojo); }
+.nuevo-album .n-resultados button:not([data-estado="anadida"])::after { background: var(--e-texto) center / 10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 1.5v7M1.5 5h7' fill='none' stroke='%23111' stroke-width='1.6'/%3E%3C/svg%3E"); }
+.nuevo-album .n-rejilla .n-sin { padding: 6px; box-sizing: border-box; border: 1px dashed var(--e-linea); color: var(--e-suave); font: 400 .62rem/1.25 var(--e-fuente);
+  text-align: center; overflow: hidden; word-break: break-word; }

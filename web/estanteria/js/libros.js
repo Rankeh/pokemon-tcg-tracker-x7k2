@@ -180,5 +180,7 @@ export function crearFabricaLibros(calidad, recursos, alCambiar = () => {}) {
     return g;
   }
 
-  return { crearAlbum, crearNuevo, sombra };
+  /** 3.40 · un álbum ha cambiado (cartas, portada o nombre): la próxima vez se rehacen su lomo y su portada. */
+  const olvidar = (id) => { cache.delete('editorial:' + id); };
+  return { crearAlbum, crearNuevo, sombra, olvidar };
 }

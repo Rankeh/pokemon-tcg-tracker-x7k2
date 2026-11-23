@@ -93,7 +93,7 @@ await pag.waitForFunction(() => window.__album3d && document.getElementById('car
 // ------------------------------------------------ SIN CONEXIÓN
 await ctx.setOffline(true);
 await pag.goto(`${base}/index.html?sw=1`);
-await pag.waitForFunction(() => document.querySelectorAll('#lista-albumes a').length > 0 || document.body.classList.contains('sin-3d'), null, { timeout: 15000 }).catch(() => {});
+await pag.waitForFunction(() => document.querySelectorAll('#lista-albumes a').length > 0, null, { timeout: 20000 }).catch(() => {});   // sin 3D, la pinta el respaldo (lista.js)
 ok(await pag.evaluate(() => document.querySelectorAll('#lista-albumes a').length) === 6, 'sin conexión: la biblioteca abre (lista de los 6 álbumes)');
 await pag.goto(`${base}/web/prueba-3d/index.html?album=pikachu-30&sw=1&bd=prueba-app-${Math.random().toString(36).slice(2)}`);
 const abrio = await pag.waitForFunction(() => window.__album3d && document.getElementById('cargando').hidden, null, { timeout: 30000 }).then(() => true, () => false);

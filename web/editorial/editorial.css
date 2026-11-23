@@ -85,9 +85,9 @@
 
 @media (prefers-reduced-motion: reduce) { .e-caja, .e-redondo { transition: none; } }
 
-/* 3.32 · consejo para instalar la app en el iPhone (web/js/pwa.js): tarjeta fina abajo, solo hasta que se cierra */
+/* 3.32 · consejo para instalar la app en el iPhone (web/js/pwa.js): tarjeta fina arriba, solo hasta que se cierra */
 .consejo-app { position: fixed; z-index: 30; left: 50%; transform: translateX(-50%); width: min(420px, calc(100% - 32px)); box-sizing: border-box;
-  bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px)); padding: 14px 16px; background: var(--e-panel); border: 1px solid var(--e-linea);
+  top: calc(max(14px, env(safe-area-inset-top)) + 52px); padding: 14px 16px;      /* 3.40: arriba; abajo tapaba «Abrir / Crear álbum» */ background: var(--e-panel); border: 1px solid var(--e-linea);
   color: var(--e-texto); font: 400 .9rem/1.4 var(--e-fuente); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
 .consejo-app p { margin: 0 0 8px; }
 .consejo-app .consejo-nota { color: var(--e-suave); font-size: .82rem; }

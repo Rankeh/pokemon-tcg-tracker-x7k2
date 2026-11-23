@@ -47,6 +47,9 @@ const tcgdex = (u) => {
   if (p === 'en/cards?illustrator=eq:Ilustradora Prueba') return CARTAS.filter((c) => c.illustrator === 'Ilustradora Prueba').map((c) => ({ id: c.id }));
   if (/^(en|es)\/cards\?name=eq:Pikachu$/.test(p)) return [{ id: 'x1-003' }];
   if (/cards\?name=eq:/.test(p)) return [];
+  const busca = /^(en|es)\/cards\?name=(.+)$/.exec(p);                // 3.40: búsqueda por nombre (contiene) para añadir cartas
+  if (busca) return CARTAS.filter((c) => c.name.toLowerCase().includes(busca[2].toLowerCase())).map((c) => ({ id: c.id, localId: c.localId, name: c.name, image: c.image && IMG + busca[1] + '/sv/x1/' + c.localId }))
+    .concat(busca[2].toLowerCase() === 'charizard' ? [{ id: 'A1-036', localId: '036', name: 'Charizard', image: IMG + 'es/tcgp/A1/036' }] : []);   // y una de TCG Pocket, que no debe salir
   return null;
 };
 const imagen = await readFile(path.join(raiz, 'web/prueba-3d/assets/cartas/mini/sv06-034.webp'));
@@ -77,13 +80,18 @@ const biblioteca = async () => {
   await pag.goto(`${base}/index.html?bd=${bd}`);
   await pag.waitForFunction(() => document.body.classList.contains('lista'), null, { timeout: 90000 });
 };
-const crear = async (tipo, rellenar) => {
+// paso 1 (qué) → paso 2 (elegir cartas: `elegir`, opcional) → crear
+const hecho = () => pag.waitForFunction(() => !document.getElementById('d-nuevo').open || document.getElementById('n-estado').dataset.tipo === 'error', null, { timeout: 30000 });
+const crear = async (tipo, rellenar, elegir = null) => {
   await pag.evaluate(() => localStorage.setItem('biblioteca.sel', 'nuevo')); await biblioteca();
-  ok(await pag.isHidden('#quitar-album'), `«Nuevo álbum» seleccionado: no se ofrece «Quitar» (${tipo})`);
+  ok(await pag.isHidden('#acciones-album'), `«Nuevo álbum» seleccionado: no se ofrece editar ni quitar (${tipo})`);
   await pag.click('#abrir'); await pag.waitForSelector('#d-nuevo[open]');
   await pag.click(`[data-tipo="${tipo}"]`); await rellenar();
   await pag.click('#n-crear');
-  await pag.waitForFunction(() => !document.getElementById('d-nuevo').open || document.getElementById('n-estado').dataset.tipo === 'error', null, { timeout: 30000 });
+  await pag.waitForFunction(() => !document.getElementById('n-paso2').hidden || document.getElementById('n-estado').dataset.tipo === 'error', null, { timeout: 30000 });
+  if (await pag.isHidden('#n-paso2')) return;                          // error en el paso 1
+  if (elegir) await elegir();
+  await pag.click('#n-crear'); await hecho();
 };
 const propios = () => pag.evaluate(async (bd) => { const { Almacen } = await import('/web/js/almacen.js'); const a = await Almacen.abrir(bd);
   const r = (await a.albumesPropios()).map((x) => ({ id: x.id, nombre: x.registro.nombre, cartas: x.datos.catalogo.cartas.length, portada: x.registro.portada.cartas, tipo: x.registro.definicion.tipo }));
@@ -106,6 +114,9 @@ await crear('expansion', async () => {
   ok(!(await pag.textContent('#n-exp-lista')).includes('Pocket'), 'el buscador de expansiones no ofrece las de TCG Pocket');
   await pag.fill('#n-exp', 'prueba'); await pag.click('#n-exp-lista button');
   ok(await pag.inputValue('#n-exp') === 'Expansión de Prueba', 'buscar «prueba» (sin tilde) encuentra «Expansión de Prueba»');
+}, async () => {
+  ok((await pag.textContent('#n-cuenta')).startsWith('4 de 4') && await pag.locator('#n-rejilla button[aria-pressed="true"]').count() === 4, 'paso 2: las 4 cartas, todas elegidas');
+  ok(await pag.locator('#n-rejilla img').count() >= 3, 'con su miniatura');
 });
 ok(!(await pag.evaluate(() => document.getElementById('d-nuevo').open)), 'se crea y se cierra la ventana');
 let p = await propios();
@@ -142,15 +153,38 @@ if (abrio) {
 }
 
 // 3) por Pokémon y por ilustrador (sugerencias)
-await crear('pokemon', async () => { await pag.fill('#n-pok', 'Pikachu'); });
+await crear('pokemon', async () => { await pag.fill('#n-pok', 'Pikachu'); }, async () => {
+  await pag.fill('#n-buscar', 'Charizard'); await pag.waitForSelector('#n-resultados button', { timeout: 10000 });
+  ok(await pag.locator('#n-resultados button').count() === 1, 'añadir: buscar «Charizard» encuentra la carta física (no la de TCG Pocket)');
+  await pag.click('#n-resultados button'); await pag.waitForFunction(() => document.getElementById('n-cuenta').textContent.startsWith('2 de 2'), null, { timeout: 10000 });
+  ok(await pag.locator('#n-rejilla button[aria-pressed="true"]').count() === 2, 'la carta añadida entra en la rejilla, elegida');
+});
 await crear('ilustrador', async () => { await dormir(300); await pag.fill('#n-ilu', 'ilus'); await pag.click('#n-ilu-lista button'); await pag.fill('#n-nombre', 'Mi ilustradora'); });
 p = await propios();
-ok(p.albumes.some((a) => a.tipo === 'pokemon' && a.nombre === 'Pikachu' && a.cartas === 1), 'álbum de Pokémon (Pikachu, 1 carta)');
-ok(p.albumes.some((a) => a.tipo === 'ilustrador' && a.nombre === 'Mi ilustradora' && a.cartas === 3), 'álbum de ilustrador con nombre propio (3 cartas, sin la de otra persona)');
+ok(p.albumes.some((a) => a.tipo === 'lista' && a.nombre === 'Pikachu' && a.cartas === 2), 'álbum de Pikachu + Charizard añadido a mano (selección propia, 2 cartas)');
+ok(p.albumes.some((a) => a.tipo === 'ilustrador' && a.nombre === 'Mi ilustradora' && a.cartas === 3), 'álbum de ilustrador con nombre propio (3 cartas, sin la de otra persona); sin tocar la selección sigue siendo «de ilustrador» (recibe cartas nuevas)');
+
+// 3b) 3.40 · editar las cartas de un álbum: quitar una. Las marcadas no se tocan
+const ilu = p.albumes.find((a) => a.nombre === 'Mi ilustradora');
+await marcar('x1-003', 2);
+await pag.evaluate((id) => localStorage.setItem('biblioteca.sel', id), ilu.id); await biblioteca();
+ok(await pag.isVisible('#editar-album'), 'un álbum creado ofrece «Editar cartas»');
+await pag.click('#editar-album'); await pag.waitForSelector('#d-nuevo[open]');
+ok((await pag.textContent('#n-titulo')) === 'Editar cartas' && (await pag.inputValue('#n-nombre')) === 'Mi ilustradora' && (await pag.textContent('#n-cuenta')).startsWith('3 de 3'), 'abre el selector con sus 3 cartas y su nombre');
+await pag.click('#n-rejilla button[title^="Pikachu"]');
+ok((await pag.textContent('#n-cuenta')).startsWith('2 de 3'), 'tocar una carta la quita');
+await pag.click('#n-crear'); await hecho();
+p = await propios();
+const ilu2 = p.albumes.find((a) => a.id === ilu.id);
+const marcadas = await pag.evaluate(async (bd) => { const { Almacen } = await import('/web/js/almacen.js'); const a = await Almacen.abrir(bd); const n = await a.cantidad('x1-003'); a.cerrar(); return n; }, bd);
+ok(ilu2?.cartas === 2 && ilu2.tipo === 'lista' && ilu2.nombre === 'Mi ilustradora' && p.pend.includes(ilu.id), 'guardado: 2 cartas, mismo álbum y nombre, pendiente de subir ' + JSON.stringify(ilu2));
+ok(marcadas === 2, 'la carta quitada del álbum sigue en tu colección (2 copias)');
+await pag.waitForFunction(() => /2 cartas/i.test(document.getElementById('i-meta').textContent), null, { timeout: 10000 }).catch(() => {});
+ok(/2 cartas/i.test(await pag.textContent('#i-meta')), 'la biblioteca enseña la cifra nueva');
 
 // 4) errores: nombre que no existe → aviso y no se guarda nada; sin elegir → aviso
 await crear('pokemon', async () => { await pag.fill('#n-pok', 'Noexiste'); });
-ok((await pag.textContent('#n-estado')).includes('no tiene cartas') && (await propios()).albumes.length === 3, 'Pokémon que no existe: lo explica y no guarda nada');
+ok((await pag.textContent('#n-estado')).includes('no tiene cartas') && (await propios()).albumes.length === 3 && await pag.isHidden('#n-paso2'), 'Pokémon que no existe: lo explica, no pasa a elegir cartas y no guarda nada');
 await pag.click('#n-cancelar');
 await pag.click('#abrir'); await pag.click('[data-tipo="ilustrador"]'); await pag.click('#n-crear');
 ok((await pag.textContent('#n-estado')).includes('Elige un ilustrador'), 'sin elegir: dice qué falta');

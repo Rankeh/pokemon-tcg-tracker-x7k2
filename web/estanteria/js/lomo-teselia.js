@@ -123,6 +123,6 @@ export function dibujarTapaNueva(ancho = 640) {
   ctx.fillStyle = '#f2f2f2'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
   ctx.font = `300 ${W * 0.08}px ${SANS}`; ctx.fillText('Nuevo álbum', cx, H * 0.66);
   ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = `600 ${W * 0.032}px ${SANS}`;
-  const t = 'PRÓXIMAMENTE'; ctx.fillText([...t].join('\u2009'), cx, H * 0.72);
+  const t = 'CREA EL TUYO'; ctx.fillText([...t].join('\u2009'), cx, H * 0.72);
   return c;
 }

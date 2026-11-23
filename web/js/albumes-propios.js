@@ -10,7 +10,10 @@ const TIPOS = {
   expansion: { arriba: "Expansión", sub: "Expansión", colores: ["#e5432f", "#f2f2f2", "#8a8a8a"] },
   ilustrador: { arriba: "Ilustrador", sub: "Colección de artista", colores: ["#ffd23f", "#e5432f", "#3d8bff"] },
   pokemon: { arriba: "Pokémon", sub: "Colección de Pokémon", colores: ["#ffd23f", "#e5432f", "#f2f2f2"] },
+  lista: { arriba: "Selección", sub: "Mi selección", colores: ["#e5432f", "#f2f2f2", "#3d8bff"] },
 };
+/** 3.40 · la definición «de base» de un álbum (la de origen si sus cartas se eligieron a mano). */
+const base = (def) => (def.tipo === "lista" && def.origen ? def.origen : def);
 
 /** PURO · «AKIRA EGAWA» → «Akira Egawa» (los nombres en mayúsculas de TCGdex); el resto, tal cual. */
 export const nombreBonito = (t) => (t && t === t.toUpperCase() && /[A-Z]/.test(t) ? t.toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase()) : t);
@@ -23,20 +26,25 @@ export function idNuevo(nombre, azar = Math.random) {
 
 /** PURO · nombre que se propone para el álbum (se puede cambiar al crearlo). */
 export function nombrePropuesto(def, cartas = []) {
+  if (def.tipo === "lista") return def.origen ? nombrePropuesto(def.origen, cartas) : "Mi álbum";
   if (def.tipo === "expansion") return cartas[0]?.nombreExpansion || def.expansion;
   if (def.tipo === "ilustrador") return nombreBonito(def.ilustrador);
-  const masComun = Object.entries(cartas.reduce((m, c) => ((m[c.nombre] = (m[c.nombre] || 0) + 1), m), {})).sort((a, b) => b[1] - a[1])[0]?.[0];
-  return masComun || def.pokemon;
+  // el nombre tal como sale en las cartas de ESE Pokémon (en castellano si las hay), aunque se hayan añadido otras a mano
+  const plano = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const suyas = cartas.filter((c) => plano(c.nombre) === plano(def.pokemon));
+  const masComun = Object.entries((suyas.length ? suyas : cartas).reduce((m, c) => ((m[c.nombre] = (m[c.nombre] || 0) + 1), m), {})).sort((a, b) => b[1] - a[1])[0]?.[0];
+  return suyas.length ? masComun : def.pokemon;
 }
 
 /** PURO · entrada de la biblioteca (mismo formato que estanteria/js/albumes.js) para un álbum creado en la app. */
-export function registroDe(id, def, nombre, catalogo, precios, orden = 100) {
-  const t = TIPOS[def.tipo], cartas = catalogo.cartas;
-  const codigo = def.tipo === "expansion" ? String(def.expansion).toUpperCase() : def.tipo === "ilustrador" ? "ARTISTA" : "POKÉMON";
+export function registroDe(id, defCompleta, nombre, catalogo, precios, orden = 100) {
+  const def = base(defCompleta), t = TIPOS[def.tipo] || TIPOS.lista, cartas = catalogo.cartas;
+  const codigo = def.tipo === "expansion" ? String(def.expansion).toUpperCase() : def.tipo === "ilustrador" ? "ARTISTA" : def.tipo === "pokemon" ? "POKÉMON" : "MI ÁLBUM";
   const sub = def.tipo === "pokemon" && def.expansion ? cartas[0]?.nombreExpansion || t.sub : t.sub;
   return {
-    id, nombre, subtitulo: sub, propio: true, definicion: def,
-    descripcion: `Álbum creado en la app desde TCGdex: ${def.tipo === "expansion" ? "la expansión " + nombre : def.tipo === "ilustrador" ? "todas las cartas físicas de " + def.ilustrador : "todas las cartas de " + def.pokemon + (def.expansion ? " en " + sub : "")}.`,
+    id, nombre, subtitulo: sub, propio: true, definicion: defCompleta,
+    descripcion: defCompleta.tipo === "lista" ? "Álbum creado en la app con las cartas elegidas a mano (TCGdex)."
+      : `Álbum creado en la app desde TCGdex: ${def.tipo === "expansion" ? "la expansión " + nombre : def.tipo === "ilustrador" ? "todas las cartas físicas de " + def.ilustrador : "todas las cartas de " + def.pokemon + (def.expansion ? " en " + sub : "")}.`,
     expansiones: def.expansion ? [def.expansion] : [],
     meta: `${t.arriba} · {n} cartas`,
     serie: SERIE_PROPIOS.id, nombreSerie: SERIE_PROPIOS.nombre,
@@ -50,14 +58,24 @@ export function registroDe(id, def, nombre, catalogo, precios, orden = 100) {
   };
 }
 
-/** Genera el catálogo desde TCGdex y guarda el álbum. Devuelve su entrada de la biblioteca. */
-export async function crearAlbumPropio(almacen, def, { nombre = null, progreso, senal } = {}) {
-  const { catalogo, precios } = await generarCatalogo(def, { progreso, senal });
+/** Genera el catálogo desde TCGdex (o usa `listo`, el que ya armó el selector de cartas) y guarda el álbum. Devuelve su entrada. */
+export async function crearAlbumPropio(almacen, def, { nombre = null, progreso, senal, listo = null } = {}) {
+  const { catalogo, precios } = listo || await generarCatalogo(def, { progreso, senal });
   const final = (nombre && nombre.trim()) || nombrePropuesto(def, catalogo.cartas);
   const id = idNuevo(final), orden = 100 + (await almacen.albumesPropios()).length;
   const registro = registroDe(id, def, final, catalogo, precios, orden);
   await almacen.guardarAlbumPropio({ id, registro, datos: { catalogo, precios } });
   return registro;
+}
+
+/** 3.40 · Cambia las cartas de un álbum creado (las elegidas en el selector). Conserva id, nombre, orden y fecha de creación.
+ *  Las cartas que tengas marcadas NO se tocan: si quitas una del álbum, sigue en tu colección. */
+export async function editarCartasAlbum(almacen, id, { catalogo, precios, nombre = null }) {
+  const a = await almacen.albumPropio(id);
+  if (!a) throw new Error("Ese álbum ya no está en este dispositivo.");
+  const registro = registroDe(id, catalogo.definicion, (nombre && nombre.trim()) || a.registro.nombre, catalogo, precios, a.registro.orden);
+  await almacen.guardarAlbumPropio({ id, registro, datos: { catalogo, precios }, creado: a.creado });
+  return { ...registro, cartas: catalogo.cartas.length };
 }
 
 /** Vuelve a pedir a TCGdex el catálogo (cartas nuevas, precios) conservando nombre, portada elegida y orden. */

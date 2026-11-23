@@ -44,3 +44,14 @@ test('un álbum creado pasa la misma validación que los de la web y sus cifras 
   }
   assert.equal(registroDe('mio-a-0000', { tipo: 'pokemon', pokemon: 'Charmander', expansion: 'x1' }, 'X', cat, { cartas: {} }).subtitulo, 'Expansión de Prueba', 'Pokémon de una expansión: la expansión como subtítulo');
 });
+
+test('3.40 · selección propia: el nombre propuesto sigue siendo el del Pokémon aunque se añadan otras cartas; etiquetas de «Mi selección»', () => {
+  const cartas = [{ nombre: 'Pikachu' }, { nombre: 'Charizard ex' }];
+  assert.equal(nombrePropuesto({ tipo: 'lista', ids: ['a', 'b'], origen: { tipo: 'pokemon', pokemon: 'pikachu' } }, cartas), 'Pikachu');
+  assert.equal(nombrePropuesto({ tipo: 'lista', ids: ['a'] }, cartas), 'Mi álbum');
+  const cat = { cartas: [{ id: 'x1-001', nombre: 'Charmander', imagen: null, imagenAlternativa: 'https://x/y?ruta=z', categoriaColeccion: 'comun' }] };
+  const r = registroDe('mio-a-0000', { tipo: 'lista', ids: ['x1-001'] }, 'Mía', cat, { cartas: {} });
+  assert.deepEqual(validarAlbum(r), []); assert.equal(r.subtitulo, 'Mi selección'); assert.deepEqual(r.portada.cartas, ['https://x/y?ruta=z'], 'portada con la imagen de limitlesstcg si TCGdex no la tiene');
+  const r2 = registroDe('mio-a-0000', { tipo: 'lista', ids: ['x1-001'], origen: { tipo: 'ilustrador', ilustrador: 'Alguien' } }, 'Mía', cat, { cartas: {} });
+  assert.equal(r2.subtitulo, 'Colección de artista', 'con origen: las etiquetas del origen');
+});

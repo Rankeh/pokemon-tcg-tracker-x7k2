@@ -45,7 +45,10 @@
     <p class="sub e-etiqueta e-rojo" id="i-sub"></p>
     <p class="meta e-etiqueta" id="i-meta"></p>
     <button type="button" class="abrir e-caja e-llena" id="abrir">Abrir álbum</button>
-    <button type="button" class="quitar-album e-caja" id="quitar-album" hidden>Quitar de la biblioteca</button>
+    <div class="acciones-album" id="acciones-album" hidden>
+      <button type="button" class="e-caja" id="editar-album">Editar cartas</button>
+      <button type="button" class="e-caja" id="quitar-album">Quitar de la biblioteca</button>
+    </div>
   </section>
 
   <!-- 3.37 · crear un álbum desde la app (cartas de TCGdex): por expansión, por ilustrador o por Pokémon -->
@@ -53,6 +56,7 @@
     <form method="dialog" id="f-nuevo">
       <h2 id="n-titulo">Nuevo álbum</h2>
       <p class="e-etiqueta e-rojo">Con las cartas de TCGdex</p>
+      <div id="n-paso1">
       <div class="e-pestanas n-tipos" role="group" aria-label="Tipo de álbum">
         <button type="button" class="e-caja" data-tipo="expansion" aria-pressed="true">Expansión</button>
         <button type="button" class="e-caja" data-tipo="ilustrador" aria-pressed="false">Ilustrador</button>
@@ -76,6 +80,20 @@
         <input id="n-pok-exp" type="search" autocomplete="off" placeholder="Todas las expansiones">
         <ul class="n-lista" id="n-pok-exp-lista" role="listbox" aria-label="Expansiones"></ul>
       </div>
+      </div>
+
+      <!-- 3.40 · paso 2: elegir las cartas (quitar las que no quieras y añadir cualquier otra) -->
+      <section class="n-paso2" id="n-paso2" hidden>
+        <div class="n-cabeza">
+          <p class="e-etiqueta" id="n-cuenta" aria-live="polite"></p>
+          <div class="n-botones"><button type="button" class="e-caja" id="n-todas">Todas</button><button type="button" class="e-caja" id="n-ninguna">Ninguna</button></div>
+        </div>
+        <p class="n-ayuda">Toca una carta para quitarla o volver a ponerla.</p>
+        <ul class="n-rejilla" id="n-rejilla" aria-label="Cartas del álbum"></ul>
+        <label class="e-etiqueta" for="n-buscar">Añadir otras cartas</label>
+        <input id="n-buscar" type="search" autocomplete="off" placeholder="Busca por nombre: Charizard, Mew, Umbreon…">
+        <ul class="n-rejilla n-resultados" id="n-resultados" aria-label="Resultados de la búsqueda"></ul>
+      </section>
 
       <label class="e-etiqueta" for="n-nombre">Nombre del álbum (opcional)</label>
       <input id="n-nombre" type="text" maxlength="40" autocomplete="off" placeholder="Se pone solo">
@@ -83,8 +101,9 @@
       <p class="n-estado" id="n-estado" role="status" aria-live="polite"></p>
       <progress id="n-progreso" max="1" value="0" hidden></progress>
       <div class="n-acciones">
+        <button type="button" class="e-caja" id="n-atras" hidden>‹ Atrás</button>
         <button type="button" class="e-caja" id="n-cancelar">Cancelar</button>
-        <button type="button" class="e-caja e-llena" id="n-crear">Crear álbum</button>
+        <button type="button" class="e-caja e-llena" id="n-crear">Elegir cartas →</button>
       </div>
     </form>
   </dialog>
