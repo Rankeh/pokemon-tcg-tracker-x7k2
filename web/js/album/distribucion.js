@@ -90,16 +90,70 @@ export function distribuir(cartas, { modo = "pokedex", porPagina = POR_PAGINA } 
   const posiciones = new Map();
   let huecos = 0;
   for (const { seccion, cartas: lista } of grupos) {
-    for (let i = 0; i < lista.length; i += porPagina) {
-      const trozo = lista.slice(i, i + porPagina);
-      const bolsillos = Array.from({ length: porPagina }, (_, k) => trozo[k] ?? null);
-      huecos += porPagina - trozo.length;
+    for (const bolsillos of colocar(lista, porPagina)) {             // 3.34: con los V-UNIÓN en bloque 2×2
       const numero = paginas.length + 1;
-      trozo.forEach((c, k) => posiciones.set(c.id, { pagina: numero, posicion: k + 1 }));
+      bolsillos.forEach((c, k) => { if (c) posiciones.set(c.id, { pagina: numero, posicion: k + 1 }); else huecos++; });
       paginas.push({ numero, seccion, bolsillos });
     }
   }
   return { paginas, posiciones, huecos, sinPokedex };
+}
+
+// ------------------------------------------------------------------ 3.34 · mosaicos (cartas V-UNIÓN)
+// Un Pokémon V-UNIÓN son 4 cartas que juntas forman una sola imagen 2×2: la de número menor arriba a la izquierda, luego arriba a la derecha,
+// abajo a la izquierda y abajo a la derecha (comprobado con Mewtwo V-UNIÓN, SWSH159–162). En el álbum van en un bloque 2×2 de la misma página.
+const ES_UNION = /V-UNI[OÓ]N/i;
+const LADO = 3;                                                     // páginas de 3×3
+
+/** Grupos de 4 piezas de un mismo V-UNIÓN (mismo nombre y expansión), cada uno en orden de mosaico. Map id de la 1.ª pieza → [4 cartas]. */
+export function mosaicos(cartas) {
+  const g = new Map();
+  for (const c of cartas) {
+    if (!ES_UNION.test(c.nombre || "")) continue;
+    const k = c.expansion + "|" + c.nombre;
+    g.set(k, [...(g.get(k) || []), c]);
+  }
+  const res = new Map();
+  for (const l of g.values()) {
+    if (l.length !== 4) continue;                                   // incompleto: se coloca como cartas sueltas
+    const orden = [...l].sort((a, b) => (parseInt(String(a.numero).replace(/\D/g, ""), 10) || 0) - (parseInt(String(b.numero).replace(/\D/g, ""), 10) || 0) || a.id.localeCompare(b.id));
+    res.set(orden[0].id, orden);
+  }
+  return res;
+}
+
+/** Bolsillo de arriba a la izquierda donde cabe un bloque 2×2 libre en una página (0..8), o -1. */
+const huecoBloque = (pag) => [0, 1, 3, 4].find((s) => [s, s + 1, s + LADO, s + LADO + 1].every((k) => pag[k] === null)) ?? -1;
+
+/**
+ * Coloca una lista ya ordenada en páginas de `porPagina` bolsillos, con los V-UNIÓN en bloque 2×2. Las demás cartas ocupan el primer
+ * bolsillo libre (en orden de lectura), así que los huecos que deja un bloque se rellenan con las siguientes: no quedan huecos en medio.
+ * Si con los bloques hicieran falta más páginas que sin ellos, se colocan como cartas sueltas (el modelo 3D tiene las hojas justas).
+ */
+function colocar(lista, porPagina) {
+  const piezas = porPagina === LADO * LADO ? mosaicos(lista) : new Map();
+  const enMosaico = new Set([...piezas.values()].flat().map((c) => c.id));
+  const intentar = (conMosaicos) => {
+    const paginas = [];
+    const nueva = () => { const p = Array(porPagina).fill(null); paginas.push(p); return p; };
+    const libre = () => { for (const p of paginas) { const k = p.indexOf(null); if (k >= 0) return [p, k]; } const p = nueva(); return [p, 0]; };
+    for (const c of lista) {
+      if (conMosaicos && enMosaico.has(c.id)) {
+        const bloque = piezas.get(c.id);
+        if (!bloque) continue;                                      // pieza 2.ª–4.ª: ya colocada con la 1.ª
+        // la página donde iría la siguiente carta suelta, o una nueva si ahí no cabe el bloque
+        let [p] = libre(), s = huecoBloque(p);
+        if (s < 0) { p = nueva(); s = 0; }
+        [s, s + 1, s + LADO, s + LADO + 1].forEach((k, i) => { p[k] = bloque[i]; });
+        continue;
+      }
+      const [p, k] = libre(); p[k] = c;
+    }
+    return paginas;
+  };
+  let paginas = intentar(true);
+  if (paginas.length > Math.ceil(lista.length / porPagina)) paginas = intentar(false);
+  return paginas;
 }
 
 function agrupar(ordenadas) {

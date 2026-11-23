@@ -476,3 +476,11 @@ está en `datos/albumes-artista.json`, así que se refresca cada lunes como los 
   Tempestad Plateada y Origen Perdido, y la promo MEP 024), y 2 que no existen en ningún sitio con carta proxy (Moltres de Galar SWSH284 y
   Magikarp de la Colección Clásica del 30.º Aniversario). `generar_proxies.py` lee ahora todos los catálogos.
 - Los dos están en `datos/albumes-artista.json`: reciben cada lunes sus cartas nuevas. El arte y las proxies van también a la app sin conexión.
+
+## 3.34 — Cartas V-UNIÓN en mosaico 2×2
+- Un Pokémon V-UNIÓN son 4 cartas que juntas forman una imagen. `distribucion.js` (`mosaicos`, `colocar`) las pone en un bloque 2×2 de la
+  misma página, en orden de mosaico: la de número menor arriba a la izquierda, luego arriba a la derecha, abajo a la izquierda y abajo a la
+  derecha (Mewtwo V-UNIÓN SWSH159–162, álbum de Akira Egawa). Las demás cartas ocupan el primer bolsillo libre, así que los huecos que deja
+  el bloque se rellenan con las siguientes: no quedan huecos en medio. Si el bloque obligara a añadir una página, va como cartas sueltas.
+- Los álbumes sin V-UNIÓN quedan exactamente igual que antes (lo comprueba `pruebas/mosaico.test.mjs`).
+- Los dos Armarouge de Akira Egawa (SVI 041 y su reimpresión PAF 015, misma ilustración) se quedan los dos, juntos.
