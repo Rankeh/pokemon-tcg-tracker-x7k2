@@ -1,9 +1,11 @@
 // 3.37 · Ventana «Nuevo álbum» de la biblioteca: elegir expansión, ilustrador o Pokémon, ponerle nombre y crearlo con las cartas de TCGdex.
 // 3.40 · Paso 2: elegir las cartas (quitar las que no quieras y añadir cualquier otra buscándola por nombre). El mismo paso sirve para
 // «Editar cartas» de un álbum ya creado. Las cartas que tengas marcadas nunca se tocan: quitar una del álbum no la quita de tu colección.
+// 3.44 · Filtros del buscador (rareza, tipo, era, expansión, formato, shiny, 1.ª edición) y «Novedades»: al editar un álbum hecho a partir de un
+// Pokémon, ilustrador o expansión, las cartas de ese origen que no están en el álbum, marcando las que han salido después («Nueva»).
 // La lógica de los datos está en web/js/generador-album.js y web/js/albumes-propios.js; aquí solo la interfaz.
-import { listarExpansiones, listarIlustradores, generarCatalogo, armarCatalogo, buscarCartas, buscarEnLimitless, imagenDe, MAX_CARTAS } from '../../js/generador-album.js';
-import { crearAlbumPropio, editarCartasAlbum, nombrePropuesto } from '../../js/albumes-propios.js';
+import { listarExpansiones, listarIlustradores, generarCatalogo, armarCatalogo, buscarCartas, buscarEnLimitless, imagenDe, MAX_CARTAS, FILTROS, hayFiltros, candidatasDe } from '../../js/generador-album.js';
+import { crearAlbumPropio, editarCartasAlbum, nombrePropuesto, nombreBonito, separarNovedades, definicionBase } from '../../js/albumes-propios.js';
 import { ordenarPorPokedex } from '../../js/album/distribucion.js';
 import { conCors, conRespaldo } from '../../js/supabase-url.js';
 
@@ -27,6 +29,7 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
   const eleccion = { expansion: null, ilustrador: null, pokExp: null };
   // paso 2: todas las cartas conocidas (id → { carta, precio }) y las elegidas
   let conocidas = new Map(), elegidas = new Set(), orden = [], idsOrigen = new Set();
+  let vistas = null;                       // 3.44 · ids de las cartas del origen ya vistas (las demás, si salen, son «nuevas»)
   const decir = (t, error = false) => { estado.textContent = t; estado.dataset.tipo = error ? 'error' : ''; };
 
   /** Buscador: input + lista de opciones (botones). `opciones()` da la lista completa; `alElegir(x)` guarda la elección. */
@@ -67,7 +70,7 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
   async function cargarExpansiones() {
     if (expansiones) return;
     decir('Cargando expansiones de TCGdex…');
-    try { expansiones = await listarExpansiones(); decir(''); pintarExp(); } catch { decir('No se pudo conectar con TCGdex. Para crear un álbum hace falta conexión.', true); }
+    try { expansiones = await listarExpansiones(); decir(''); pintarExp(); llenarExpansiones(); } catch { decir('No se pudo conectar con TCGdex. Para crear un álbum hace falta conexión.', true); }
   }
   async function cargarIlustradores() {
     if (ilustradores) return;
@@ -83,7 +86,7 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     return eleccion.pokExp ? { tipo, pokemon: p, expansion: eleccion.pokExp.id } : { tipo, pokemon: p };
   }
   const ocupado = (si) => {
-    for (const el of d.querySelectorAll('input, [data-tipo], #n-crear, #n-atras, #n-todas, #n-ninguna, .n-rejilla button')) el.disabled = si;
+    for (const el of d.querySelectorAll('input, select, [data-tipo], #n-crear, #n-atras, #n-todas, #n-ninguna, #n-nov-todas, .n-filtros button, .n-rejilla button')) el.disabled = si;
     barra.hidden = !si; $('n-cancelar').textContent = si ? 'Detener' : 'Cancelar';
   };
 
@@ -132,40 +135,139 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     conocidas = new Map(catalogo.cartas.map((c) => [c.id, { carta: c, precio: precios?.cartas?.[c.id] }]));
     orden = ordenarPorPokedex(catalogo.cartas).ordenadas.map((c) => c.id);
     elegidas = new Set(ids || orden); idsOrigen = new Set(elegidas);
-    $('n-buscar').value = ''; $('n-resultados').replaceChildren();
+    $('n-buscar').value = ''; $('n-resultados').replaceChildren(); resultados = []; $('n-mas').hidden = true; $('n-total').hidden = true;
+    limpiarFiltros(); $('n-novedades').hidden = true; novedades = [];
     pintarRejilla();
   }
 
-  // buscar y añadir cualquier otra carta
-  let busqueda = 0;
-  $('n-buscar').addEventListener('input', () => {
-    const texto = $('n-buscar').value, mia = ++busqueda;
-    clearTimeout($('n-buscar')._t);
-    $('n-buscar')._t = setTimeout(async () => {
-      if (texto.trim().length < 2) { $('n-resultados').replaceChildren(); return; }
-      let res;
-      try { res = await buscarCartas(texto); } catch { if (mia === busqueda) decir('No se pudo buscar en TCGdex.', true); return; }
-      if (mia !== busqueda) return;                                   // ya se escribió otra cosa
-      decir(res.length ? '' : 'Ninguna carta con ese nombre.');
-      const filas = res.map((r) => [r, tarjeta({ ...r, miniatura: conCors(r.imagen) }, {
-        estado: elegidas.has(r.id) ? 'anadida' : '',
-        alPulsar: (b) => anadir(r, b),
-      })]);
-      $('n-resultados').replaceChildren(...filas.map(([, li]) => li));
-      // 3.41 · las que TCGdex no tiene en imagen: se pide la de limitlesstcg (o pokemontcg.io, para las antiguas), de 3 en 3
-      const sinImagen = filas.filter(([r]) => !r.imagen);
-      const siguiente = async () => {
-        for (let f = sinImagen.shift(); f && mia === busqueda; f = sinImagen.shift()) {
-          const [r, li] = f, alt = await buscarEnLimitless('', r.numero, r.expansion);
-          if (!alt || mia !== busqueda) continue;
-          r.imagen = miniatura({ imagenAlternativa: alt.url });
-          const hueco = li.querySelector('.n-sin');
-          if (hueco) { const img = new Image(); img.crossOrigin = 'anonymous'; img.decoding = 'async'; img.alt = ''; img.className = 'n-img'; img.src = r.imagen; hueco.replaceWith(img); }
-        }
-      };
-      for (let i = 0; i < 3; i++) siguiente();
-    }, 300);
+  // ---------------------------------------------------------------- buscar y añadir cualquier otra carta (3.44: con filtros)
+  const POR_TANDA = 60;
+  const sel = (id, opciones) => { for (const [v, t] of opciones) $(id).append(new Option(t, v)); };
+  sel('nf-rareza', FILTROS.rareza.map(([k, t]) => [k, t]));
+  sel('nf-tipo', FILTROS.tipo);
+  sel('nf-era', FILTROS.era);
+  sel('nf-formato', FILTROS.formato);
+  function llenarExpansiones() {
+    const s = $('nf-expansion');
+    if (!expansiones || s.options.length > 1) return;
+    for (const e of expansiones) s.append(new Option(`${e.nombre} · ${e.id}`, e.id));
+  }
+  const filtros = () => ({ rareza: $('nf-rareza').value, tipo: $('nf-tipo').value, era: $('nf-era').value, expansion: $('nf-expansion').value,
+    formato: $('nf-formato').value, shiny: $('nf-shiny').getAttribute('aria-pressed') === 'true', primeraEdicion: $('nf-primera').getAttribute('aria-pressed') === 'true' });
+  function pintarFiltros() {
+    const f = filtros();
+    for (const id of ['nf-rareza', 'nf-tipo', 'nf-era', 'nf-expansion', 'nf-formato']) $(id).classList.toggle('activo', Boolean($(id).value));
+    $('nf-rareza').disabled = f.shiny;                                // shiny ya es una rareza (Variocolor)
+    $('nf-limpiar').hidden = !hayFiltros(f);
+  }
+  for (const id of ['nf-rareza', 'nf-tipo', 'nf-era', 'nf-expansion', 'nf-formato']) $(id).addEventListener('change', () => { pintarFiltros(); buscar(0); });
+  for (const id of ['nf-shiny', 'nf-primera']) $(id).onclick = () => {
+    $(id).setAttribute('aria-pressed', String($(id).getAttribute('aria-pressed') !== 'true')); pintarFiltros(); buscar(0);
+  };
+  $('nf-limpiar').onclick = () => { limpiarFiltros(); buscar(0); };
+  function limpiarFiltros() {
+    for (const id of ['nf-rareza', 'nf-tipo', 'nf-era', 'nf-expansion', 'nf-formato']) $(id).value = '';
+    for (const id of ['nf-shiny', 'nf-primera']) $(id).setAttribute('aria-pressed', 'false');
+    pintarFiltros();
+  }
+
+  /** Las que no tienen imagen en TCGdex: la de limitlesstcg (o pokemontcg.io, para las antiguas), de 3 en 3, mientras `sigue()`. */
+  function completarImagenes(filas, sigue) {
+    const sinImagen = filas.filter(([r]) => !r.imagen);
+    const siguiente = async () => {
+      for (let f = sinImagen.shift(); f && sigue(); f = sinImagen.shift()) {
+        const [r, li] = f, alt = await buscarEnLimitless('', r.numero, r.expansion);
+        if (!alt || !sigue()) continue;
+        r.imagen = miniatura({ imagenAlternativa: alt.url });
+        const hueco = li.querySelector('.n-sin');
+        if (hueco) { const img = new Image(); img.crossOrigin = 'anonymous'; img.decoding = 'async'; img.alt = ''; img.className = 'n-img'; img.src = r.imagen; hueco.replaceWith(img); }
+      }
+    };
+    for (let i = 0; i < 3; i++) siguiente();
+  }
+  /** Tarjetas para añadir (resultados o novedades). */
+  const filasPara = (lista, nuevas = new Set()) => lista.map((r) => {
+    const li = tarjeta({ ...r, miniatura: r.miniatura || conCors(r.imagen) }, { estado: elegidas.has(r.id) ? 'anadida' : '', alPulsar: (b) => anadir(r, b) });
+    if (nuevas.has(r.id)) li.firstChild.dataset.nueva = '';
+    return [r, li];
   });
+
+  let busqueda = 0, resultados = [], mostradas = 0;
+  function mostrarResultados(desde) {
+    const mia = busqueda, filas = filasPara(resultados.slice(desde, desde + POR_TANDA));
+    if (desde === 0) $('n-resultados').replaceChildren(...filas.map(([, li]) => li));
+    else $('n-resultados').append(...filas.map(([, li]) => li));
+    mostradas = Math.min(resultados.length, desde + POR_TANDA);
+    $('n-mas').hidden = mostradas >= resultados.length;
+    $('n-mas').textContent = `Ver más (${resultados.length - mostradas})`;
+    $('n-total').hidden = !resultados.length;
+    $('n-total').textContent = resultados.length === 1 ? '1 carta' : `${resultados.length} cartas` + (mostradas < resultados.length ? ` · se ven ${mostradas}` : '');
+    completarImagenes(filas, () => mia === busqueda);
+  }
+  $('n-mas').onclick = () => mostrarResultados(mostradas);
+  function buscar(espera = 300) {
+    const texto = $('n-buscar').value, f = filtros(), mia = ++busqueda;
+    clearTimeout(buscar.t);
+    buscar.t = setTimeout(async () => {
+      if (texto.trim().length < 2 && !(hayFiltros(f) && !texto.trim())) {
+        resultados = []; $('n-resultados').replaceChildren(); $('n-mas').hidden = true; $('n-total').hidden = true;
+        if (texto.trim()) decir('');
+        return;
+      }
+      decir('Buscando…');
+      let res;
+      try { res = await buscarCartas(texto, { filtros: f, max: 3000 }); } catch { if (mia === busqueda) decir('No se pudo buscar en TCGdex.', true); return; }
+      if (mia !== busqueda) return;                                   // ya se escribió otra cosa
+      decir(res.length ? '' : hayFiltros(f) ? 'Ninguna carta con esos filtros.' : 'Ninguna carta con ese nombre.');
+      resultados = res; mostrarResultados(0);
+    }, espera);
+  }
+  $('n-buscar').addEventListener('input', () => buscar());
+
+  // ---------------------------------------------------------------- 3.44 · novedades del origen (al editar)
+  let novedades = [];
+  async function cargarNovedades(def, enAlbum) {
+    const origenBase = definicionBase(def);
+    $('n-novedades').hidden = true; novedades = [];
+    if (!origenBase || origenBase.tipo === 'lista' || navigator.onLine === false) return;
+    const mia = editando;
+    let cand;
+    try { cand = await candidatasDe(origenBase); } catch (e) { console.warn('No se pudieron buscar cartas nuevas:', e); return; }
+    if (mia !== editando || !d.open) return;
+    const { nuevas, otras } = separarNovedades(cand, enAlbum, def.vistas || null);
+    vistas = new Set([...(def.vistas || []), ...cand.map((c) => c.id)]);   // al guardar, todas quedan vistas
+    novedades = [...nuevas, ...otras];
+    if (!novedades.length) return;
+    const de = origenBase.tipo === 'pokemon' ? `de ${origenBase.pokemon}` : origenBase.tipo === 'ilustrador' ? `de ${nombreBonito(origenBase.ilustrador)}` : 'de la expansión';
+    $('n-nov-titulo').textContent = nuevas.length
+      ? `${nuevas.length === 1 ? '1 carta nueva' : nuevas.length + ' cartas nuevas'} ${de}` + (otras.length ? ` · ${otras.length} más fuera del álbum` : '')
+      : `${otras.length === 1 ? '1 carta' : otras.length + ' cartas'} ${de} fuera del álbum`;
+    const filas = filasPara(novedades, new Set(nuevas.map((c) => c.id)));
+    $('n-nov-lista').replaceChildren(...filas.map(([, li]) => li));
+    $('n-novedades').hidden = false;
+    completarImagenes(filas, () => mia === editando && d.open);
+  }
+  $('n-nov-todas').onclick = async () => {
+    const faltan = novedades.filter((r) => !elegidas.has(r.id));
+    if (!faltan.length) return;
+    const nuevasIds = faltan.filter((r) => !conocidas.has(r.id)).map((r) => r.id);
+    if (nuevasIds.length) {
+      ocupado(true); barra.value = 0;
+      try {
+        const { catalogo, precios } = await generarCatalogo({ tipo: 'lista', ids: nuevasIds }, { max: 600,
+          progreso: (h, t) => { barra.max = t || 1; barra.value = h; decir(`Añadiendo: ${h} de ${t}…`); } });
+        for (const c of catalogo.cartas) conocidas.set(c.id, { carta: c, precio: precios.cartas[c.id] });
+        orden = ordenarPorPokedex([...conocidas.values()].map((x) => x.carta)).ordenadas.map((x) => x.id);
+      } catch (e) { ocupado(false); decir('No se pudieron añadir: ' + (e.message || e), true); return; }
+      ocupado(false);
+    }
+    let n = 0;
+    for (const r of faltan) if (conocidas.has(r.id)) { elegidas.add(r.id); n++; }
+    for (const b of $('n-nov-lista').querySelectorAll('button')) b.dataset.estado = 'anadida';
+    decir(`${n === 1 ? '1 carta añadida' : n + ' cartas añadidas'} al álbum.`);
+    pintarRejilla();
+  };
+
   async function anadir(r, b) {
     if (elegidas.has(r.id)) return;
     if (!conocidas.has(r.id)) {                                         // sus datos completos (rareza, variantes, precio…)
@@ -191,7 +293,9 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
   function catalogoElegido() {
     const ids = orden.filter((id) => elegidas.has(id));
     const igual = origen && ids.length === idsOrigen.size && ids.every((id) => idsOrigen.has(id));   // sin quitar ni añadir nada
-    const def = igual ? origen : { tipo: 'lista', ids, origen: origen?.tipo === 'lista' ? origen.origen : origen };
+    const base = origen?.tipo === 'lista' ? origen.origen : origen;
+    const conVistas = base && vistas ? { vistas: [...vistas] } : {};
+    const def = !igual ? { tipo: 'lista', ids, origen: base, ...conVistas } : origen.tipo === 'lista' ? { ...origen, ...conVistas } : origen;
     const precios = Object.fromEntries(ids.filter((id) => conocidas.get(id).precio).map((id) => [id, conocidas.get(id).precio]));
     return { def, ...armarCatalogo(def, ids.map((id) => conocidas.get(id).carta), precios) };
   }
@@ -206,6 +310,7 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
         const { catalogo, precios } = await generarCatalogo(def, { senal: control.signal, max: 600,   // se pueden quitar en el paso 2 (máx. 360 al guardar)
           progreso: (h, t) => { barra.max = t || 1; barra.value = h; decir(`Preparando las cartas: ${h} de ${t}…`); } });
         origen = def; ocupado(false); control = null;
+        vistas = new Set([...catalogo.cartas.map((c) => c.id), ...(catalogo.totales.excluidas || []).map((x) => x.id)]);
         if (!$('n-nombre').value.trim()) $('n-nombre').placeholder = nombrePropuesto(def, catalogo.cartas);
         cargarCartas(catalogo, precios); irAPaso(2);
       } catch (e) {
@@ -231,7 +336,7 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
   return {
     abrir() {
       if (!almacen) { alert('Este navegador no deja guardar datos (¿modo privado?): no se pueden crear álbumes.'); return; }
-      editando = null; origen = null;
+      editando = null; origen = null; vistas = null;
       $('f-nuevo').reset(); $('n-nombre').placeholder = 'Se pone solo'; Object.assign(eleccion, { expansion: null, ilustrador: null, pokExp: null });
       for (const ul of d.querySelectorAll('.n-lista, .n-rejilla')) ul.replaceChildren();
       cambiarTipo('expansion'); irAPaso(1); d.showModal(); cargarExpansiones();
@@ -240,9 +345,11 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     async editar(id) {
       const a = almacen && await almacen.albumPropio(id);
       if (!a) return;
-      editando = id; origen = a.registro.definicion;
+      editando = id; origen = a.registro.definicion; vistas = origen.vistas ? new Set(origen.vistas) : null;
       $('f-nuevo').reset(); $('n-nombre').value = a.registro.nombre;
       cargarCartas(a.datos.catalogo, a.datos.precios); irAPaso(2); d.showModal();
+      cargarExpansiones();                                               // para el filtro de expansión
+      cargarNovedades(origen, a.datos.catalogo.cartas.map((c) => c.id));   // 3.44 · cartas que han salido después
     },
   };
 }

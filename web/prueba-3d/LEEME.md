@@ -560,3 +560,14 @@ Para las pocas cartas sin imagen en ninguna fuente accesible (p. ej. Meowth del 
 - Se guarda en el dispositivo (`meta`, claves `imagen:<id>`) y, con cuenta, en Supabase (`imagenes_propias`, LWW como las copias): se ve igual en todos tus dispositivos.
 - Los visitantes en modo solo lectura no ven el botón.
 - Prueba: `node web/prueba-3d/pruebas/ejecutar-imagen.mjs` (15 comprobaciones); la sincronización, en `ejecutar-sincronizacion.mjs`.
+
+## 3.44 — Filtros en el buscador de cartas y cartas nuevas en álbumes ya creados
+
+**Filtros** (paso «Elegir cartas» y «Editar cartas»): Rareza, Tipo (incluye Entrenador y Energía), Era (serie de TCGdex), Expansión, Formato (Estándar, Expandido, Legacy = fuera de formato), **Shiny** y **1.ª edición**. Con filtros el nombre es opcional (p. ej. todas las Rara Ilustración Especial de una expansión). Resultados de 60 en 60 («Ver más»).
+- Se piden a TCGdex con sus filtros (`rarity`, `types`, `category`, `legal.*`, `variants.firstEdition`, `id`); la era se comprueba con las expansiones de la serie. Los nombres que solo existen en castellano se comprueban carta a carta (máx. 24). Ver `FILTROS`, `consultas`, `cumple` en `web/js/generador-album.js`.
+
+**Cartas nuevas en un álbum ya creado** (p. ej. sale otro Meowth dentro de unos meses):
+- Si el álbum no se tocó (todas las cartas del Pokémon / ilustrador / expansión), las nuevas entran solas (se comprueba cada 7 días al abrirlo).
+- Si se eligieron las cartas a mano, el álbum guarda cuáles había (`definicion.vistas`); las que salgan después **no se añaden solas**: el visor avisa («Han salido N cartas nuevas…») y en **Editar cartas** aparecen arriba, marcadas «Nueva», con «Añadir todas». También salen las del origen que quitaste, por si quieres recuperarlas.
+- Desde el visor: **⋯ › Añadir o quitar cartas** abre el selector de ese álbum en la biblioteca (`index.html?editar=<id>`).
+- Pruebas: `ejecutar-crear.mjs` (55 comprobaciones) y `albumes-propios.test.mjs`.

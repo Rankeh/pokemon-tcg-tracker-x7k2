@@ -290,9 +290,15 @@ async function iniciar() {
     await almacen.quitarAlbumPropio(a.id);
     await recargar(); avisar(`«${a.nombre}» quitado de la biblioteca.`);
   };
+  const aEditar = params.get('editar');                                   // 3.44 · «Añadir o quitar cartas» desde el visor
+  if (aEditar) guardar('biblioteca.sel', aEditar);
   await cargarLista();
   construir();
   encuadrar();
+  if (aEditar) {
+    const u = new URL(location.href); u.searchParams.delete('editar'); history.replaceState(null, '', u.href);
+    if (albumes.some((a) => a.id === aEditar && a.propio)) creador.editar(aEditar);
+  }
   new ResizeObserver(() => encuadrar()).observe($('info'));            // la ficha cambia de alto (título de otro álbum, fuentes que cargan)
   document.body.classList.add('lista');
   console.info(`Biblioteca · ${FASE} · calidad ${calidad.nivel} (${eleccion.origen}) · ${albumes.length} álbum(es)`);

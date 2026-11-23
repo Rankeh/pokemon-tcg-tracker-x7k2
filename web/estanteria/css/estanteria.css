@@ -138,3 +138,17 @@ body.lista .cargando, body.sin-3d .cargando { opacity: 0; }
 .nuevo-album .n-resultados button:not([data-estado="anadida"])::after { background: var(--e-texto) center / 10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M5 1.5v7M1.5 5h7' fill='none' stroke='%23111' stroke-width='1.6'/%3E%3C/svg%3E"); }
 .nuevo-album .n-rejilla .n-sin { padding: 6px; box-sizing: border-box; border: 1px dashed var(--e-linea); color: var(--e-suave); font: 400 .62rem/1.25 var(--e-fuente);
   text-align: center; overflow: hidden; word-break: break-word; }
+
+/* 3.44 · filtros del buscador de cartas y novedades del álbum */
+.nuevo-album .n-filtros { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.nuevo-album .n-filtros select { flex: 1 1 130px; min-width: 0; max-width: 100%; min-height: 34px; padding: 0 8px; border: 1px solid var(--e-linea); border-radius: 0;
+  background: var(--e-control); color: var(--e-texto); font: 400 .85rem/1.2 var(--e-fuente); }
+.nuevo-album .n-filtros select.activo { border-color: var(--e-texto); font-weight: 600; }
+.nuevo-album .n-filtros .n-chip { min-height: 34px; padding: 0 12px; }
+.nuevo-album .n-filtros .n-chip[aria-pressed="true"] { background: var(--e-texto); color: var(--e-sobre); border-color: var(--e-texto); }
+.nuevo-album .n-mas { display: block; width: 100%; min-height: 34px; margin-top: 8px; }
+.nuevo-album .n-novedades { margin: 14px 0 4px; }
+.nuevo-album .n-novedades .n-cabeza p { color: var(--e-rojo); }
+.nuevo-album .n-rejilla button[data-nueva]::before { content: "Nueva"; position: absolute; z-index: 1; left: 4px; top: 4px; padding: 1px 5px; border-radius: 3px;
+  background: var(--e-rojo); color: #fff; font: 600 .58rem/1.4 var(--e-fuente); letter-spacing: .04em; text-transform: uppercase; }
+.nuevo-album [hidden] { display: none !important; }       /* los botones con display propio (.e-caja) también se ocultan */

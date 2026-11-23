@@ -2,7 +2,7 @@
 // Aquí se convierten en entradas de la biblioteca con el mismo formato que los álbumes fijos de estanteria/js/albumes.js (portada, lomo…),
 // y se juntan con ellos. Quitar un álbum NUNCA toca las cartas marcadas: solo su definición.
 import { listarAlbumes, albumPorId, normalizarAlbumes } from "../estanteria/js/albumes.js";
-import { generarCatalogo, cartasPortada } from "./generador-album.js";
+import { generarCatalogo, cartasPortada, candidatasDe } from "./generador-album.js";
 
 export const SERIE_PROPIOS = { id: "propios", nombre: "Mis álbumes" };
 export const esPropio = (id) => typeof id === "string" && id.startsWith("mio-");
@@ -78,14 +78,34 @@ export async function editarCartasAlbum(almacen, id, { catalogo, precios, nombre
   return { ...registro, cartas: catalogo.cartas.length };
 }
 
-/** Vuelve a pedir a TCGdex el catálogo (cartas nuevas, precios) conservando nombre, portada elegida y orden. */
+/** PURO · 3.44 · de las cartas que hoy entrarían por la definición de origen, las que no están en el álbum: { nuevas, otras }.
+ *  `nuevas` = las que no se habían visto nunca (no están en `vistas`: salieron después de crear o editar el álbum). */
+export function separarNovedades(candidatas, enAlbum, vistas = null) {
+  const dentro = new Set(enAlbum), vistasSet = vistas ? new Set(vistas) : null;
+  const fuera = candidatas.filter((c) => !dentro.has(c.id));
+  return { nuevas: vistasSet ? fuera.filter((c) => !vistasSet.has(c.id)) : [], otras: vistasSet ? fuera.filter((c) => vistasSet.has(c.id)) : fuera };
+}
+/** La definición «de base» de un álbum (exportada para el selector). */
+export const definicionBase = base;
+
+/** Vuelve a pedir a TCGdex el catálogo (cartas nuevas, precios) conservando nombre, portada elegida y orden.
+ *  3.44 · si las cartas se eligieron a mano a partir de un Pokémon, ilustrador o expansión, NO se añaden solas: devuelve en `nuevas`
+ *  cuántas han salido desde la última vez (para avisar y añadirlas desde «Editar cartas»). */
 export async function actualizarAlbumPropio(almacen, id, { senal } = {}) {
   const a = await almacen.albumPropio(id);
   if (!a) return null;
-  const { catalogo, precios } = await generarCatalogo(a.registro.definicion, { senal });
-  const registro = { ...registroDe(id, a.registro.definicion, a.registro.nombre, catalogo, precios, a.registro.orden) };
+  let def = a.registro.definicion, nuevas = 0;
+  if (def.tipo === "lista" && def.origen) {
+    try {
+      const cand = await candidatasDe(def.origen, { senal });
+      if (def.vistas) nuevas = separarNovedades(cand, def.ids, def.vistas).nuevas.length;
+      else def = { ...def, vistas: cand.map((c) => c.id) };             // álbumes anteriores a 3.44: desde hoy se sabe cuáles son nuevas
+    } catch (e) { console.warn("No se pudieron buscar cartas nuevas:", e); }
+  }
+  const { catalogo, precios } = await generarCatalogo(def, { senal });
+  const registro = { ...registroDe(id, def, a.registro.nombre, catalogo, precios, a.registro.orden) };
   await almacen.guardarAlbumPropio({ id, registro, datos: { catalogo, precios }, creado: a.creado });
-  return registro;
+  return { ...registro, nuevas };
 }
 
 /** Biblioteca: los álbumes de la web (solo si `fijos`: el administrador, 3.38) y los creados en la app. Cada uno con `cartas` = nº real. */

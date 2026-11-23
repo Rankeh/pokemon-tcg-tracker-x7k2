@@ -95,24 +95,37 @@ export async function listarExpansiones({ senal } = {}) {
 /** Ilustradores de TCGdex (para sugerir mientras se escribe). */
 export async function listarIlustradores({ senal } = {}) { return (await pedir("en/illustrators", { senal })) || []; }
 
-/** Ids de cartas que entran en el álbum (antes de mirar sus detalles). */
-async function idsDe(def, senal) {
-  if (def.tipo === "lista") return [...new Set(def.ids || [])];
+/** Cartas que entran en el álbum según su definición, en versión breve (id, name, localId, image), antes de mirar sus detalles. */
+async function brevesDe(def, senal) {
+  if (def.tipo === "lista") return [...new Set(def.ids || [])].map((id) => ({ id }));
   if (def.tipo === "expansion") {
     const s = await pedir("en/sets/" + q(def.expansion), { senal }) || await pedir("es/sets/" + q(def.expansion), { senal });
     if (!s) throw new Error("No existe la expansión " + def.expansion);
-    return s.cards.map((c) => c.id);
+    return s.cards;
   }
-  if (def.tipo === "ilustrador") return ((await pedir("en/cards?illustrator=" + q("eq:" + def.ilustrador), { senal })) || []).map((c) => c.id);
+  if (def.tipo === "ilustrador") return (await pedir("en/cards?illustrator=" + q("eq:" + def.ilustrador), { senal })) || [];
   if (def.tipo === "pokemon") {        // el nombre puede estar en castellano o en inglés
     // 3.41 · da igual mayúsculas o tildes (TCGdex busca «contiene» sin distinguirlas).
     // 3.42 · todas las variantes del Pokémon: ex, EX, V, VMAX, VSTAR, GX, de Alola/Galar, del Team Rocket, δ…; por palabra completa
     // («mew» trae Mew ex y Mew VMAX, pero no Mewtwo)
     const [en, es] = await Promise.all(["en", "es"].map((l) => pedir(l + "/cards?name=" + q(def.pokemon), { senal })));
-    const ids = [...new Set([...(en || []), ...(es || [])].filter((c) => esDelPokemon(c.name, def.pokemon)).map((c) => c.id))];
-    return def.expansion ? ids.filter((id) => id.startsWith(def.expansion + "-")) : ids;
+    const vistas = new Map();
+    for (const c of [...(es || []), ...(en || [])]) if (!vistas.has(c.id) && esDelPokemon(c.name, def.pokemon)) vistas.set(c.id, c);
+    const todas = [...vistas.values()];
+    return def.expansion ? todas.filter((c) => c.id.startsWith(def.expansion + "-")) : todas;
   }
   throw new Error("Tipo de álbum desconocido");
+}
+async function idsDe(def, senal) { return (await brevesDe(def, senal)).map((c) => c.id); }
+
+/** 3.44 · Cartas que hoy entrarían en un álbum con esa definición (expansión, ilustrador o Pokémon), sin TCG Pocket.
+ *  Para «Novedades» al editar un álbum de cartas elegidas a mano. [{ id, nombre, numero, expansion, imagen }] */
+export async function candidatasDe(def, { senal } = {}) {
+  if (!def || def.tipo === "lista") return [];
+  const [breves, pocket] = await Promise.all([brevesDe(def, senal), pedir("en/series/tcgp", { senal }).catch(() => null)]);
+  const fuera = new Set((pocket?.sets || []).map((s) => s.id));
+  return breves.filter((c) => !/\/tcgp\//.test(c.image || "") && !fuera.has(expansionDe(c.id)))
+    .map((c) => ({ id: c.id, nombre: c.name, numero: c.localId, expansion: expansionDe(c.id), imagen: c.image ? c.image + "/low.webp" : null }));
 }
 
 /**
@@ -178,19 +191,106 @@ export function armarCatalogo(def, cartas, precios = {}, fuera = []) {
   };
 }
 
-/** 3.40 · Busca cartas por nombre en TCGdex (contiene; castellano o inglés) para añadirlas a mano. Sin TCG Pocket. [{ id, nombre, numero, imagen }] */
-export async function buscarCartas(texto, { senal, max = 60 } = {}) {
-  const t = String(texto || "").trim();
-  if (t.length < 2) return [];
-  const [es, en, pocket] = await Promise.all([pedir("es/cards?name=" + q(t), { senal }), pedir("en/cards?name=" + q(t), { senal }),
-    pedir("en/series/tcgp", { senal }).catch(() => null)]);
-  const fueraSets = new Set((pocket?.sets || []).map((s) => s.id));
-  const vistos = new Map();
-  for (const c of [...(es || []), ...(en || [])]) {
-    if (vistos.has(c.id) || /\/tcgp\//.test(c.image || "") || fueraSets.has(c.id.slice(0, c.id.lastIndexOf("-")))) continue;
-    vistos.set(c.id, { id: c.id, nombre: c.name, numero: c.localId, expansion: c.id.slice(0, c.id.lastIndexOf("-")), imagen: c.image ? c.image + "/low.webp" : null });
+// 3.44 · Filtros del buscador de cartas. Cada opción → valores en inglés de TCGdex (varios = se juntan los resultados).
+export const FILTROS = {
+  rareza: [
+    ["comun", "Común", ["Common"]], ["infrecuente", "Infrecuente", ["Uncommon"]], ["rara", "Rara", ["Rare"]],
+    ["holo", "Rara Holo", ["Rare Holo", "Holo Rare"]], ["v", "Holo V · VMAX · V-ASTRO", ["Holo Rare V", "Holo Rare VMAX", "Holo Rare VSTAR"]],
+    ["doble", "Doble Rara", ["Double rare"]], ["ultra", "Ultra Rara", ["Ultra Rare"]], ["ir", "Rara Ilustración", ["Illustration rare"]],
+    ["sir", "Rara Ilustración Especial", ["Special illustration rare"]], ["hiper", "Hiper Rara", ["Hyper rare", "Mega Hyper Rare"]],
+    ["secreta", "Rara Secreta", ["Secret Rare"]], ["as", "AS TÁCTICO", ["ACE SPEC Rare"]], ["radiante", "Rara Radiante", ["Radiant Rare"]],
+    ["asombrosa", "Rara Asombrosa", ["Amazing Rare"]], ["legado", "LV.X · PRIME · LEYENDA", ["Rare Holo LV.X", "Rare PRIME", "LEGEND"]],
+    ["arte-entrenador", "Entrenador arte completo", ["Full Art Trainer"]], ["clasica", "Colección Clásica", ["Classic Collection"]],
+    ["promo", "Promo", ["Promo"]],
+  ],
+  tipo: [
+    ["Grass", "Planta"], ["Fire", "Fuego"], ["Water", "Agua"], ["Lightning", "Rayo"], ["Psychic", "Psíquico"], ["Fighting", "Lucha"],
+    ["Darkness", "Oscuridad"], ["Metal", "Metálico"], ["Fairy", "Hada"], ["Dragon", "Dragón"], ["Colorless", "Incoloro"],
+    ["@Trainer", "Entrenador"], ["@Energy", "Energía"],
+  ],
+  formato: [["estandar", "Estándar"], ["expandido", "Expandido"], ["legacy", "Legacy (fuera de formato)"]],
+  era: [
+    ["me", "Megaevolución"], ["sv", "Escarlata y Púrpura"], ["swsh", "Espada y Escudo"], ["sm", "Sol y Luna"], ["xy", "XY"], ["bw", "Negro y Blanco"],
+    ["col", "Call of Legends"], ["hgss", "HeartGold SoulSilver"], ["pl", "Platino"], ["dp", "Diamante y Perla"], ["pop", "POP"], ["ex", "EX"],
+    ["ecard", "e-Card"], ["lc", "Legendary Collection"], ["neo", "Neo"], ["gym", "Gym"], ["base", "Base"], ["tk", "Kits de entrenador"],
+    ["mc", "McDonald's"], ["misc", "Otras"],
+  ],
+};
+/** PURO · ¿hay algún filtro puesto? */
+export const hayFiltros = (f = {}) => Boolean(f.rareza || f.tipo || f.formato || f.expansion || f.era || f.shiny || f.primeraEdicion);
+/** PURO · expansión de una carta por su id («swsh4.5sv-SV086» → «swsh4.5sv»). */
+export const expansionDe = (id) => id.slice(0, id.lastIndexOf("-"));
+
+/** PURO · parámetros de la búsqueda en TCGdex (inglés) para los filtros: una lista de consultas (una por cada valor de rareza). */
+export function consultas(texto, f = {}) {
+  const base = [];
+  if (texto) base.push("name=" + q(texto));
+  if (f.tipo) base.push(f.tipo.startsWith("@") ? "category=" + q("eq:" + f.tipo.slice(1)) : "types=" + q("eq:" + f.tipo));
+  if (f.formato === "estandar") base.push("legal.standard=true");
+  else if (f.formato === "expandido") base.push("legal.expanded=true");
+  else if (f.formato === "legacy") base.push("legal.expanded=false");
+  if (f.primeraEdicion) base.push("variants.firstEdition=true");
+  if (f.expansion) base.push("id=" + q(f.expansion + "-"));
+  let rarezas = [null];
+  if (f.shiny) rarezas = ["shiny"];                                              // Shiny rare, Shiny Ultra Rare, Shiny rare V/VMAX
+  else if (f.rareza) rarezas = (FILTROS.rareza.find(([k]) => k === f.rareza)?.[2] || []).map((r) => "eq:" + r);
+  return rarezas.map((r) => [...base, ...(r ? ["rarity=" + q(r)] : [])].join("&"));
+}
+/** PURO · ¿cumple los filtros una carta con todos sus datos (de en/cards/<id>)? Para las que solo salen al buscar en castellano. */
+export function cumple(d, f = {}, setsEra = null) {
+  if (!d) return false;
+  const r = String(d.rarity || "");
+  if (f.shiny && !/shiny/i.test(r)) return false;
+  if (!f.shiny && f.rareza && !(FILTROS.rareza.find(([k]) => k === f.rareza)?.[2] || []).includes(r)) return false;
+  if (f.tipo && (f.tipo.startsWith("@") ? d.category !== f.tipo.slice(1) : !(d.types || []).includes(f.tipo))) return false;
+  if (f.formato === "estandar" && !d.legal?.standard) return false;
+  if (f.formato === "expandido" && !d.legal?.expanded) return false;
+  if (f.formato === "legacy" && d.legal?.expanded !== false) return false;
+  if (f.primeraEdicion && !d.variants?.firstEdition) return false;
+  if (f.expansion && d.set?.id !== f.expansion) return false;
+  if (setsEra && !setsEra.has(d.set?.id)) return false;
+  return true;
+}
+const erasCache = new Map();
+/** Expansiones de una era (serie de TCGdex), una vez por sesión. */
+async function setsDeEra(era, senal) {
+  if (!erasCache.has(era)) erasCache.set(era, pedir("en/series/" + q(era), { senal }).then((s) => new Set((s?.sets || []).map((x) => x.id)))
+    .catch((e) => { erasCache.delete(era); throw e; }));
+  return erasCache.get(era);
+}
+
+/** 3.40 · Busca cartas por nombre en TCGdex (contiene; castellano o inglés) para añadirlas a mano. Sin TCG Pocket. [{ id, nombre, numero, imagen }]
+ *  3.44 · con `filtros` (rareza, tipo, formato, expansión, era, shiny, 1.ª edición); con filtros el nombre puede quedar vacío.
+ *  El array devuelto lleva `total` (cuántas había antes de cortar en `max`). */
+export async function buscarCartas(texto, { senal, max = 60, filtros = {} } = {}) {
+  const t = String(texto || "").trim(), conFiltros = hayFiltros(filtros);
+  if (t.length < 2 && !(conFiltros && !t)) return Object.assign([], { total: 0 });
+  const pocket = pedir("en/series/tcgp", { senal }).catch(() => null);
+  const setsEra = filtros.era ? await setsDeEra(filtros.era, senal) : null;
+  let listas;
+  if (!conFiltros) listas = await Promise.all([pedir("es/cards?name=" + q(t), { senal }), pedir("en/cards?name=" + q(t), { senal })]);
+  else {
+    const filtradas = (await Promise.all(consultas(t, filtros).map((c) => pedir("en/cards?" + c, { senal })))).flat().filter(Boolean);
+    listas = [filtradas];
+    if (t) {                                // nombres solo en castellano («Meowth de Galar»): se miran sus datos, como mucho 24
+      const [es, en] = await Promise.all([pedir("es/cards?name=" + q(t), { senal }), pedir("en/cards?name=" + q(t), { senal })]);
+      const enIngles = new Set((en || []).map((c) => c.id));
+      const soloEs = (es || []).filter((c) => !enIngles.has(c.id)).slice(0, 24);
+      const datos = await Promise.all(soloEs.map((c) => pedir("en/cards/" + q(c.id), { senal }).catch(() => null)));
+      listas.push(soloEs.filter((c, i) => cumple(datos[i], filtros, setsEra)));
+    }
   }
-  return [...vistos.values()].slice(0, max);
+  const fueraSets = new Set(((await pocket)?.sets || []).map((s) => s.id));
+  const vistos = new Map();
+  for (const c of listas.flat().filter(Boolean)) {
+    const exp = expansionDe(c.id);
+    if (vistos.has(c.id) || /\/tcgp\//.test(c.image || "") || fueraSets.has(exp)) continue;
+    if (filtros.expansion && exp !== filtros.expansion) continue;
+    if (setsEra && !setsEra.has(exp)) continue;
+    vistos.set(c.id, { id: c.id, nombre: c.name, numero: c.localId, expansion: exp, imagen: c.image ? c.image + "/low.webp" : null });
+  }
+  const todas = [...vistos.values()];
+  return Object.assign(todas.slice(0, max), { total: todas.length });
 }
 
 /** 3.39 · Imagen de la carta en limitlesstcg: { url, idioma } o null. Nunca lanza (sin imagen se ve el marcador, como siempre).

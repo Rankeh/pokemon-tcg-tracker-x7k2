@@ -75,3 +75,43 @@ test('3.41/3.42 · Pokémon: da igual mayúsculas o tildes, y con todas sus vari
     assert.ok(pedidas.some((p) => p.endsWith('cards?name=gengar')) && !pedidas.some((p) => p.includes('eq:')), 'búsqueda «contiene» (sin «eq:», que sí distingue mayúsculas)');
   } finally { globalThis.fetch = original; }
 });
+
+// 3.44 · filtros del buscador y novedades de un álbum
+import { consultas, cumple, hayFiltros, expansionDe, FILTROS } from '../../js/generador-album.js';
+import { separarNovedades } from '../../js/albumes-propios.js';
+
+test('filtros: consultas a TCGdex (una por cada rareza de la opción) y ninguna sin filtros', () => {
+  assert.equal(hayFiltros({}), false);
+  assert.equal(hayFiltros({ rareza: '', shiny: false }), false);
+  assert.ok(hayFiltros({ shiny: true }) && hayFiltros({ era: 'swsh' }));
+  assert.deepEqual(consultas('meowth', {}), ['name=meowth']);
+  assert.deepEqual(consultas('meowth', { rareza: 'holo' }), ['name=meowth&rarity=eq%3ARare%20Holo', 'name=meowth&rarity=eq%3AHolo%20Rare']);
+  assert.deepEqual(consultas('', { shiny: true, rareza: 'comun' }), ['rarity=shiny'], 'shiny manda sobre la rareza');
+  assert.deepEqual(consultas('', { tipo: '@Trainer', formato: 'estandar' }), ['category=eq%3ATrainer&legal.standard=true']);
+  assert.deepEqual(consultas('pika', { tipo: 'Fire', formato: 'legacy', primeraEdicion: true, expansion: 'base1' }),
+    ['name=pika&types=eq%3AFire&legal.expanded=false&variants.firstEdition=true&id=base1-']);
+  assert.equal(expansionDe('swsh4.5sv-SV086'), 'swsh4.5sv');
+  assert.ok(FILTROS.rareza.every(([k, t, v]) => k && t && v.length));
+});
+
+test('filtros: cumple() con los datos completos de una carta', () => {
+  const d = { rarity: 'Shiny rare', category: 'Pokemon', types: ['Metal'], legal: { standard: false, expanded: true }, variants: { firstEdition: false }, set: { id: 'swsh4.5sv' } };
+  assert.ok(cumple(d, { shiny: true, tipo: 'Metal', formato: 'expandido' }));
+  assert.ok(!cumple(d, { formato: 'legacy' }));
+  assert.ok(!cumple(d, { tipo: '@Trainer' }));
+  assert.ok(!cumple(d, { rareza: 'comun' }));
+  assert.ok(cumple(d, { expansion: 'swsh4.5sv' }, new Set(['swsh4.5sv'])));
+  assert.ok(!cumple(d, {}, new Set(['sv01'])), 'otra era');
+  assert.ok(!cumple(null, {}));
+});
+
+test('novedades: las nuevas (nunca vistas) y las que se quitaron, sin las del álbum', () => {
+  const c = (id) => ({ id });
+  const cand = [c('a'), c('b'), c('c'), c('d')];
+  const r = separarNovedades(cand, ['a'], ['a', 'b', 'c']);
+  assert.deepEqual(r.nuevas.map((x) => x.id), ['d']);
+  assert.deepEqual(r.otras.map((x) => x.id), ['b', 'c']);
+  const sinVistas = separarNovedades(cand, ['a']);
+  assert.deepEqual(sinVistas.nuevas, [], 'sin saber cuáles se vieron, ninguna se marca como nueva');
+  assert.equal(sinVistas.otras.length, 3);
+});

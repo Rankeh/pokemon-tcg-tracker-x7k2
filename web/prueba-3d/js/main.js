@@ -28,7 +28,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.43';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.44';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -649,6 +649,16 @@ async function arrancar() {
   let otrosAlbumes = null;                                        // catálogos de los demás álbumes (solo para avisar de cartas compartidas)
   const cargarOtros = async () => otrosAlbumes || (otrosAlbumes = await Promise.all((await listarTodos(almacen, { fijos: verFijos })).filter((a) => a.id !== albumActual.id)
     .map(async (a) => ({ nombre: a.nombre, ids: (await cargarAlbumColeccion(a.id, almacen)).catalogo.cartas.map((c) => c.id) }))));   // 3.37: también los creados en la app
+  // 3.44 · álbumes creados en la app: «Editar cartas» (añadir las que salgan más adelante, quitar…) abre el selector en la biblioteca
+  if (propio && !soloLectura) {
+    const b = $('m-editar'); b.hidden = false;
+    b.onclick = () => {
+      const u = new URL($('b-biblioteca').href);
+      u.searchParams.set('editar', albumActual.id);
+      if (params.get('bd')) u.searchParams.set('bd', params.get('bd'));                     // pruebas: la misma base de datos
+      location.href = u.href;
+    };
+  }
   menuAlbum = montarMenu({ boton: $('b-opciones'), menu: $('menu-album'), todas: $('m-todas'), quitar: $('m-quitar'), deshacer: $('m-deshacer'),
     dialogo: $('d-todas'), titulo: $('d-todas-t'), texto: $('d-todas-txt'), aceptar: $('d-aceptar'), cancelar: $('d-cancelar') }, {
     nombre: albumActual.nombre, total: mapa.cartas.length, soloLectura, cartas: mapa.cartas, cantidadDe: (id) => modelo.cantidad(id),
@@ -682,7 +692,8 @@ async function arrancar() {
   // 3.37 · álbum creado en la app con más de 7 días: se vuelve a pedir a TCGdex en segundo plano (cartas nuevas, precios); se verá al reabrirlo
   if (propio && !soloLectura && navigator.onLine !== false && Date.now() - Date.parse(catalogo.generado || 0) > 7 * 864e5) {
     actualizarAlbumPropio(almacen, albumActual.id).then((r) => {
-      if (r && r.cartas !== mapa.cartas.length) { avisar(`El álbum tiene cartas nuevas (${r.cartas}). Vuelve a abrirlo para verlas.`); setTimeout(() => avisar(''), 6000); }
+      if (r?.nuevas) { avisar(`Han salido ${r.nuevas === 1 ? 'una carta nueva' : r.nuevas + ' cartas nuevas'} para este álbum: añádelas desde ⋯ › Añadir o quitar cartas.`); setTimeout(() => avisar(''), 8000); }
+      else if (r && r.cartas !== mapa.cartas.length) { avisar(`El álbum tiene cartas nuevas (${r.cartas}). Vuelve a abrirlo para verlas.`); setTimeout(() => avisar(''), 6000); }
     }).catch((e) => console.warn('No se pudo actualizar el álbum desde TCGdex:', e));
   }
   addEventListener('visibilitychange', async () => {            // volver de la app original (otra pestaña) → releer lo guardado
