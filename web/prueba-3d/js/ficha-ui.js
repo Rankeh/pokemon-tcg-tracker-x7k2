@@ -5,9 +5,16 @@ import { lineaPrecio, enlaceCardmarket, precioDe, eur } from './precios.js';
 import { sinClasificar, tipoBrillo } from '../../js/variantes.js';
 export const SALIDA_MS = 220;
 export class FichaUI {
-  constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', precios = null, remotas = false, alCerrar, alAnadir, alRetirar, alVariante = null, alClasificar = null, alVisible = null }) {
+  constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', precios = null, remotas = false, propias = null, alMiImagen = null, alQuitarImagen = null, alCerrar, alAnadir, alRetirar, alVariante = null, alClasificar = null, alVisible = null }) {
     this.el = el; this.manifiesto = manifiesto; this.rutaBase = rutaBase; this.precios = precios;
     this.remotas = remotas;                                         // 3.37: imágenes de TCGdex (solo álbumes creados en la app)
+    // 3.43 · tu propia imagen (Map id → data URL, compartido con el 3D): va antes que cualquier otra
+    this.propias = propias;
+    if (el.miImagen && alMiImagen) {
+      el.miImagen.onclick = () => el.archivo?.click();
+      if (el.archivo) el.archivo.onchange = () => { const f = el.archivo.files?.[0]; el.archivo.value = ''; if (f) alMiImagen(f); };
+      if (el.quitarImagen && alQuitarImagen) el.quitarImagen.onclick = () => alQuitarImagen();
+    } else if (el.miImagen) el.miImagen.hidden = true;
     this.alVariante = alVariante; this.alClasificar = alClasificar; this.alVisible = alVisible;          // 3.16: variantes
     el.cerrar.onclick = () => alCerrar();
     el.anadir.onclick = () => alAnadir();
@@ -56,7 +63,8 @@ export class FichaUI {
       m.append(n, x, e2); caja.append(m); caja.dataset.estado = 'marcador';
     };
     // sin copia oficial en el manifiesto: arte real descargado (arte/) → carta proxy propia → marcador
-    const cadena = e ? [this.rutaBase + e.grande, this.rutaBase + e.mini].filter(Boolean)
+    const mia = this.propias?.get(d.id);
+    const cadena = mia ? [mia] : e ? [this.rutaBase + e.grande, this.rutaBase + e.mini].filter(Boolean)
       : [...new Set([...rutasArte(d.id), rutaProxy(d.id), ...(this.remotas ? [...urlsRemotas(d, 'high'), ...urlsRemotas(d, 'low')] : [])].filter(Boolean))];
     if (!cadena.length) return marcador();
     const img = new Image(); img.alt = `${d.nombre}, ${d.nombreExpansion || d.expansion} ${d.numero}`; img.decoding = 'async';
@@ -84,7 +92,7 @@ export class FichaUI {
     this.datos = d;
     this.el.nombre.textContent = d.nombre;
     this.el.expansion.textContent = d.nombreExpansion || d.expansion;
-    this.el.numero.textContent = `Nº ${d.numero}${d.rareza ? ' · ' + d.rareza : ''} · pág. ${d.pagina}, bolsillo ${d.posicion}`;
+    this.el.numero.textContent = `Nº ${d.numero}${d.rareza && d.rareza !== 'None' ? ' · ' + d.rareza : ''} · pág. ${d.pagina}, bolsillo ${d.posicion}`;
     if (this.el.precio) this.el.precio.textContent = lineaPrecio(this.precios, d.id);     // 3.7.30: '' si no hay precios descargados (el archivo es opcional)
     if (this.el.cardmarket) {                                                             // 3.7.31: el «mínimo en español» no existe como dato; el enlace abre las ofertas filtradas a español
       const u = enlaceCardmarket(this.precios, d.id);
@@ -96,7 +104,14 @@ export class FichaUI {
     this.el.retirar.disabled = d.cantidad <= 0;
     this.el.anadir.disabled = d.cantidad >= 999;
     this._variantes(d);
+    if (this.el.quitarImagen) this.el.quitarImagen.hidden = !this.propias?.has(d.id);                  // 3.43
+    if (this.el.miImagen && !this.el.miImagen.hidden) this.el.miImagen.textContent = this.propias?.has(d.id) ? 'Cambiar mi imagen' : 'Usar mi imagen';
   }
+
+  /** 3.43 · vuelve a pintar la imagen de la carta abierta (tras poner o quitar tu imagen). */
+  recargarImagen() { if (this.datos) { this._imagen(this.datos); this.actualizar(this.datos); } }
+  /** 3.43 · botones de imagen ocupados mientras se prepara y guarda. */
+  ocupadoImagen(si) { for (const b of [this.el.miImagen, this.el.quitarImagen]) if (b) b.disabled = si; }
 
   /** 3.16 · Variantes: una fila por variante (−/+ y precio), «se ve en el álbum» y copias sin clasificar. Sin variantes, la ficha de siempre. */
   _variantes(d) {

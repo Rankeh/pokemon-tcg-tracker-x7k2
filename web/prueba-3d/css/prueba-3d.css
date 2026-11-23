@@ -281,3 +281,10 @@ body[data-tema="editorial"] h1 small { margin-left: 4px; }
 @media (prefers-reduced-motion: reduce) {
 .zoom-carta, .zoom-figura { animation: none; }
 }
+/* 3.43 · «Usar mi imagen» / «Quitar mi imagen»: discretos, como enlaces bajo el precio */
+.ficha-mia { margin: 4px 0 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.ficha-mia .enlace { min-height: 28px; padding: 0; border: 0; background: none; color: var(--suave); font: inherit; font-size: .82rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ficha-mia .enlace:hover { color: inherit; }
+.ficha-mia .enlace:disabled { opacity: .5; cursor: wait; }
+body[data-tema="editorial"] .ficha-mia .enlace { color: var(--e-suave); }
+body[data-tema="editorial"] .ficha-mia .enlace:hover { color: var(--e-texto); }

@@ -123,6 +123,17 @@ export class VistaBolsillos {
     b.brillo = m; b.tarjeta.add(m);
   }
 
+  /** 3.43 · La imagen de una carta cambió (pusiste o quitaste la tuya): se vuelve a cargar su textura, sin animar. */
+  actualizarImagen(id) {
+    const b = this.porId.get(id);
+    if (!b) return;
+    const tenia = Boolean(b.tarjeta);
+    if (tenia) this._quitar(b, 'tarjeta');
+    this.cache.olvidar('mini:' + id);
+    if (tenia && b.activo) this._ponerTarjeta(b, 0);
+    this.album.onCambio?.();
+  }
+
   /** 3.16 · La variante visible de una carta cambió: rehace solo su brillo. */
   actualizarAcabado(id) {
     const b = this.porId.get(id);

@@ -31,6 +31,7 @@
   "web/js/copias.js",
   "web/js/cuenta.js",
   "web/js/generador-album.js",
+  "web/js/imagen-propia.js",
   "web/js/imagen.js",
   "web/js/prueba-almacenamiento.js",
   "web/js/pwa.js",

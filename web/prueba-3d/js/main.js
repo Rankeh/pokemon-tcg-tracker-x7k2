@@ -15,6 +15,7 @@ import { Aspecto, elegirCalidad, elegirTema, elegirAcabado, TEMAS } from './aspe
 import { albumPorId, conCifras } from '../../estanteria/js/albumes.js';
 import { montarMenu, copiasParaCompletar, copiasSinAlbum, compartidasCon } from './completar.js';
 import { adminGuardado, comprobarAdmin } from '../../js/admin.js';
+import { prepararImagen, imagenPegada } from '../../js/imagen-propia.js';
 import { esPropio, listarTodos, cargarAlbum as cargarAlbumColeccion, actualizarAlbumPropio } from '../../js/albumes-propios.js';
 import { fijarTemaMarcadores } from './marcadores.js';
 import { Diagnostico } from './diagnostico.js';
@@ -27,7 +28,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.42';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.43';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -597,18 +598,41 @@ async function arrancar() {
   cursor = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro, opacidad: 0.5 });   // 3.27: cursor del teclado, más tenue que la selección
 
   const manifiesto = await cargarManifiesto();
+  // 3.43 · tus imágenes propias (Map id → data URL): el 3D y la ficha las usan antes que cualquier otra
+  const propias = almacen ? await almacen.imagenesPropias().catch(() => new Map()) : new Map();
   precios = propio ? (carga.precios?.cartas ? carga.precios : null) : await cargarPrecios('../../' + albumActual.precios);   // opcional: null si no hay precios
   cache = new CacheTexturas({ presupuestoBytes: (+params.get('mem') || 32) * 1048576, concurrencia: 4 });
   vista = new VistaBolsillos({ album, adaptador, cache, materialCarta: (c, r) => aspecto.materialCarta(c, r), reducirMovimiento: () => reducirMovimiento,
-    productores: crearProductores({ manifiesto, remotas: propio, anisotropia: Math.min(4, renderer.capabilities.getMaxAnisotropy()) }) });   // propio: imágenes de TCGdex
+    productores: crearProductores({ manifiesto, remotas: propio, propias, anisotropia: Math.min(4, renderer.capabilities.getMaxAnisotropy()) }) });   // propio: imágenes de TCGdex
   vista.animandoTurno = () => album.estado.animando;
 
-  ficha = new FichaUI({ raiz: $('ficha'), fondo: $('f-fondo'), imagen: $('f-imagen'), variantes: $('f-variantes'), nombre: $('f-nombre'), expansion: $('f-exp'), numero: $('f-num'), precio: $('f-precio'), cardmarket: $('f-cardmarket'), cantidad: $('f-cant'),
+  ficha = new FichaUI({ raiz: $('ficha'), fondo: $('f-fondo'), imagen: $('f-imagen'), miImagen: $('f-mi-imagen'), quitarImagen: $('f-quitar-imagen'), archivo: $('f-archivo'), variantes: $('f-variantes'), nombre: $('f-nombre'), expansion: $('f-exp'), numero: $('f-num'), precio: $('f-precio'), cardmarket: $('f-cardmarket'), cantidad: $('f-cant'),
     estadoTxt: $('f-estado-txt'), error: $('f-error'), cerrar: $('f-cerrar'), anadir: $('f-mas'), retirar: $('f-menos') },
-  { manifiesto, precios, remotas: propio, alCerrar: cerrarFicha, alAnadir: () => { cambioAMano(); ctrl.anadir(); }, alRetirar: () => { cambioAMano(); ctrl.retirar(); },
+  { manifiesto, precios, remotas: propio, propias, alMiImagen: soloLectura ? null : (f) => ponerMiImagen(f), alQuitarImagen: () => quitarMiImagen(), alCerrar: cerrarFicha, alAnadir: () => { cambioAMano(); ctrl.anadir(); }, alRetirar: () => { cambioAMano(); ctrl.retirar(); },
     // 3.16 · variantes (normal / reverse / holo): solo en álbumes cuyo catálogo las trae (Asako Ito)
     alVariante: (v, d) => { cambioAMano(); ctrl.cambiarVariante(v, d); }, alClasificar: (v) => { cambioAMano(); ctrl.clasificar(v); }, alVisible: (v) => { cambioAMano(); ctrl.fijarVisible(v); } });
   if (soloLectura) { $('f-mas').disabled = $('f-menos').disabled = true; }
+  // 3.43 · «Usar mi imagen» / «Quitar mi imagen» (y pegar una imagen con Ctrl+V / Cmd+V con la ficha abierta)
+  const imagenCambiada = (id) => { vista.actualizarImagen(id); if (ctrl.fichaAbierta && ctrl.seleccion.id === id) ficha.recargarImagen(); pedirFrame(); };
+  async function ponerMiImagen(archivo) {
+    if (!ctrl.fichaAbierta || soloLectura) return;
+    const id = ctrl.seleccion.id; ficha.ocupadoImagen(true);
+    try {
+      const datos = await prepararImagen(archivo);
+      await almacen.guardarImagenPropia(id, datos);
+      propias.set(id, datos); imagenCambiada(id);
+      avisar('Imagen guardada' + (navigator.onLine === false ? ' (se subirá a tu cuenta al volver la conexión).' : '.')); setTimeout(() => avisar(''), 3000);
+    } catch (e) { avisar('No se pudo usar esa imagen: ' + (e.message || e)); setTimeout(() => avisar(''), 5000); }
+    finally { ficha.ocupadoImagen(false); }
+  }
+  async function quitarMiImagen() {
+    if (!ctrl.fichaAbierta || soloLectura) return;
+    const id = ctrl.seleccion.id; ficha.ocupadoImagen(true);
+    try { await almacen.quitarImagenPropia(id); propias.delete(id); imagenCambiada(id); }
+    catch (e) { avisar('No se pudo quitar: ' + (e.message || e)); setTimeout(() => avisar(''), 5000); }
+    finally { ficha.ocupadoImagen(false); }
+  }
+  document.addEventListener('paste', (e) => { const f = ctrl?.fichaAbierta && !soloLectura && imagenPegada(e); if (f) { e.preventDefault(); ponerMiImagen(f); } });
   const fichaConProgreso = Object.create(ficha); // tras cada cambio confirmado se refresca el contador de progreso
   fichaConProgreso.actualizar = (d) => { ficha.actualizar(d); pintarProgreso(); };
   ctrl = new Controlador({ adaptador, estado: album.estado, vista, ficha: fichaConProgreso });
@@ -640,6 +664,11 @@ async function arrancar() {
     let primeraAvisada = false;
     iniciarSincronizacion(almacen, {
       alCambiar: async (ids, r) => {                               // han llegado cambios de otro dispositivo
+        if (r.imagenes?.length) {                                    // 3.43: imágenes propias puestas o quitadas en otro dispositivo
+          const nuevas = await almacen.imagenesPropias();
+          propias.clear(); for (const [k, v] of nuevas) propias.set(k, v);
+          for (const id of r.imagenes) imagenCambiada(id);
+        }
         try {
           await releer(); cambioAMano();
           if (ctrl.fichaAbierta) ficha.actualizar(adaptador.fichaDe(ctrl.seleccion.nombre));

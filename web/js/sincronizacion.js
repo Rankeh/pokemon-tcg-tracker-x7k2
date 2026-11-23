@@ -23,10 +23,10 @@ const despues = (a, b) => instante(a) > instante(b) || (instante(a) === instante
  */
 export async function sincronizar(almacen, remoto) {
   const usuario = await remoto.usuario();
-  if (!usuario) return { estado: "sin-sesion", cambiadas: [], subidas: 0, primera: false, albumes: [] };
+  if (!usuario) return { estado: "sin-sesion", cambiadas: [], subidas: 0, primera: false, albumes: [], imagenes: [] };
   let est = await almacen.estadoSincronizacion();
   const primera = !est || est.usuario !== usuario;
-  if (primera) { await almacen.prepararPrimeraSincronizacion(usuario); est = { usuario, ultimaLectura: null, ultimaLecturaAlbumes: null }; }
+  if (primera) { await almacen.prepararPrimeraSincronizacion(usuario); est = { usuario, ultimaLectura: null, ultimaLecturaAlbumes: null, ultimaLecturaImagenes: null }; }
 
   // 1) lo nuevo de la cuenta (en orden de llegada al servidor)
   // se repasan también los últimos minutos: la hora de llegada es la del inicio de cada transacción del servidor, y una subida de otro
@@ -68,8 +68,26 @@ export async function sincronizar(almacen, remoto) {
     }
     albumes = [...cambiados];
   }
-  await almacen.guardarEstadoSincronizacion({ usuario, ultimaLectura, ultimaLecturaAlbumes, ultima: new Date().toISOString() });
-  return { estado: "ok", cambiadas: [...cambiadas], subidas: filas.length, primera, albumes };
+  // 4) 3.43 · imágenes propias de cartas: misma regla
+  let imagenes = [], ultimaLecturaImagenes = est.ultimaLecturaImagenes ?? null;
+  if (remoto.leerImagenes) {
+    const desdeI = ultimaLecturaImagenes && !isNaN(instante(ultimaLecturaImagenes)) ? new Date(instante(ultimaLecturaImagenes) - SOLAPE_MS).toISOString() : null;
+    const llegan = await remoto.leerImagenes(desdeI);
+    const cambiadasI = new Set(await almacen.aplicarImagenesRemotas(llegan));
+    for (const f of llegan) if (f.servidor && (!ultimaLecturaImagenes || despues(f.servidor, ultimaLecturaImagenes))) ultimaLecturaImagenes = f.servidor;
+    const subir = await almacen.imagenesParaSubir();
+    for (let i = 0; i < subir.length; i += 20) {                      // de 20 en 20: cada una ocupa unos 60 KB
+      const lote = subir.slice(i, i + 20);
+      const guardadas = await remoto.subirImagenes(lote.map((f) => ({ usuario, ...f })));
+      const enviada = new Map(lote.map((f) => [f.carta, f.actualizado]));
+      const masNuevas = (guardadas || []).filter((g) => enviada.has(g.carta) && instante(g.actualizado) > instante(enviada.get(g.carta)));
+      await almacen.confirmarImagenesSubidas(lote);
+      for (const id of await almacen.aplicarImagenesRemotas(masNuevas)) cambiadasI.add(id);
+    }
+    imagenes = [...cambiadasI];
+  }
+  await almacen.guardarEstadoSincronizacion({ usuario, ultimaLectura, ultimaLecturaAlbumes, ultimaLecturaImagenes, ultima: new Date().toISOString() });
+  return { estado: "ok", cambiadas: [...cambiadas], subidas: filas.length, primera, albumes, imagenes };
 }
 
 // ------------------------------------------------------------------ conector real con Supabase
@@ -99,6 +117,23 @@ export function conectarSupabase(supabase) {
     async subir(filas) {
       const { data, error } = await supabase.from("copias").upsert(filas, { onConflict: "usuario,carta" }).select(columnas);
       if (error) throw new Error("No se pudo guardar en la cuenta: " + error.message);
+      return data;
+    },
+    // 3.43 · imágenes propias de cartas (tabla public.imagenes_propias)
+    async leerImagenes(desde) {
+      const res = [];
+      for (let desdeFila = 0; ; desdeFila += 100) {
+        let q = supabase.from("imagenes_propias").select("carta,imagen,borrado,actualizado,servidor").order("servidor", { ascending: true }).order("carta", { ascending: true });
+        if (desde) q = q.gt("servidor", desde);
+        const { data, error } = await q.range(desdeFila, desdeFila + 99);
+        if (error) throw new Error("No se pudieron leer tus imágenes de la cuenta: " + error.message);
+        res.push(...data);
+        if (data.length < 100) return res;
+      }
+    },
+    async subirImagenes(filas) {
+      const { data, error } = await supabase.from("imagenes_propias").upsert(filas, { onConflict: "usuario,carta" }).select("carta,borrado,actualizado,servidor");
+      if (error) throw new Error("No se pudieron guardar tus imágenes en la cuenta: " + error.message);
       return data;
     },
     // 3.37 · álbumes creados en la app (tabla public.albumes)
@@ -133,7 +168,7 @@ export function iniciarSincronizacion(almacen, { alCambiar = () => {}, alEstado 
         alEstado({ estado: "sincronizando" });
         const r = await sincronizar(almacen, await obtener());
         alEstado({ ...r, cuando: new Date() });
-        if (r.cambiadas.length || r.albumes?.length) alCambiar(r.cambiadas, r);
+        if (r.cambiadas.length || r.albumes?.length || r.imagenes?.length) alCambiar(r.cambiadas, r);
         return r;
       } catch (e) {
         alEstado({ estado: "error", error: e });

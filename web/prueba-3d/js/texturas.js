@@ -74,6 +74,15 @@ export class CacheTexturas {
     return { texturas: activas + inactivas, activas, inactivas, bytes: this.bytes, enCola: this.cola.length, cargando: this.activas, ...this.contadores };
   }
 
+  /** 3.43 · olvida una textura que nadie usa (cambió su imagen): la próxima vez se vuelve a producir. */
+  olvidar(clave) {
+    const e = this.entradas.get(clave);
+    if (!e || e.refs > 0) return false;
+    if (e.textura) e.textura.dispose();
+    this.entradas.delete(clave); this.cola = this.cola.filter((t) => t.clave !== clave);
+    return true;
+  }
+
   vaciar() {
     for (const e of this.entradas.values()) if (e.textura) e.textura.dispose();
     this.entradas.clear(); this.cola = [];

@@ -132,6 +132,32 @@ ok(JSON.stringify(alb.llega.movil) === '["Mi álbum"]' && alb.llega.r2.includes(
 ok(alb.quitado.pc === 0 && alb.quitado.servidor === true && alb.quitado.r3.includes('mio-prueba-ab12'), 'quitado en el móvil: desaparece del ordenador (en la cuenta queda como borrado) ' + JSON.stringify(alb.quitado));
 ok(alb.viejoNoResucita, 'una versión vieja del álbum no lo resucita');
 ok(Array.isArray(alb.raro) && alb.raro.length === 0, 'álbumes con id raro de la cuenta se ignoran');
+const img = await pag.evaluate(async (sufijo) => {
+  const { Almacen } = await import('/web/js/almacen.js');
+  const { sincronizar } = await import('/web/js/sincronizacion.js');
+  const espera = () => new Promise((ok) => setTimeout(ok, 8));
+  const srv = { copias: new Map(), imagenes: new Map(), n: 0 };
+  const lww = (mapa, clave) => async (filas) => filas.map((f) => { const v = mapa.get(f[clave]); if (v && Date.parse(f.actualizado) < Date.parse(v.actualizado)) return structuredClone(v);
+    const n = { ...structuredClone(f), servidor: new Date(Date.UTC(2030, 0, 1) + ++srv.n).toISOString() }; mapa.set(f[clave], n); return structuredClone(n); });
+  const leer = (mapa) => async (desde) => [...mapa.values()].filter((f) => !desde || f.servidor > desde).sort((a, b) => a.servidor.localeCompare(b.servidor)).map((f) => structuredClone(f));
+  const yo = { usuario: async () => 'u1', leer: leer(srv.copias), subir: lww(srv.copias, 'carta'), leerImagenes: leer(srv.imagenes), subirImagenes: lww(srv.imagenes, 'carta') };
+  const pc = await Almacen.abrir('img-pc-' + sufijo), movil = await Almacen.abrir('img-movil-' + sufijo), res = {};
+  const foto = 'data:image/jpeg;base64,' + btoa('foto de prueba');
+  await pc.guardarImagenPropia('tk-hs-r-4', foto);
+  await sincronizar(pc, yo); await espera(); const r2 = await sincronizar(movil, yo);
+  res.llega = { r2: r2.imagenes, movil: [...(await movil.imagenesPropias()).entries()] };
+  await espera(); await movil.quitarImagenPropia('tk-hs-r-4'); await sincronizar(movil, yo); const r3 = await sincronizar(pc, yo);
+  res.quitada = { r3: r3.imagenes, pc: (await pc.imagenesPropias()).size, servidor: srv.imagenes.get('tk-hs-r-4')?.borrado };
+  res.rara = await pc.aplicarImagenesRemotas([{ carta: 'x', imagen: 'javascript:alert(1)', actualizado: '2031-01-01T00:00:00Z' }]);
+  let tipo = null; try { await pc.guardarImagenPropia('x', 'https://otro.sitio/a.png'); } catch (e) { tipo = e.message; }
+  res.noData = tipo;
+  pc.cerrar(); movil.cerrar(); for (const n of ['img-pc-' + sufijo, 'img-movil-' + sufijo]) indexedDB.deleteDatabase(n);
+  return res;
+}, sufijo);
+ok(JSON.stringify(img.llega.movil) === JSON.stringify([['tk-hs-r-4', 'data:image/jpeg;base64,' + Buffer.from('foto de prueba').toString('base64')]]) && img.llega.r2.includes('tk-hs-r-4'), 'imagen propia puesta en el ordenador: llega al móvil');
+ok(img.quitada.pc === 0 && img.quitada.servidor === true && img.quitada.r3.includes('tk-hs-r-4'), 'quitada en el móvil: desaparece del ordenador ' + JSON.stringify(img.quitada));
+ok(Array.isArray(img.rara) && img.rara.length === 0, 'de la cuenta solo se aceptan imágenes (data:image/…), nada más');
+ok(img.noData === 'imagen no válida', 'el dispositivo tampoco guarda direcciones externas como «imagen propia»');
 const imp = await pag.evaluate(async (sufijo) => {
   const { Almacen } = await import('/web/js/almacen.js');
   const a = await Almacen.abrir('sync-imp-' + sufijo), res = {};

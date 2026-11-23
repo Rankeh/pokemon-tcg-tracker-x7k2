@@ -9,7 +9,9 @@ const ALMACEN_META = "meta";     // { clave: "antesDeImportar", ... } · 3.31: "
 const PENDIENTES = "sync:pendientes";   // { clave, ids: { "<id carta>": "<ISO del cambio>" } }: cambios locales aún sin subir a la cuenta
 const ESTADO_SYNC = "sync:estado";      // { clave, usuario, ultimaLectura, ultimaLecturaAlbumes }: con qué cuenta se sincroniza y hasta dónde se ha leído
 const ALBUM = "album:";                 // 3.37 · álbumes creados en la app: { clave: "album:<id>", id, registro, datos: { catalogo, precios }, actualizado, borrado? }
-const ALBUMES_PENDIENTES = "sync:albumes-pendientes";   // { clave, ids: { "<id álbum>": "<ISO>" } }: álbumes creados o quitados aún sin subir
+const ALBUMES_PENDIENTES = "sync:albumes-pendientes";
+const IMAGEN = "imagen:";               // 3.43 · imágenes propias de cartas: { clave: "imagen:<id carta>", id, imagen: data URL, actualizado, borrado? }
+const IMAGENES_PENDIENTES = "sync:imagenes-pendientes";   // { clave, ids: { "<id álbum>": "<ISO>" } }: álbumes creados o quitados aún sin subir
 
 /** Convierte una petición de IndexedDB (basada en eventos) en una Promise. */
 function promesa(peticion) {
@@ -236,7 +238,7 @@ export class Almacen {
   async _ponerMeta(fila) { const tx = this.db.transaction(ALMACEN_META, "readwrite"); tx.objectStore(ALMACEN_META).put(fila); await terminada(tx); }
 
   /** { usuario, ultimaLectura } de la última sincronización, o null si este navegador nunca se ha sincronizado. */
-  async estadoSincronizacion() { const f = await this._meta(ESTADO_SYNC); return f ? { usuario: f.usuario, ultimaLectura: f.ultimaLectura ?? null, ultimaLecturaAlbumes: f.ultimaLecturaAlbumes ?? null, ultima: f.ultima ?? null } : null; }
+  async estadoSincronizacion() { const f = await this._meta(ESTADO_SYNC); return f ? { usuario: f.usuario, ultimaLectura: f.ultimaLectura ?? null, ultimaLecturaAlbumes: f.ultimaLecturaAlbumes ?? null, ultimaLecturaImagenes: f.ultimaLecturaImagenes ?? null, ultima: f.ultima ?? null } : null; }
   async guardarEstadoSincronizacion(e) { await this._ponerMeta({ clave: ESTADO_SYNC, ...e }); }
 
   /** Cambios locales sin subir: Map id -> ISO. */
@@ -302,6 +304,10 @@ export class Almacen {
     const pa = (await promesa(meta.get(ALBUMES_PENDIENTES))) || { clave: ALBUMES_PENDIENTES, ids: {} };
     for (const a of albumes) if (!pa.ids[a.id]) pa.ids[a.id] = a.actualizado || ahora;
     meta.put(pa);
+    const imagenes = await promesa(meta.getAll(IDBKeyRange.bound(IMAGEN, IMAGEN + "\uffff")));   // 3.43: y tus imágenes propias
+    const pi = (await promesa(meta.get(IMAGENES_PENDIENTES))) || { clave: IMAGENES_PENDIENTES, ids: {} };
+    for (const i of imagenes) if (!pi.ids[i.id]) pi.ids[i.id] = i.actualizado || ahora;
+    meta.put(pi);
     meta.put({ clave: ESTADO_SYNC, usuario, ultimaLectura: null, ultima: null });
     await terminada(tx);
   }
@@ -381,6 +387,64 @@ export class Almacen {
     meta.put(pend);
     await terminada(tx);
     return cambiados;
+  }
+
+  // ------------------------------------------------------------------ 3.43 · imágenes propias de cartas («Usar mi imagen»)
+  async _imagenes() {
+    return promesa(this.db.transaction(ALMACEN_META, "readonly").objectStore(ALMACEN_META).getAll(IDBKeyRange.bound(IMAGEN, IMAGEN + "\uffff")));
+  }
+  /** Map id de carta → data URL de las imágenes propias (sin las quitadas). */
+  async imagenesPropias() { return new Map((await this._imagenes()).filter((f) => !f.borrado && f.imagen).map((f) => [f.id, f.imagen])); }
+  async _ponerImagen(id, datos) {
+    if (typeof id !== "string" || !id || id.length > 64) throw new TypeError("id de carta no válido");
+    const ahora = new Date().toISOString();
+    const tx = this.db.transaction(ALMACEN_META, "readwrite"), meta = tx.objectStore(ALMACEN_META);
+    meta.put({ clave: IMAGEN + id, id, ...datos, actualizado: ahora });
+    const f = (await promesa(meta.get(IMAGENES_PENDIENTES))) || { clave: IMAGENES_PENDIENTES, ids: {} };
+    f.ids[id] = ahora; meta.put(f);
+    await terminada(tx);
+    this._avisar();
+  }
+  /** Pone tu imagen a una carta (data URL de imagen, ya reducida). Nunca toca cuántas copias tienes. */
+  guardarImagenPropia(id, imagen) {
+    if (typeof imagen !== "string" || !/^data:image\/(jpeg|png|webp);base64,/.test(imagen) || imagen.length > 600000) throw new TypeError("imagen no válida");
+    return this._ponerImagen(id, { imagen });
+  }
+  /** Quita tu imagen (vuelve la de siempre). Queda una marca para que llegue a los demás dispositivos. */
+  quitarImagenPropia(id) { return this._ponerImagen(id, { borrado: true }); }
+  async imagenesParaSubir() {
+    const p = (await this._meta(IMAGENES_PENDIENTES))?.ids || {}, res = [];
+    for (const [id, cuando] of Object.entries(p)) {
+      const f = await this._meta(IMAGEN + id);
+      if (f) res.push({ carta: id, imagen: f.borrado ? null : f.imagen, borrado: Boolean(f.borrado), actualizado: cuando });
+    }
+    return res;
+  }
+  async confirmarImagenesSubidas(subidas) {
+    const tx = this.db.transaction(ALMACEN_META, "readwrite"), meta = tx.objectStore(ALMACEN_META);
+    const f = await promesa(meta.get(IMAGENES_PENDIENTES));
+    if (f) { for (const s of subidas) if (f.ids[s.carta] === s.actualizado) delete f.ids[s.carta]; meta.put(f); }
+    await terminada(tx);
+  }
+  /** Imágenes que llegan de la cuenta: gana la más reciente. Devuelve los ids de carta que cambiaron aquí. */
+  async aplicarImagenesRemotas(filas) {
+    const tx = this.db.transaction(ALMACEN_META, "readwrite"), meta = tx.objectStore(ALMACEN_META);
+    const pend = (await promesa(meta.get(IMAGENES_PENDIENTES))) || { clave: IMAGENES_PENDIENTES, ids: {} };
+    const cambiadas = [];
+    for (const f of filas) {
+      if (!f || typeof f.carta !== "string" || !f.carta || f.carta.length > 64 || isNaN(instante(f.actualizado))) continue;
+      if (!f.borrado && !(typeof f.imagen === "string" && /^data:image\/(jpeg|png|webp);base64,/.test(f.imagen))) continue;
+      const local = pend.ids[f.carta];
+      if (local && !(instante(f.actualizado) >= instante(local))) continue;
+      if (local) delete pend.ids[f.carta];
+      const actual = await promesa(meta.get(IMAGEN + f.carta));
+      if (actual && instante(actual.actualizado) >= instante(f.actualizado)) continue;
+      meta.put({ clave: IMAGEN + f.carta, id: f.carta, ...(f.borrado ? { borrado: true } : { imagen: f.imagen }), actualizado: f.actualizado });
+      cambiadas.push(f.carta);
+    }
+    meta.put(pend);
+    await terminada(tx);
+    return cambiadas;
   }
 
   /** ¿Hay foto de antes de la primera sincronización? { fecha, cartas } o null. */

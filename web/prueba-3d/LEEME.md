@@ -549,3 +549,14 @@ Botón «Continuar con Google» en la página de cuenta (Supabase OAuth). Hay qu
   caben hasta 600 (se quitan las que no quieras); al guardar, como siempre, máximo 360.
 - Intermediario: kits de entrenador EX (`tk1a/tk1b/tk2a/tk2b`) y colecciones de McDonald's (`2016xy` → `mcd16`) en pokemontcg.io,
   comprobados mirando las cartas. Sin imagen en ninguna fuente quedan muy pocas (p. ej. el kit de HeartGold & SoulSilver).
+
+## 3.43 — «Usar mi imagen» en la ficha de cada carta
+
+Para las pocas cartas sin imagen en ninguna fuente accesible (p. ej. Meowth del kit HGSS, Alolan Meowth de McDonald's 2017):
+
+- En la ficha: **Usar mi imagen** (elegir foto, captura o archivo; en el iPhone, también la cámara). En el ordenador basta con copiar una imagen y pulsar **Ctrl+V / Cmd+V** con el álbum abierto y la ficha de la carta a la vista.
+- La imagen se reduce a JPEG de máx. 500×700 (`web/js/imagen-propia.js`) y tiene prioridad sobre TCGdex/Limitless en la ficha y en el 3D.
+- **Cambiar mi imagen** / **Quitar mi imagen** (vuelve a la imagen normal). Nunca cambia las copias marcadas.
+- Se guarda en el dispositivo (`meta`, claves `imagen:<id>`) y, con cuenta, en Supabase (`imagenes_propias`, LWW como las copias): se ve igual en todos tus dispositivos.
+- Los visitantes en modo solo lectura no ven el botón.
+- Prueba: `node web/prueba-3d/pruebas/ejecutar-imagen.mjs` (15 comprobaciones); la sincronización, en `ejecutar-sincronizacion.mjs`.

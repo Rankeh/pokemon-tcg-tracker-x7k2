@@ -65,3 +65,5 @@ jobs:
         run: node web/prueba-3d/pruebas/ejecutar-cuenta.mjs
       - name: Crear un álbum desde la app
         run: node web/prueba-3d/pruebas/ejecutar-crear.mjs
+      - name: Mi imagen en las cartas
+        run: node web/prueba-3d/pruebas/ejecutar-imagen.mjs

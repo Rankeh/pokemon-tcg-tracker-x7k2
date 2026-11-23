@@ -9,6 +9,7 @@ Proyecto `pokemon-tcg-tracker` (región eu-west-3). La web solo usa la **clave p
 | `20261123120000_crear_administradores.sql` | Tabla `administradores`: la cuenta del dueño (solo ella ve los álbumes de la web). Nadie puede añadirse desde la web |
 | `20261123110000_crear_albumes_propios.sql` | Tabla `albumes`: los álbumes creados en la app (definición y catálogo), en todos tus dispositivos |
 | `20261123100000_perfil_tolerante_google.sql` | El perfil toma el nombre de Google; si choca o no cabe, se crea sin nombre (nunca bloquea el registro) |
+| `20261123130000_crear_imagenes_propias.sql` | Tabla `imagenes_propias`: la imagen que eliges para una carta («Usar mi imagen»), como JPEG reducido (máx. ~600 KB), solo visible para ti |
 
 `copias`: cada cuenta solo lee y cambia sus filas; nadie puede borrar filas desde la web (una carta quitada queda con cantidad 0, así la baja
 llega a los demás dispositivos). Un disparador hace que gane siempre el cambio más reciente: una escritura más vieja no pisa la guardada.
