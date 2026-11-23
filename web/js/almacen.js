@@ -7,7 +7,9 @@ export const VERSION_BD = 1;
 const ALMACEN_COPIAS = "copias"; // { id: "svp-208", cantidad: 2, actualizado: "2026-...", variantes?: { normal: 1, reverse: 1 }, mostrar?: "reverse" } (3.16)
 const ALMACEN_META = "meta";     // { clave: "antesDeImportar", ... } · 3.31: "sync:pendientes", "sync:estado", "antesDeSincronizar"
 const PENDIENTES = "sync:pendientes";   // { clave, ids: { "<id carta>": "<ISO del cambio>" } }: cambios locales aún sin subir a la cuenta
-const ESTADO_SYNC = "sync:estado";      // { clave, usuario, ultimaLectura }: con qué cuenta se sincroniza y hasta dónde se ha leído
+const ESTADO_SYNC = "sync:estado";      // { clave, usuario, ultimaLectura, ultimaLecturaAlbumes }: con qué cuenta se sincroniza y hasta dónde se ha leído
+const ALBUM = "album:";                 // 3.37 · álbumes creados en la app: { clave: "album:<id>", id, registro, datos: { catalogo, precios }, actualizado, borrado? }
+const ALBUMES_PENDIENTES = "sync:albumes-pendientes";   // { clave, ids: { "<id álbum>": "<ISO>" } }: álbumes creados o quitados aún sin subir
 
 /** Convierte una petición de IndexedDB (basada en eventos) en una Promise. */
 function promesa(peticion) {
@@ -234,7 +236,7 @@ export class Almacen {
   async _ponerMeta(fila) { const tx = this.db.transaction(ALMACEN_META, "readwrite"); tx.objectStore(ALMACEN_META).put(fila); await terminada(tx); }
 
   /** { usuario, ultimaLectura } de la última sincronización, o null si este navegador nunca se ha sincronizado. */
-  async estadoSincronizacion() { const f = await this._meta(ESTADO_SYNC); return f ? { usuario: f.usuario, ultimaLectura: f.ultimaLectura ?? null, ultima: f.ultima ?? null } : null; }
+  async estadoSincronizacion() { const f = await this._meta(ESTADO_SYNC); return f ? { usuario: f.usuario, ultimaLectura: f.ultimaLectura ?? null, ultimaLecturaAlbumes: f.ultimaLecturaAlbumes ?? null, ultima: f.ultima ?? null } : null; }
   async guardarEstadoSincronizacion(e) { await this._ponerMeta({ clave: ESTADO_SYNC, ...e }); }
 
   /** Cambios locales sin subir: Map id -> ISO. */
@@ -296,8 +298,89 @@ export class Almacen {
     const ahora = new Date().toISOString();
     for (const f of filas) if (!pend.ids[f.id]) pend.ids[f.id] = isNaN(instante(f.actualizado)) ? ahora : f.actualizado;
     meta.put(pend);
+    const albumes = await promesa(meta.getAll(IDBKeyRange.bound(ALBUM, ALBUM + "\uffff")));
+    const pa = (await promesa(meta.get(ALBUMES_PENDIENTES))) || { clave: ALBUMES_PENDIENTES, ids: {} };
+    for (const a of albumes) if (!pa.ids[a.id]) pa.ids[a.id] = a.actualizado || ahora;
+    meta.put(pa);
     meta.put({ clave: ESTADO_SYNC, usuario, ultimaLectura: null, ultima: null });
     await terminada(tx);
+  }
+
+  // ------------------------------------------------------------------ 3.37 · álbumes creados en la app (sus definiciones; nunca tus cartas)
+  async _albumes() {
+    const tx = this.db.transaction(ALMACEN_META, "readonly");
+    return promesa(tx.objectStore(ALMACEN_META).getAll(IDBKeyRange.bound(ALBUM, ALBUM + "\uffff")));
+  }
+  /** Álbumes creados en la app (sin los quitados), del más antiguo al más nuevo. */
+  async albumesPropios() {
+    return (await this._albumes()).filter((a) => !a.borrado).sort((a, b) => (a.creado || "").localeCompare(b.creado || ""));
+  }
+  async albumPropio(id) { const a = await this._meta(ALBUM + id); return a && !a.borrado ? a : null; }
+
+  /** Guarda (o reemplaza) un álbum creado en la app y lo deja pendiente de subir a la cuenta. */
+  async guardarAlbumPropio({ id, registro, datos, creado }) {
+    if (typeof id !== "string" || !/^mio-[a-z0-9-]{1,60}$/.test(id)) throw new TypeError("id de álbum no válido");
+    const ahora = new Date().toISOString();
+    const tx = this.db.transaction(ALMACEN_META, "readwrite"), meta = tx.objectStore(ALMACEN_META);
+    const previo = await promesa(meta.get(ALBUM + id));
+    meta.put({ clave: ALBUM + id, id, registro, datos, creado: creado || previo?.creado || ahora, actualizado: ahora });
+    await this._marcarAlbum(meta, id, ahora);
+    await terminada(tx);
+    this._avisar();
+  }
+  /** Quita un álbum creado en la app. SOLO su definición: las cartas marcadas siguen en la colección. Queda una marca para que la baja
+   *  llegue a los demás dispositivos. */
+  async quitarAlbumPropio(id) {
+    const ahora = new Date().toISOString();
+    const tx = this.db.transaction(ALMACEN_META, "readwrite"), meta = tx.objectStore(ALMACEN_META);
+    const previo = await promesa(meta.get(ALBUM + id));
+    if (!previo || previo.borrado) { await terminada(tx); return false; }
+    meta.put({ clave: ALBUM + id, id, borrado: true, creado: previo.creado, actualizado: ahora });
+    await this._marcarAlbum(meta, id, ahora);
+    await terminada(tx);
+    this._avisar();
+    return true;
+  }
+  async _marcarAlbum(meta, id, ahora) {
+    const f = (await promesa(meta.get(ALBUMES_PENDIENTES))) || { clave: ALBUMES_PENDIENTES, ids: {} };
+    f.ids[id] = ahora; meta.put(f);
+  }
+  /** Álbumes pendientes de subir: [{ id, datos: { registro, datos } | null, borrado, actualizado }]. */
+  async albumesParaSubir() {
+    const p = (await this._meta(ALBUMES_PENDIENTES))?.ids || {}, res = [];
+    for (const [id, cuando] of Object.entries(p)) {
+      const a = await this._meta(ALBUM + id);
+      if (!a) continue;
+      res.push({ id, borrado: Boolean(a.borrado), datos: a.borrado ? null : { registro: a.registro, datos: a.datos, creado: a.creado }, actualizado: cuando });
+    }
+    return res;
+  }
+  async confirmarAlbumesSubidos(subidos) {
+    const tx = this.db.transaction(ALMACEN_META, "readwrite"), meta = tx.objectStore(ALMACEN_META);
+    const f = await promesa(meta.get(ALBUMES_PENDIENTES));
+    if (f) { for (const s of subidos) if (f.ids[s.id] === s.actualizado) delete f.ids[s.id]; meta.put(f); }
+    await terminada(tx);
+  }
+  /** Álbumes que llegan de la cuenta: gana el más reciente (si aquí hay un cambio pendiente más nuevo, se conserva). Devuelve los ids cambiados. */
+  async aplicarAlbumesRemotos(filas) {
+    const tx = this.db.transaction(ALMACEN_META, "readwrite"), meta = tx.objectStore(ALMACEN_META);
+    const pend = (await promesa(meta.get(ALBUMES_PENDIENTES))) || { clave: ALBUMES_PENDIENTES, ids: {} };
+    const cambiados = [];
+    for (const f of filas) {
+      if (!f || typeof f.id !== "string" || !/^mio-[a-z0-9-]{1,60}$/.test(f.id) || isNaN(instante(f.actualizado))) continue;
+      const local = pend.ids[f.id];
+      if (local && !(instante(f.actualizado) >= instante(local))) continue;
+      if (local) delete pend.ids[f.id];
+      const actual = await promesa(meta.get(ALBUM + f.id));
+      if (actual && instante(actual.actualizado) >= instante(f.actualizado)) continue;          // ya estaba (o es más nuevo)
+      if (f.borrado) { if (actual && !actual.borrado) { meta.put({ clave: ALBUM + f.id, id: f.id, borrado: true, creado: actual.creado, actualizado: f.actualizado }); cambiados.push(f.id); } continue; }
+      if (!f.datos || !f.datos.registro || !f.datos.datos) continue;
+      meta.put({ clave: ALBUM + f.id, id: f.id, registro: f.datos.registro, datos: f.datos.datos, creado: f.datos.creado || f.actualizado, actualizado: f.actualizado });
+      cambiados.push(f.id);
+    }
+    meta.put(pend);
+    await terminada(tx);
+    return cambiados;
   }
 
   /** ¿Hay foto de antes de la primera sincronización? { fecha, cartas } o null. */

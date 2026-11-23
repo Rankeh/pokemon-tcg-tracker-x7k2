@@ -1,14 +1,18 @@
 // Productores de texturas de Three.js para la caché: imagen local optimizada (mini), marcador de «sin imagen» y etiqueta de «pendiente».
-// Las imágenes salen de assets/cartas/ (las descarga herramientas/texturas/descargar_cartas.py); nunca se piden a servidores externos.
+// Las imágenes salen de assets/cartas/ (las descarga herramientas/texturas/descargar_cartas.py). Solo los álbumes creados en la app (3.37), que no
+// tienen copia local, usan la imagen pequeña de TCGdex (assets.tcgdex.net, con CORS); la app instalada la guarda para usarla sin conexión.
 import * as THREE from 'three';
 import { dibujarMarcador, dibujarEtiquetaPendiente } from './marcadores.js';
 import { memoriaTexturaBytes } from './logica.js';
 import { rutaProxy, rutasArte } from './proxies.js';
 
 export const TAM_MINI = { w: 256, h: 358 };
+/** 3.37 · imagen de TCGdex de la carta («low» ≈ 245×337 para el bolsillo, «high» para la ficha), o null. Solo de assets.tcgdex.net. */
+export const urlRemota = (carta, calidad = 'low') =>
+  (typeof carta?.imagen === 'string' && /^https:\/\/assets\.tcgdex\.net\/.+\/high\.webp$/.test(carta.imagen) ? carta.imagen.replace(/\/high\.webp$/, '/' + calidad + '.webp') : null);
 export const TAM_ETIQUETA = { w: 128, h: 179 };
 
-export function crearProductores({ manifiesto, rutaBase = 'assets/cartas/', anisotropia = 1, crearLienzo = (w, h) => Object.assign(document.createElement('canvas'), { width: w, height: h }) }) {
+export function crearProductores({ manifiesto, rutaBase = 'assets/cartas/', anisotropia = 1, remotas = false, crearLienzo = (w, h) => Object.assign(document.createElement('canvas'), { width: w, height: h }) }) {
   const preparar = (t) => { t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = anisotropia; return t; };   // glTF: UV con origen arriba
   const desdeLienzo = (dibujar, tam, carta) => {
     const l = crearLienzo(tam.w, tam.h);
@@ -20,7 +24,7 @@ export function crearProductores({ manifiesto, rutaBase = 'assets/cartas/', anis
     mini: (carta) => async () => {
       const e = manifiesto && manifiesto.cartas && manifiesto.cartas[carta.id];
       if (!e) {                                                  // sin copia oficial: arte real descargado → carta proxy propia → (marcador)
-        const candidatas = [...rutasArte(carta.id), rutaProxy(carta.id)].filter(Boolean);
+        const candidatas = [...rutasArte(carta.id), rutaProxy(carta.id), remotas && urlRemota(carta, 'low')].filter(Boolean);   // remotas: solo álbumes creados en la app
         for (const r of candidatas) {                            // 3.15: una sola carga por candidata (antes se cargaba dos veces) y vale sin proxy
           try { return { textura: preparar(await new THREE.TextureLoader().loadAsync(r)), bytes: memoriaTexturaBytes(TAM_MINI.w, TAM_MINI.h) }; } catch { /* siguiente */ }
         }

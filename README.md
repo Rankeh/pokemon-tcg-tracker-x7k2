@@ -17,6 +17,10 @@ y donde marcas las cartas que tienes (con variantes, precios de Cardmarket y cop
 | Shinji Kanda — colección de artista | todas sus cartas físicas | `datos/catalogo/coleccion-shinji-kanda.json` |
 | Pikachu — 30.º aniversario | los 30 Pikachu de Celebración 30.º Aniversario (023–052) | `datos/catalogo/coleccion-pikachu-30.json` |
 
+**Crear álbumes desde la app:** en la estantería, «Nuevo álbum» → una expansión, un ilustrador o un Pokémon (con o sin expansión). La app arma
+el catálogo desde TCGdex en el propio dispositivo (mismas reglas que los de arriba, hasta 360 cartas) y, con cuenta, lo tiene en todos tus
+dispositivos. Quitar un álbum nunca borra tus cartas marcadas.
+
 Los álbumes de artista (y los precios del de Pikachu) se actualizan solos cada lunes (`.github/workflows/actualizar-artistas.yml`).
 
 ## Instalarla como app
@@ -58,7 +62,8 @@ node web/pruebas/node.mjs && node web/pruebas/node-album.mjs
 python blender/pruebas_glb.py
 ```
 En navegador (Chromium + Playwright, IndexedDB real en bases de datos desechables):
-`node web/prueba-3d/pruebas/ejecutar-pagina.mjs`, `ejecutar-navegador.mjs`, `ejecutar-completar.mjs`, `ejecutar-variantes.mjs`, `ejecutar-teclado.mjs`, `ejecutar-sincronizacion.mjs` y `ejecutar-app.mjs`.
+`node web/prueba-3d/pruebas/ejecutar-pagina.mjs`, `ejecutar-navegador.mjs`, `ejecutar-completar.mjs`, `ejecutar-variantes.mjs`, `ejecutar-teclado.mjs`, `ejecutar-sincronizacion.mjs`, `ejecutar-app.mjs`, `ejecutar-cuenta.mjs` y `ejecutar-crear.mjs`
+(esta última usa Three.js real: `npm install --no-save --no-package-lock three@0.160.0`).
 
 GitHub ejecuta todas estas pruebas en cada subida a `main` y en cada pull request (`.github/workflows/pruebas.yml`).
 

@@ -1,14 +1,16 @@
 // Service worker de la app instalada (PWA): la web funciona sin conexión y las imágenes salen del dispositivo.
 //  · Código, páginas, catálogos y precios: SIEMPRE primero la red (así un cambio publicado se ve al momento); sin red, la copia guardada.
 //  · Imágenes de cartas, modelos 3D, iconos y Three.js (versión fija): primero la copia guardada; si no está, la red (y se guarda).
-//  · Supabase (cuenta y sincronización) y cualquier otro sitio: nunca se guardan, van siempre en directo.
+//  · Imágenes de TCGdex (álbumes creados en la app, 3.37): primero la copia guardada (no cambian nunca para una misma dirección).
+//  · Supabase (cuenta y sincronización), la API de TCGdex y cualquier otro sitio: nunca se guardan, van siempre en directo.
 // La lista de lo que se guarda al instalar está en precache.json (herramientas/pwa/generar_precache.py).
 const NUCLEO = 'nucleo-v1', RECURSOS = 'recursos-v1', CACHES = [NUCLEO, RECURSOS];
 const RAIZ = new URL('./', self.location).href;
 const THREE = 'https://cdn.jsdelivr.net/npm/three@0.160.0/', SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/';
 const ESPERA_PAGINA_MS = 5000;                     // una página que no llega en 5 s (cobertura mala) se sirve de la copia guardada
 
-const esRecurso = (url) => url.startsWith(THREE) || url.startsWith(SUPABASE_JS) ||
+const TCGDEX_IMG = 'https://assets.tcgdex.net/';
+const esRecurso = (url) => url.startsWith(THREE) || url.startsWith(SUPABASE_JS) || url.startsWith(TCGDEX_IMG) ||
   (url.startsWith(RAIZ) && /\.(webp|png|jpg|jpeg|svg|glb)$/i.test(new URL(url).pathname));
 const delNucleo = (url) => url.startsWith(RAIZ);
 

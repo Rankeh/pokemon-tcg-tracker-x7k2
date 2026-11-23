@@ -1,10 +1,15 @@
 // Biblioteca (pantalla principal), dirección editorial: una sola fila horizontal de lomos sobre fondo oscuro. El álbum elegido sale de la fila
 // y gira para enseñar su portada en el centro; debajo, su ficha (título, expansiones, cartas) y el botón para abrirlo. Al abrir, la cámara se
 // acerca a la portada y la pantalla funde a negro antes de pasar al visor 3D. Un solo renderer y una sola escena; se dibuja solo si algo cambia.
-// No abre IndexedDB: los álbumes vienen de albumes.js (solo lectura).
+// Los álbumes vienen de albumes.js (los de la web) y, desde 3.37, también del dispositivo (los creados en la app, IndexedDB `meta`).
+// La biblioteca no toca nunca las cartas marcadas: quitar un álbum creado solo borra su definición.
 import * as THREE from 'three';
 import { elegirCalidad, generarEntorno } from '../../prueba-3d/js/aspecto.js';
-import { listarAlbumes, conCifras } from './albumes.js';
+import { conCifras } from './albumes.js';
+import { listarTodos } from '../../js/albumes-propios.js';
+import { Almacen } from '../../js/almacen.js';
+import { iniciarSincronizacion } from '../../js/sincronizacion.js';
+import { montarCreador } from './creador.js';
 import { LIBRO, grosorAlbum } from './disposicion.js';
 import { poses, mover, elementos, series, altoVisible, CARRUSEL } from './carrusel.js';
 import { crearFabricaLibros } from './libros.js';
@@ -146,11 +151,13 @@ function actualizarUi() {
     $('i-sub').textContent = a.subtitulo.toUpperCase();
     $('i-meta').textContent = (a.meta || `${a.cartas} cartas`).toUpperCase();
     $('abrir').textContent = 'Abrir álbum';
+    $('quitar-album').hidden = !a.propio;                                // solo los creados en la app
   } else {
     $('i-titulo').textContent = 'Nuevo álbum';
-    $('i-sub').textContent = 'PRÓXIMAMENTE';
-    $('i-meta').textContent = 'CREA UNA COLECCIÓN PARA OTRA EXPANSIÓN';
+    $('i-sub').textContent = 'EXPANSIÓN, ILUSTRADOR O POKÉMON';
+    $('i-meta').textContent = 'CON LAS CARTAS DE TCGDEX';
     $('abrir').textContent = 'Crear álbum';
+    $('quitar-album').hidden = true;
   }
   $('ant').disabled = sel === 0; $('sig').disabled = sel === items.length - 1;
   $('posicion').textContent = `${String(sel + 1).padStart(2, '0')} / ${String(items.length).padStart(2, '0')}`;
@@ -168,7 +175,7 @@ function pintarFiltros() {
 
 function abrir() {
   const it = items[sel];
-  if (it.tipo === 'nuevo') { avisar('Crear álbumes llegará en la Fase 3.'); return; }
+  if (it.tipo === 'nuevo') { creador.abrir(); return; }
   if (apertura) return;
   const destino = new URL(it.album.ruta, document.baseURI).href;
   if (reducir.matches) { location.href = destino; return; }
@@ -245,20 +252,45 @@ new ResizeObserver(() => encuadrar()).observe(canvas);
 reducir.addEventListener?.('change', pedirFrame);
 
 // ------------------------------------------------------------------ arranque
-async function iniciar() {
+let almacen = null, creador = null;
+/** Lee los álbumes (los de la web y los creados en la app) y repinta la lista, el contador y los filtros. */
+async function cargarLista() {
   // 3.16 · nº de cartas real de cada álbum (leído de su catálogo): los álbumes que crecen no tienen cifras escritas a mano
-  albumes = await Promise.all((await listarAlbumes()).map(async (a) => {
+  albumes = await Promise.all((await listarTodos(almacen)).map(async (a) => {
+    if (a.propio) return conCifras(a, a.cartas);                         // 3.37: el catálogo está en el dispositivo
     try { return conCifras(a, (await (await fetch(a.catalogo)).json()).cartas.length); } catch { return conCifras(a, a.cartas); }
   }));
   $('lista-albumes').replaceChildren(...albumes.map((a) => { const li = document.createElement('li'), enl = document.createElement('a'); enl.href = a.ruta; enl.textContent = `${a.nombre} — ${a.subtitulo}`; li.append(enl); return li; }));
   const cartas = albumes.reduce((s, a) => s + (a.cartas || 0), 0);
   $('contador').textContent = `${albumes.length} ${albumes.length === 1 ? 'álbum' : 'álbumes'} · ${cartas} cartas`;
+  if (filtro && !series(albumes).some((x) => x.id === filtro)) filtro = null;
   pintarFiltros();
+}
+/** Tras crear, quitar o recibir álbumes de otro dispositivo: vuelve a leer y se queda en `id` (si se da) o donde estaba. */
+async function recargar(id = null) {
+  if (id) { guardar('biblioteca.sel', id); filtro = null; }
+  await cargarLista();
+  for (const k of [...cache.keys()]) if (k !== 'nuevo' && !albumes.some((a) => a.id === k)) cache.delete(k);   // los quitados
+  construir(); actualizarUi(); pedirFrame();
+}
+
+async function iniciar() {
+  try { almacen = await Almacen.abrir(params.get('bd') || undefined); } catch (e) { console.warn('Sin almacenamiento: no se pueden crear álbumes.', e); }
+  creador = montarCreador({ almacen, alCrear: (reg) => { recargar(reg.id); avisar(`Álbum «${reg.nombre}» creado con ${reg.cartas} cartas.`); } });
+  $('quitar-album').onclick = async () => {
+    const a = items[sel]?.album;
+    if (!a?.propio || !confirm(`¿Quitar «${a.nombre}» de la biblioteca?\n\nLas cartas que tengas marcadas NO se borran: siguen en tu colección y en los demás álbumes.`)) return;
+    await almacen.quitarAlbumPropio(a.id);
+    await recargar(); avisar(`«${a.nombre}» quitado de la biblioteca.`);
+  };
+  await cargarLista();
   construir();
   encuadrar();
   new ResizeObserver(() => encuadrar()).observe($('info'));            // la ficha cambia de alto (título de otro álbum, fuentes que cargan)
   document.body.classList.add('lista');
   console.info(`Biblioteca · ${FASE} · calidad ${calidad.nivel} (${eleccion.origen}) · ${albumes.length} álbum(es)`);
-  window.__biblioteca = { FASE, THREE, scene, camara, renderer, calidad, estado: () => ({ sel, items: items.map((i) => i.id), filtro }) };
+  window.__biblioteca = { FASE, THREE, scene, camara, renderer, calidad, recargar, estado: () => ({ sel, items: items.map((i) => i.id), filtro }) };
+  // 3.37 · con sesión iniciada, los álbumes creados en otro dispositivo aparecen aquí (y los quitados desaparecen)
+  if (almacen && !params.get('bd')) iniciarSincronizacion(almacen, { alCambiar: (ids, r) => { if (r.albumes?.length) recargar(); } });
 }
 iniciar().catch((e) => { console.error(e); document.body.classList.add('sin-3d'); });

@@ -1,11 +1,13 @@
 // Ficha de carta (DOM): panel inferior en móvil y tarjeta lateral en escritorio. Solo muestra datos y avisa de los botones; no guarda nada.
 import { rutasArte, rutaProxy } from './proxies.js';
+import { urlRemota } from './texturas3d.js';
 import { lineaPrecio, enlaceCardmarket, precioDe, eur } from './precios.js';
 import { sinClasificar, tipoBrillo } from '../../js/variantes.js';
 export const SALIDA_MS = 220;
 export class FichaUI {
-  constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', precios = null, alCerrar, alAnadir, alRetirar, alVariante = null, alClasificar = null, alVisible = null }) {
+  constructor(el, { manifiesto = null, rutaBase = 'assets/cartas/', precios = null, remotas = false, alCerrar, alAnadir, alRetirar, alVariante = null, alClasificar = null, alVisible = null }) {
     this.el = el; this.manifiesto = manifiesto; this.rutaBase = rutaBase; this.precios = precios;
+    this.remotas = remotas;                                         // 3.37: imágenes de TCGdex (solo álbumes creados en la app)
     this.alVariante = alVariante; this.alClasificar = alClasificar; this.alVisible = alVisible;          // 3.16: variantes
     el.cerrar.onclick = () => alCerrar();
     el.anadir.onclick = () => alAnadir();
@@ -27,7 +29,7 @@ export class FichaUI {
     capa.setAttribute('aria-label', 'Carta ampliada: ' + img.alt);
     const fig = document.createElement('figure'); fig.className = 'ficha-imagen zoom-figura'; fig.dataset.estado = 'imagen';
     if (caja.dataset.acabado) fig.dataset.acabado = caja.dataset.acabado;
-    const grande = new Image(); grande.alt = img.alt; grande.src = img.currentSrc || img.src; fig.append(grande);
+    const grande = new Image(); grande.crossOrigin = 'anonymous'; grande.alt = img.alt; grande.src = img.currentSrc || img.src; fig.append(grande);
     const cerrar = document.createElement('button'); cerrar.type = 'button'; cerrar.className = 'zoom-cerrar'; cerrar.textContent = '✕'; cerrar.setAttribute('aria-label', 'Cerrar carta ampliada');
     capa.append(fig, cerrar);
     const fuera = () => {
@@ -40,7 +42,7 @@ export class FichaUI {
     cerrar.focus({ preventScroll: true });
   }
 
-  /** Imagen: copia local grande → copia local mini → marcador HTML. Nunca se piden imágenes a servidores externos. */
+  /** Imagen: copia local grande → copia local mini → (sin copia) arte, proxy o, en álbumes creados en la app, TCGdex → marcador HTML. */
   _imagen(d) {
     const caja = this.el.imagen, e = this.manifiesto && this.manifiesto.cartas && this.manifiesto.cartas[d.id];
     caja.replaceChildren();
@@ -54,9 +56,11 @@ export class FichaUI {
       m.append(n, x, e2); caja.append(m); caja.dataset.estado = 'marcador';
     };
     // sin copia oficial en el manifiesto: arte real descargado (arte/) → carta proxy propia → marcador
-    const cadena = e ? [this.rutaBase + e.grande, this.rutaBase + e.mini].filter(Boolean) : [...rutasArte(d.id), rutaProxy(d.id)].filter(Boolean);
+    const cadena = e ? [this.rutaBase + e.grande, this.rutaBase + e.mini].filter(Boolean)
+      : [...rutasArte(d.id), rutaProxy(d.id), ...(this.remotas ? [urlRemota(d, 'high'), urlRemota(d, 'low')] : [])].filter(Boolean);
     if (!cadena.length) return marcador();
     const img = new Image(); img.alt = `${d.nombre}, ${d.nombreExpansion || d.expansion} ${d.numero}`; img.decoding = 'async';
+    img.crossOrigin = 'anonymous';                                 // 3.37: las de TCGdex llegan con CORS y la app instalada puede guardarlas
     let i = 0;
     img.onerror = () => { i++; if (i < cadena.length) img.src = cadena[i]; else marcador(); };
     img.onload = () => { caja.dataset.estado = 'imagen'; caja.tabIndex = 0; caja.setAttribute?.('role', 'button'); caja.setAttribute?.('aria-label', 'Ampliar carta: ' + img.alt); };

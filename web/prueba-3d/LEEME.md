@@ -489,3 +489,20 @@ está en `datos/albumes-artista.json`, así que se refresca cada lunes como los 
 - Moltres de Galar (promo SWSH284): limitlesstcg guarda las promos de Espada y Escudo en `SP/SP_<número>_R_<idioma>_LG.png`; esta solo
   existe en inglés. Magikarp de la Colección Clásica del 30.º Aniversario: carpeta `30C` con número `CC30` (`30C_030` es otra carta).
 - Se quitan sus 2 proxies: ya ninguna carta de ningún álbum usa proxy (las 5 promos de Teselia tienen también su arte descargado).
+
+## 3.36 — Entrar con Google
+Botón «Continuar con Google» en la página de cuenta (Supabase OAuth). Hay que activarlo en Google Cloud y en Supabase: ver `supabase/LEEME.md`.
+
+## 3.37 — Crear álbumes desde la app
+- **Biblioteca → «Nuevo álbum»** (`estanteria/js/creador.js`): por **expansión** (buscador con todas las de TCGdex, sin TCG Pocket), por
+  **ilustrador** (sugerencias con el nombre exacto de TCGdex) o por **Pokémon** (nombre exacto, en castellano o en inglés; opcionalmente de
+  una expansión). Nombre opcional; barra de progreso; se puede detener sin que se guarde nada.
+- `js/generador-album.js` arma el catálogo en el navegador con las reglas de `generar.py` (comprobado: osare y Pikachu 30 salen idénticos):
+  categorías, variantes, reverse de Sol y Luna, arte completo, precios de Cardmarket, rareza en castellano. Máximo 360 cartas (20 hojas).
+- Se guarda en el dispositivo (IndexedDB, `meta`, `album:<id>`) y, con cuenta, en la tabla `albumes` de Supabase: aparece en todos tus
+  dispositivos y quitarlo viaja como «borrado». **Quitar un álbum no toca nunca tus cartas marcadas.**
+- Imágenes: directamente de TCGdex (`low` en el bolsillo, `high` en la ficha y la portada), solo en estos álbumes; la app instalada las
+  guarda. Modelos 3D de 1 a 20 hojas en `modelo/` (la app solo precarga los de los álbumes de la web).
+- Al abrir uno con más de 7 días y conexión, se vuelve a pedir a TCGdex en segundo plano (cartas nuevas, precios).
+- Pruebas: `pruebas/ejecutar-crear.mjs` (Three.js real, TCGdex simulado), `estanteria/pruebas/albumes-propios.test.mjs`, sincronización de
+  álbumes en `ejecutar-sincronizacion.mjs`; y probado contra TCGdex y Supabase reales (cuenta temporal ya borrada).

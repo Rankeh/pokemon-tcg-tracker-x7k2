@@ -14,7 +14,7 @@ import { Metricas } from './metricas.js';
 import { Aspecto, elegirCalidad, elegirTema, elegirAcabado, TEMAS } from './aspecto.js';
 import { albumPorId, conCifras } from '../../estanteria/js/albumes.js';
 import { montarMenu, copiasParaCompletar, copiasSinAlbum, compartidasCon } from './completar.js';
-import { listarAlbumes } from '../../estanteria/js/albumes.js';
+import { esPropio, listarTodos, cargarAlbum as cargarAlbumColeccion, actualizarAlbumPropio } from '../../js/albumes-propios.js';
 import { fijarTemaMarcadores } from './marcadores.js';
 import { Diagnostico } from './diagnostico.js';
 import { CacheTexturas } from './texturas.js';
@@ -26,14 +26,15 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.36';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.37';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
 // 3.12 · qué álbum se abre: ?album=<id> del registro de la biblioteca (sin parámetro, Teselia: los enlaces antiguos siguen igual)
-const albumActual = albumPorId(params.get('album'));
-document.title = 'Álbum ' + albumActual.nombre;
-{ const n = document.getElementById('h1-nombre'); if (n) n.textContent = albumActual.nombre; }   // «Álbum » va aparte: en móvil se oculta para que quepa el progreso
+// 3.37 · un álbum creado en la app (id «mio-…») está en el dispositivo, no en la web: se lee al arrancar; hasta entonces, un nombre provisional
+let albumActual = esPropio(params.get('album')) ? { id: params.get('album'), nombre: '…', portada: undefined } : albumPorId(params.get('album'));
+const ponerNombre = () => { document.title = 'Álbum ' + albumActual.nombre; const n = document.getElementById('h1-nombre'); if (n) n.textContent = albumActual.nombre; };
+ponerNombre();   // «Álbum » va aparte: en móvil se oculta para que quepa el progreso
 const mq = matchMedia('(prefers-reduced-motion: reduce)');
 let reducirMovimiento = mq.matches;
 mq.addEventListener?.('change', () => { reducirMovimiento = mq.matches; });
@@ -552,13 +553,20 @@ function bucle(ahora) {
 // ------------------------------------------------------------------ arranque
 async function arrancar() {
   const t0 = performance.now();
-  const catalogo = await (await fetch('../../' + albumActual.catalogo)).json();
-  const mapa = crearMapa(catalogo);
-  aspecto.disenoPortada = conCifras(albumActual, mapa.cartas.length).portada;     // 3.16: la portada con el nº real de cartas
   // Persistencia: LA MISMA base de datos de la app original ('coleccion-teselia'). ?bd=otro-nombre solo para pruebas con datos ajenos.
   let modelo, soloLectura = false, almacen = null;
+  try { almacen = await Almacen.abrir(params.get('bd') || undefined); } catch (e) { almacen = null; }
+  // 3.37 · el álbum: de la web (catálogo y precios en datos/) o creado en la app (todo en el dispositivo)
+  const carga = await cargarAlbumColeccion(albumActual.id, almacen);
+  if (!carga) {
+    throw new Error('Este álbum se creó en otro dispositivo y todavía no ha llegado a este. Entra con tu cuenta (Cuenta) para traerlo, o vuelve a la biblioteca.');
+  }
+  albumActual = carga.album; ponerNombre();
+  const propio = Boolean(carga.propio), catalogo = carga.catalogo;
+  const mapa = crearMapa(catalogo);
+  aspecto.disenoPortada = conCifras(albumActual, mapa.cartas.length).portada;     // 3.16: la portada con el nº real de cartas
   try {
-    almacen = await Almacen.abrir(params.get('bd') || undefined);
+    if (!almacen) throw new Error('el navegador no deja guardar datos');
     modelo = new ModeloColeccion(almacen, mapa.cartas);
     await modelo.cargar();
   } catch (e) {
@@ -583,15 +591,15 @@ async function arrancar() {
   cursor = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro, opacidad: 0.5 });   // 3.27: cursor del teclado, más tenue que la selección
 
   const manifiesto = await cargarManifiesto();
-  precios = await cargarPrecios('../../' + albumActual.precios);                               // opcional: null hasta ejecutar herramientas/precios/descargar_precios.py
+  precios = propio ? (carga.precios?.cartas ? carga.precios : null) : await cargarPrecios('../../' + albumActual.precios);   // opcional: null si no hay precios
   cache = new CacheTexturas({ presupuestoBytes: (+params.get('mem') || 32) * 1048576, concurrencia: 4 });
   vista = new VistaBolsillos({ album, adaptador, cache, materialCarta: (c, r) => aspecto.materialCarta(c, r), reducirMovimiento: () => reducirMovimiento,
-    productores: crearProductores({ manifiesto, anisotropia: Math.min(4, renderer.capabilities.getMaxAnisotropy()) }) });
+    productores: crearProductores({ manifiesto, remotas: propio, anisotropia: Math.min(4, renderer.capabilities.getMaxAnisotropy()) }) });   // propio: imágenes de TCGdex
   vista.animandoTurno = () => album.estado.animando;
 
   ficha = new FichaUI({ raiz: $('ficha'), fondo: $('f-fondo'), imagen: $('f-imagen'), variantes: $('f-variantes'), nombre: $('f-nombre'), expansion: $('f-exp'), numero: $('f-num'), precio: $('f-precio'), cardmarket: $('f-cardmarket'), cantidad: $('f-cant'),
     estadoTxt: $('f-estado-txt'), error: $('f-error'), cerrar: $('f-cerrar'), anadir: $('f-mas'), retirar: $('f-menos') },
-  { manifiesto, precios, alCerrar: cerrarFicha, alAnadir: () => { cambioAMano(); ctrl.anadir(); }, alRetirar: () => { cambioAMano(); ctrl.retirar(); },
+  { manifiesto, precios, remotas: propio, alCerrar: cerrarFicha, alAnadir: () => { cambioAMano(); ctrl.anadir(); }, alRetirar: () => { cambioAMano(); ctrl.retirar(); },
     // 3.16 · variantes (normal / reverse / holo): solo en álbumes cuyo catálogo las trae (Asako Ito)
     alVariante: (v, d) => { cambioAMano(); ctrl.cambiarVariante(v, d); }, alClasificar: (v) => { cambioAMano(); ctrl.clasificar(v); }, alVisible: (v) => { cambioAMano(); ctrl.fijarVisible(v); } });
   if (soloLectura) { $('f-mas').disabled = $('f-menos').disabled = true; }
@@ -609,8 +617,8 @@ async function arrancar() {
   const releer = async () => { await adaptador.cargar(); vista.refrescar(); pintarProgreso(); pedirFrame(); };
   let idAviso = 0;
   let otrosAlbumes = null;                                        // catálogos de los demás álbumes (solo para avisar de cartas compartidas)
-  const cargarOtros = async () => otrosAlbumes || (otrosAlbumes = await Promise.all((await listarAlbumes()).filter((a) => a.id !== albumActual.id)
-    .map(async (a) => ({ nombre: a.nombre, ids: (await (await fetch('../../' + a.catalogo)).json()).cartas.map((c) => c.id) }))));
+  const cargarOtros = async () => otrosAlbumes || (otrosAlbumes = await Promise.all((await listarTodos(almacen)).filter((a) => a.id !== albumActual.id)
+    .map(async (a) => ({ nombre: a.nombre, ids: (await cargarAlbumColeccion(a.id, almacen)).catalogo.cartas.map((c) => c.id) }))));   // 3.37: también los creados en la app
   menuAlbum = montarMenu({ boton: $('b-opciones'), menu: $('menu-album'), todas: $('m-todas'), quitar: $('m-quitar'), deshacer: $('m-deshacer'),
     dialogo: $('d-todas'), titulo: $('d-todas-t'), texto: $('d-todas-txt'), aceptar: $('d-aceptar'), cancelar: $('d-cancelar') }, {
     nombre: albumActual.nombre, total: mapa.cartas.length, soloLectura, cartas: mapa.cartas, cantidadDe: (id) => modelo.cantidad(id),
@@ -635,6 +643,12 @@ async function arrancar() {
       },
       alEstado: (e) => { if (e.estado === 'error') console.warn('Sincronización:', e.error?.message || e.error); },
     });
+  }
+  // 3.37 · álbum creado en la app con más de 7 días: se vuelve a pedir a TCGdex en segundo plano (cartas nuevas, precios); se verá al reabrirlo
+  if (propio && !soloLectura && navigator.onLine !== false && Date.now() - Date.parse(catalogo.generado || 0) > 7 * 864e5) {
+    actualizarAlbumPropio(almacen, albumActual.id).then((r) => {
+      if (r && r.cartas !== mapa.cartas.length) { avisar(`El álbum tiene cartas nuevas (${r.cartas}). Vuelve a abrirlo para verlas.`); setTimeout(() => avisar(''), 6000); }
+    }).catch((e) => console.warn('No se pudo actualizar el álbum desde TCGdex:', e));
   }
   addEventListener('visibilitychange', async () => {            // volver de la app original (otra pestaña) → releer lo guardado
     if (document.visibilityState !== 'visible' || ctrl.fichaAbierta) return;

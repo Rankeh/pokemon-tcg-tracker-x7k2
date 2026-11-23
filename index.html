@@ -45,7 +45,49 @@
     <p class="sub e-etiqueta e-rojo" id="i-sub"></p>
     <p class="meta e-etiqueta" id="i-meta"></p>
     <button type="button" class="abrir e-caja e-llena" id="abrir">Abrir álbum</button>
+    <button type="button" class="quitar-album e-caja" id="quitar-album" hidden>Quitar de la biblioteca</button>
   </section>
+
+  <!-- 3.37 · crear un álbum desde la app (cartas de TCGdex): por expansión, por ilustrador o por Pokémon -->
+  <dialog class="nuevo-album" id="d-nuevo" aria-labelledby="n-titulo">
+    <form method="dialog" id="f-nuevo">
+      <h2 id="n-titulo">Nuevo álbum</h2>
+      <p class="e-etiqueta e-rojo">Con las cartas de TCGdex</p>
+      <div class="e-pestanas n-tipos" role="group" aria-label="Tipo de álbum">
+        <button type="button" class="e-caja" data-tipo="expansion" aria-pressed="true">Expansión</button>
+        <button type="button" class="e-caja" data-tipo="ilustrador" aria-pressed="false">Ilustrador</button>
+        <button type="button" class="e-caja" data-tipo="pokemon" aria-pressed="false">Pokémon</button>
+      </div>
+
+      <div class="n-panel" data-panel="expansion">
+        <label class="e-etiqueta" for="n-exp">Expansión</label>
+        <input id="n-exp" type="search" autocomplete="off" placeholder="Busca: Llamas Obsidianas, 151, Evoluciones Prismáticas…">
+        <ul class="n-lista" id="n-exp-lista" role="listbox" aria-label="Expansiones"></ul>
+      </div>
+      <div class="n-panel" data-panel="ilustrador" hidden>
+        <label class="e-etiqueta" for="n-ilu">Ilustrador</label>
+        <input id="n-ilu" type="search" autocomplete="off" placeholder="Busca: Mitsuhiro Arita, Naoki Saito…">
+        <ul class="n-lista" id="n-ilu-lista" role="listbox" aria-label="Ilustradores"></ul>
+      </div>
+      <div class="n-panel" data-panel="pokemon" hidden>
+        <label class="e-etiqueta" for="n-pok">Pokémon (nombre exacto, como en las cartas)</label>
+        <input id="n-pok" type="text" autocomplete="off" placeholder="Pikachu, Charizard, Gengar…">
+        <label class="e-etiqueta" for="n-pok-exp">Solo de una expansión (opcional)</label>
+        <input id="n-pok-exp" type="search" autocomplete="off" placeholder="Todas las expansiones">
+        <ul class="n-lista" id="n-pok-exp-lista" role="listbox" aria-label="Expansiones"></ul>
+      </div>
+
+      <label class="e-etiqueta" for="n-nombre">Nombre del álbum (opcional)</label>
+      <input id="n-nombre" type="text" maxlength="40" autocomplete="off" placeholder="Se pone solo">
+
+      <p class="n-estado" id="n-estado" role="status" aria-live="polite"></p>
+      <progress id="n-progreso" max="1" value="0" hidden></progress>
+      <div class="n-acciones">
+        <button type="button" class="e-caja" id="n-cancelar">Cancelar</button>
+        <button type="button" class="e-caja e-llena" id="n-crear">Crear álbum</button>
+      </div>
+    </form>
+  </dialog>
 
   <footer class="pie">
     <p class="e-etiqueta posicion" id="posicion">01 / 01</p>

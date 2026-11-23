@@ -106,6 +106,32 @@ ok(JSON.stringify(r.deshacer.movil) === JSON.stringify({ 'sv06-034': 1 }) && r.d
   'deshacer la primera sincronización: el móvil vuelve a lo suyo y los cambios quedan pendientes ' + JSON.stringify(r.deshacer));
 ok(Array.isArray(r.raros) && r.raros.length === 0, 'filas raras del servidor se ignoran');
 ok(r.sesionGuardada[0] === true && r.sesionGuardada[1] === false, 'detecta la sesión de Supabase guardada sin cargar la librería');
+const alb = await pag.evaluate(async (sufijo) => {
+  const { Almacen } = await import('/web/js/almacen.js');
+  const { sincronizar } = await import('/web/js/sincronizacion.js');
+  const espera = () => new Promise((ok) => setTimeout(ok, 8));
+  const srv = { copias: new Map(), albumes: new Map(), n: 0 };
+  const lww = (mapa, clave) => async (filas) => filas.map((f) => { const v = mapa.get(f[clave]); if (v && Date.parse(f.actualizado) < Date.parse(v.actualizado)) return structuredClone(v);
+    const n = { ...structuredClone(f), servidor: new Date(Date.UTC(2030, 0, 1) + ++srv.n).toISOString() }; mapa.set(f[clave], n); return structuredClone(n); });
+  const leer = (mapa) => async (desde) => [...mapa.values()].filter((f) => !desde || f.servidor > desde).sort((a, b) => a.servidor.localeCompare(b.servidor)).map((f) => structuredClone(f));
+  const yo = { usuario: async () => 'u1', leer: leer(srv.copias), subir: lww(srv.copias, 'carta'), leerAlbumes: leer(srv.albumes), subirAlbumes: lww(srv.albumes, 'id') };
+  const pc = await Almacen.abrir('alb-pc-' + sufijo), movil = await Almacen.abrir('alb-movil-' + sufijo), res = {};
+  const registro = { id: 'mio-prueba-ab12', nombre: 'Mi álbum', lomo: { diseno: 'editorial', material: 'cuero' }, ruta: 'x' };
+  await pc.guardarAlbumPropio({ id: 'mio-prueba-ab12', registro, datos: { catalogo: { cartas: [{ id: 'a-1' }] }, precios: { cartas: {} } } });
+  const r1 = await sincronizar(pc, yo); await espera(); const r2 = await sincronizar(movil, yo);
+  res.llega = { r2: r2.albumes, movil: (await movil.albumesPropios()).map((a) => a.registro.nombre), pendPc: (await pc.albumesParaSubir()).length };
+  await espera(); await movil.quitarAlbumPropio('mio-prueba-ab12'); await sincronizar(movil, yo); const r3 = await sincronizar(pc, yo);
+  res.quitado = { r3: r3.albumes, pc: (await pc.albumesPropios()).length, servidor: srv.albumes.get('mio-prueba-ab12')?.borrado };
+  const viejo = await pc.aplicarAlbumesRemotos([{ id: 'mio-prueba-ab12', datos: { registro, datos: { catalogo: { cartas: [] } } }, borrado: false, actualizado: '2020-01-01T00:00:00Z' }]);
+  res.viejoNoResucita = viejo.length === 0 && (await pc.albumesPropios()).length === 0;
+  res.raro = await pc.aplicarAlbumesRemotos([{ id: '../malo', datos: {}, actualizado: '2031-01-01T00:00:00Z' }]);
+  pc.cerrar(); movil.cerrar(); for (const n of ['alb-pc-' + sufijo, 'alb-movil-' + sufijo]) indexedDB.deleteDatabase(n);
+  return res;
+}, sufijo);
+ok(JSON.stringify(alb.llega.movil) === '["Mi álbum"]' && alb.llega.r2.includes('mio-prueba-ab12') && alb.llega.pendPc === 0, 'álbum creado en el ordenador: llega al móvil ' + JSON.stringify(alb.llega));
+ok(alb.quitado.pc === 0 && alb.quitado.servidor === true && alb.quitado.r3.includes('mio-prueba-ab12'), 'quitado en el móvil: desaparece del ordenador (en la cuenta queda como borrado) ' + JSON.stringify(alb.quitado));
+ok(alb.viejoNoResucita, 'una versión vieja del álbum no lo resucita');
+ok(Array.isArray(alb.raro) && alb.raro.length === 0, 'álbumes con id raro de la cuenta se ignoran');
 const imp = await pag.evaluate(async (sufijo) => {
   const { Almacen } = await import('/web/js/almacen.js');
   const a = await Almacen.abrir('sync-imp-' + sufijo), res = {};

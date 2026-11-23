@@ -26,12 +26,13 @@ export const tamLienzo = (ancho, alto, lado) => ({ w: lado, h: Math.round(lado *
  *  `ids` = [izquierda, derecha]; devuelve { blanca, negra } (izquierda/derecha; los nombres vienen de Teselia). */
 export function cargarCartas(base = new URL('../assets/cartas/grande/', import.meta.url), ids = DISENO_TESELIA.cartas) {
   const una = (id) => new Promise((resolver) => {
-    if (typeof Image === 'undefined') { resolver(null); return; }
+    if (typeof Image === 'undefined' || typeof id !== 'string' || !id) { resolver(null); return; }   // álbum de 1 carta: no hay segunda
     const img = new Image();
     img.decoding = 'async';
+    if (/^https:/.test(id)) img.crossOrigin = 'anonymous';     // 3.37: portada de un álbum creado en la app (imagen de TCGdex, con CORS)
     img.onload = () => resolver(img);
     img.onerror = () => resolver(null);
-    img.src = new URL(id + '.webp', base).href;
+    img.src = /^https:/.test(id) ? id : new URL(id.toLowerCase() + '.webp', base).href;   // los archivos van en minúsculas (GitHub Pages)
   });
   return Promise.all([una(ids[0]), una(ids[1])]).then(([blanca, negra]) => ({ blanca, negra }));
 }

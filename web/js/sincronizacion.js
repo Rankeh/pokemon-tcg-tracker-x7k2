@@ -7,6 +7,7 @@
 //   usuario()            → id de la cuenta con sesión iniciada, o null
 //   leer(desde)          → filas cuya hora de llegada al servidor es posterior a `desde` (null = todas), con `servidor`
 //   subir(filas)         → guarda las filas y devuelve lo que ha quedado en el servidor (si había algo más nuevo, eso)
+//   leerAlbumes(desde) / subirAlbumes(filas)  → lo mismo para los álbumes creados en la app (3.37; opcionales)
 
 import { instante } from "./almacen.js";
 
@@ -22,10 +23,10 @@ const despues = (a, b) => instante(a) > instante(b) || (instante(a) === instante
  */
 export async function sincronizar(almacen, remoto) {
   const usuario = await remoto.usuario();
-  if (!usuario) return { estado: "sin-sesion", cambiadas: [], subidas: 0, primera: false };
+  if (!usuario) return { estado: "sin-sesion", cambiadas: [], subidas: 0, primera: false, albumes: [] };
   let est = await almacen.estadoSincronizacion();
   const primera = !est || est.usuario !== usuario;
-  if (primera) { await almacen.prepararPrimeraSincronizacion(usuario); est = { usuario, ultimaLectura: null }; }
+  if (primera) { await almacen.prepararPrimeraSincronizacion(usuario); est = { usuario, ultimaLectura: null, ultimaLecturaAlbumes: null }; }
 
   // 1) lo nuevo de la cuenta (en orden de llegada al servidor)
   // se repasan también los últimos minutos: la hora de llegada es la del inicio de cada transacción del servidor, y una subida de otro
@@ -50,8 +51,25 @@ export async function sincronizar(almacen, remoto) {
       for (const id of await almacen.aplicarRemotas(masNuevas)) cambiadas.add(id);
     }
   }
-  await almacen.guardarEstadoSincronizacion({ usuario, ultimaLectura, ultima: new Date().toISOString() });
-  return { estado: "ok", cambiadas: [...cambiadas], subidas: filas.length, primera };
+  // 3) 3.37 · álbumes creados en la app: misma regla (gana el más reciente; quitar uno viaja como «borrado»)
+  let albumes = [], ultimaLecturaAlbumes = est.ultimaLecturaAlbumes ?? null;
+  if (remoto.leerAlbumes) {
+    const desdeA = ultimaLecturaAlbumes && !isNaN(instante(ultimaLecturaAlbumes)) ? new Date(instante(ultimaLecturaAlbumes) - SOLAPE_MS).toISOString() : null;
+    const llegan = await remoto.leerAlbumes(desdeA);
+    const cambiados = new Set(await almacen.aplicarAlbumesRemotos(llegan));
+    for (const f of llegan) if (f.servidor && (!ultimaLecturaAlbumes || despues(f.servidor, ultimaLecturaAlbumes))) ultimaLecturaAlbumes = f.servidor;
+    const subir = await almacen.albumesParaSubir();
+    if (subir.length) {
+      const guardados = await remoto.subirAlbumes(subir.map((a) => ({ usuario, ...a })));
+      const enviado = new Map(subir.map((a) => [a.id, a.actualizado]));
+      const masNuevos = (guardados || []).filter((g) => enviado.has(g.id) && instante(g.actualizado) > instante(enviado.get(g.id)));
+      await almacen.confirmarAlbumesSubidos(subir);
+      for (const id of await almacen.aplicarAlbumesRemotos(masNuevos)) cambiados.add(id);
+    }
+    albumes = [...cambiados];
+  }
+  await almacen.guardarEstadoSincronizacion({ usuario, ultimaLectura, ultimaLecturaAlbumes, ultima: new Date().toISOString() });
+  return { estado: "ok", cambiadas: [...cambiadas], subidas: filas.length, primera, albumes };
 }
 
 // ------------------------------------------------------------------ conector real con Supabase
@@ -83,6 +101,19 @@ export function conectarSupabase(supabase) {
       if (error) throw new Error("No se pudo guardar en la cuenta: " + error.message);
       return data;
     },
+    // 3.37 · álbumes creados en la app (tabla public.albumes)
+    async leerAlbumes(desde) {
+      let q = supabase.from("albumes").select("id,datos,borrado,actualizado,servidor").order("servidor", { ascending: true });
+      if (desde) q = q.gt("servidor", desde);
+      const { data, error } = await q.range(0, 999);
+      if (error) throw new Error("No se pudieron leer los álbumes de la cuenta: " + error.message);
+      return data;
+    },
+    async subirAlbumes(filas) {
+      const { data, error } = await supabase.from("albumes").upsert(filas, { onConflict: "usuario,id" }).select("id,datos,borrado,actualizado,servidor");
+      if (error) throw new Error("No se pudieron guardar los álbumes en la cuenta: " + error.message);
+      return data;
+    },
   };
 }
 
@@ -102,7 +133,7 @@ export function iniciarSincronizacion(almacen, { alCambiar = () => {}, alEstado 
         alEstado({ estado: "sincronizando" });
         const r = await sincronizar(almacen, await obtener());
         alEstado({ ...r, cuando: new Date() });
-        if (r.cambiadas.length) alCambiar(r.cambiadas, r);
+        if (r.cambiadas.length || r.albumes?.length) alCambiar(r.cambiadas, r);
         return r;
       } catch (e) {
         alEstado({ estado: "error", error: e });

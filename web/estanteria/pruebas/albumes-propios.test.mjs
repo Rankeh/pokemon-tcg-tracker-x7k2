@@ -1,0 +1,46 @@
+// 3.37 — álbumes creados en la app: funciones PURAS (sin red ni IndexedDB).
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { idNuevo, nombreBonito, nombrePropuesto, registroDe, esPropio } from '../../js/albumes-propios.js';
+import { variantes, categoria, precio, cartasPortada } from '../../js/generador-album.js';
+import { validarAlbum, conCifras } from '../js/albumes.js';
+import { filtrar, plano } from '../js/creador.js';
+
+test('buscador: sin tildes ni mayúsculas, primero lo que empieza por lo escrito', () => {
+  assert.equal(plano('  Expansión '), 'expansion');
+  const l = ['Llamas Obsidianas', 'Fábula Sombría', 'Destinos de Paldea', 'Evoluciones en Paldea'];
+  assert.deepEqual(filtrar(l, 'paldea'), ['Destinos de Paldea', 'Evoluciones en Paldea']);
+  assert.deepEqual(filtrar(l, 'FABULA'), ['Fábula Sombría']);
+  assert.deepEqual(filtrar(['Evoluciones en Paldea', 'Paldea Evolved'], 'pal'), ['Paldea Evolved', 'Evoluciones en Paldea'], 'empieza antes que contiene');
+});
+
+test('ids y nombres: «mio-» + texto + 4 al azar; «AKIRA EGAWA» → «Akira Egawa»', () => {
+  assert.equal(idNuevo('Llamas Obsidianas', () => 0.5), 'mio-llamas-obsidianas-' + Math.floor(0.5 * 36 ** 4).toString(36));
+  assert.match(idNuevo('¡Pokémon 151!'), /^mio-pokemon-151-[a-z0-9]{4}$/);
+  assert.ok(esPropio(idNuevo('x')) && !esPropio('teselia'));
+  assert.equal(nombreBonito('AKIRA EGAWA'), 'Akira Egawa'); assert.equal(nombreBonito('osare'), 'osare'); assert.equal(nombreBonito('Mitsuhiro Arita'), 'Mitsuhiro Arita');
+  assert.equal(nombrePropuesto({ tipo: 'pokemon', pokemon: 'Pikachu' }, [{ nombre: 'Pikachu' }, { nombre: 'Pikachu' }, { nombre: 'Pikachu ex' }]), 'Pikachu');
+});
+
+test('generador: misma lógica que generar.py (categorías, variantes con el reverse de Sol y Luna, precios, portada)', () => {
+  assert.equal(categoria('Special illustration rare'), 'sir'); assert.equal(categoria('Rare Holo'), 'rara'); assert.equal(categoria('Hyper rare'), 'otra');
+  assert.deepEqual(variantes({ set: { id: 'sm7' }, variants: { normal: true } }, 'comun').map((v) => v.id), ['normal', 'reverse'], 'Sol y Luna: reverse deducido');
+  assert.deepEqual(variantes({ set: { id: 'sv03' }, variants: { normal: true } }, 'comun').map((v) => v.id), ['normal'], 'fuera de Sol y Luna, no');
+  assert.equal(variantes({ set: { id: 'x' }, variants_detailed: [{ type: 'holo', stamp: ['30th-anniversary'] }] }, 'otra')[0].nombre, 'Holo · sello 30.º aniversario');
+  assert.deepEqual(precio({ pricing: { cardmarket: { trend: 2, low: 1, updated: 'u' } } }), { tendencia: 2, bajo: 1, actualizado: 'u' });
+  assert.equal(precio({}), null);
+  const cs = [{ id: 'a', categoriaColeccion: 'comun', imagen: 'A' }, { id: 'b', categoriaColeccion: 'sir', imagen: 'B' }, { id: 'c', categoriaColeccion: 'ir', imagen: null }, { id: 'd', categoriaColeccion: 'rara', imagen: 'D' }];
+  assert.deepEqual(cartasPortada(cs, { d: { tendencia: 9 } }), ['B', 'D'], 'la SIR y la rara más cara; nunca una sin imagen');
+});
+
+test('un álbum creado pasa la misma validación que los de la web y sus cifras se rellenan solas', () => {
+  const cat = { cartas: [{ id: 'x1-001', nombre: 'Charmander', nombreExpansion: 'Expansión de Prueba', imagen: 'https://assets.tcgdex.net/es/sv/x1/001/high.webp', categoriaColeccion: 'comun' }] };
+  for (const def of [{ tipo: 'expansion', expansion: 'x1' }, { tipo: 'ilustrador', ilustrador: 'Alguien' }, { tipo: 'pokemon', pokemon: 'Charmander', expansion: 'x1' }]) {
+    const r = registroDe('mio-prueba-ab12', def, 'Mi álbum', cat, { cartas: {} });
+    assert.deepEqual(validarAlbum(r), [], def.tipo);
+    assert.equal(r.serie, 'propios'); assert.equal(r.ruta, 'web/prueba-3d/index.html?album=mio-prueba-ab12');
+    const c = conCifras(r, 1);
+    assert.ok(c.portada.pie.includes('1 cartas') && c.lomo.cifra === '1' && c.meta.includes('1 cartas'));
+  }
+  assert.equal(registroDe('mio-a-0000', { tipo: 'pokemon', pokemon: 'Charmander', expansion: 'x1' }, 'X', cat, { cartas: {} }).subtitulo, 'Expansión de Prueba', 'Pokémon de una expansión: la expansión como subtítulo');
+});
