@@ -1,0 +1,967 @@
+{
+ "generado": "2026-11-23",
+ "fuente": "TCGdex (datos MIT), ilustrador = «Shinji Kanda» (coincidencia exacta)",
+ "ilustrador": "Shinji Kanda",
+ "totales": {
+  "total": 32,
+  "imagenEspanol": 29,
+  "imagenOtroIdioma": 0,
+  "sinImagen": 3,
+  "excluidas": [
+   {
+    "id": "A3b-039",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2b-096",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A4-111",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2-172",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A3-176",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A4-207",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B1-281",
+    "motivo": "TCG Pocket (digital)"
+   }
+  ]
+ },
+ "cartas": [
+  {
+   "id": "sv06.5-009",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Ferropolilla",
+   "numero": "009",
+   "expansion": "sv06.5",
+   "nombreExpansion": "Fabula Sombría",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06.5/009/high.webp",
+   "dexId": [
+    994
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me03-014",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Talonflame",
+   "numero": "014",
+   "expansion": "me03",
+   "nombreExpansion": "Equilibrio Perfecto",
+   "serie": "me",
+   "rareza": "Uncommon",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/me/me03/014/high.webp",
+   "dexId": [
+    663
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh9-019",
+   "categoriaColeccion": "comun",
+   "nombre": "Magmar",
+   "numero": "019",
+   "expansion": "swsh9",
+   "nombreExpansion": "Astros Brillantes",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh9/019/high.webp",
+   "dexId": [
+    126
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "mep-024",
+   "categoriaColeccion": "promo",
+   "nombre": "Oricorio ex",
+   "numero": "024",
+   "expansion": "mep",
+   "nombreExpansion": "MEP Black Star Promos",
+   "serie": "me",
+   "rareza": "Promo",
+   "ilustrador": "Shinji Kanda",
+   "imagen": null,
+   "dexId": [
+    741
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv06.5-026",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Reptalada",
+   "numero": "026",
+   "expansion": "sv06.5",
+   "nombreExpansion": "Fabula Sombría",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06.5/026/high.webp",
+   "dexId": [
+    988
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-c-030",
+   "categoriaColeccion": "otra",
+   "nombre": "Magikarp",
+   "numero": "030",
+   "expansion": "30th-c",
+   "nombreExpansion": "Colección Clásica del 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Ninguno",
+   "ilustrador": "Shinji Kanda",
+   "imagen": null,
+   "dexId": [
+    129
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh10-036",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Whiscash",
+   "numero": "036",
+   "expansion": "swsh10",
+   "nombreExpansion": "Resplandor Astral",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh10/036/high.webp",
+   "dexId": [
+    340
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-040",
+   "categoriaColeccion": "otra",
+   "nombre": "Pikachu",
+   "numero": "040",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Pikachu Rare",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/040/high.webp",
+   "dexId": [
+    25
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv01-043",
+   "categoriaColeccion": "rara",
+   "nombre": "Slowbro",
+   "numero": "043",
+   "expansion": "sv01",
+   "nombreExpansion": "Escarlata y Púrpura",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv01/043/high.webp",
+   "dexId": [
+    80
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv05-043",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Sharpedo",
+   "numero": "043",
+   "expansion": "sv05",
+   "nombreExpansion": "Fuerzas Temporales",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv05/043/high.webp",
+   "dexId": [
+    319
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv01-048",
+   "categoriaColeccion": "comun",
+   "nombre": "Alomomola",
+   "numero": "048",
+   "expansion": "sv01",
+   "nombreExpansion": "Escarlata y Púrpura",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv01/048/high.webp",
+   "dexId": [
+    594
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh12-055",
+   "categoriaColeccion": "comun",
+   "nombre": "Stunfisk",
+   "numero": "055",
+   "expansion": "swsh12",
+   "nombreExpansion": "Tempestad Plateada",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh12/055/high.webp",
+   "dexId": [
+    618
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me06-060",
+   "categoriaColeccion": "comun",
+   "nombre": "Sableye",
+   "numero": "060",
+   "expansion": "me06",
+   "nombreExpansion": "Dominio Delta",
+   "serie": "me",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/me/me06/060/high.webp",
+   "dexId": null,
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh12-061",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Hypno",
+   "numero": "061",
+   "expansion": "swsh12",
+   "nombreExpansion": "Tempestad Plateada",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh12/061/high.webp",
+   "dexId": [
+    97
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv04-062",
+   "categoriaColeccion": "comun",
+   "nombre": "Blitzle",
+   "numero": "062",
+   "expansion": "sv04",
+   "nombreExpansion": "Brecha Paradójica",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv04/062/high.webp",
+   "dexId": [
+    522
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me01-068",
+   "categoriaColeccion": "comun",
+   "nombre": "Sandshrew",
+   "numero": "068",
+   "expansion": "me01",
+   "nombreExpansion": "Megaevolución",
+   "serie": "me",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/me/me01/068/high.webp",
+   "dexId": [
+    27
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me02-074",
+   "categoriaColeccion": "comun",
+   "nombre": "Duraludon",
+   "numero": "074",
+   "expansion": "me02",
+   "nombreExpansion": "Fuegos Fantasmales",
+   "serie": "me",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/me/me02/074/high.webp",
+   "dexId": [
+    884
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh12-080",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Beheeyem",
+   "numero": "080",
+   "expansion": "swsh12",
+   "nombreExpansion": "Tempestad Plateada",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh12/080/high.webp",
+   "dexId": [
+    606
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh9-081",
+   "categoriaColeccion": "comun",
+   "nombre": "Sawk",
+   "numero": "081",
+   "expansion": "swsh9",
+   "nombreExpansion": "Astros Brillantes",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh9/081/high.webp",
+   "dexId": [
+    539
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv06-083",
+   "categoriaColeccion": "comun",
+   "nombre": "Girafarig",
+   "numero": "083",
+   "expansion": "sv06",
+   "nombreExpansion": "Mascarada Crepuscular",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06/083/high.webp",
+   "dexId": [
+    203
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv10.5b-105",
+   "categoriaColeccion": "ir",
+   "nombre": "Seismitoad",
+   "numero": "105",
+   "expansion": "sv10.5b",
+   "nombreExpansion": "Fulgor Negro",
+   "serie": "sv",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv10.5b/105/high.webp",
+   "dexId": [
+    537
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh10-112",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Bronzong",
+   "numero": "112",
+   "expansion": "swsh10",
+   "nombreExpansion": "Resplandor Astral",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh10/112/high.webp",
+   "dexId": [
+    437
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv04-113",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Absol",
+   "numero": "113",
+   "expansion": "sv04",
+   "nombreExpansion": "Brecha Paradójica",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv04/113/high.webp",
+   "dexId": [
+    359
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh11-113",
+   "categoriaColeccion": "rara",
+   "nombre": "Ariados",
+   "numero": "113",
+   "expansion": "swsh11",
+   "nombreExpansion": "Origen Perdido",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh11/113/high.webp",
+   "dexId": [
+    168
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv03.5-142",
+   "categoriaColeccion": "rara",
+   "nombre": "Aerodactyl",
+   "numero": "142",
+   "expansion": "sv03.5",
+   "nombreExpansion": "151",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv03.5/142/high.webp",
+   "dexId": [
+    142
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv03-144",
+   "categoriaColeccion": "comun",
+   "nombre": "Bronzor",
+   "numero": "144",
+   "expansion": "sv03",
+   "nombreExpansion": "Llamas Obsidianas",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv03/144/high.webp",
+   "dexId": [
+    436
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv08-150",
+   "categoriaColeccion": "comun",
+   "nombre": "Kecleon",
+   "numero": "150",
+   "expansion": "sv08",
+   "nombreExpansion": "Chispas Fulgurantes",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv08/150/high.webp",
+   "dexId": [
+    352
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "svp-159",
+   "categoriaColeccion": "promo",
+   "nombre": "Magneton",
+   "numero": "159",
+   "expansion": "svp",
+   "nombreExpansion": "SVP Black Star Promos",
+   "serie": "sv",
+   "rareza": "Promo",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/svp/159/high.webp",
+   "dexId": [
+    82
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv08.5-162",
+   "categoriaColeccion": "sir",
+   "nombre": "Bramaluna ex",
+   "numero": "162",
+   "expansion": "sv08.5",
+   "nombreExpansion": "Evoluciones Prismáticas",
+   "serie": "sv",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv08.5/162/high.webp",
+   "dexId": [
+    1005
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh11-186",
+   "categoriaColeccion": "otra",
+   "nombre": "Giratina V",
+   "numero": "186",
+   "expansion": "swsh11",
+   "nombreExpansion": "Origen Perdido",
+   "serie": "swsh",
+   "rareza": "Ultra Rara",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh11/186/high.webp",
+   "dexId": [
+    487
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv02-203",
+   "categoriaColeccion": "ir",
+   "nombre": "Magikarp",
+   "numero": "203",
+   "expansion": "sv02",
+   "nombreExpansion": "Evoluciones en Paldea",
+   "serie": "sv",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "Shinji Kanda",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv02/203/high.webp",
+   "dexId": [
+    129
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swshp-SWSH284",
+   "categoriaColeccion": "promo",
+   "nombre": "Moltres de Galar",
+   "numero": "SWSH284",
+   "expansion": "swshp",
+   "nombreExpansion": "Cartas de promoción ESES",
+   "serie": "swsh",
+   "rareza": "Promo",
+   "ilustrador": "Shinji Kanda",
+   "imagen": null,
+   "dexId": [
+    146
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  }
+ ]
+}

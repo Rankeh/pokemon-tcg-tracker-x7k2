@@ -1,5 +1,7 @@
 [
   { "ilustrador": "Asako Ito", "id": "asako-ito" },
   { "ilustrador": "osare", "id": "osare" },
-  { "expansion": "30th", "pokemon": "Pikachu", "id": "pikachu-30" }
+  { "expansion": "30th", "pokemon": "Pikachu", "id": "pikachu-30" },
+  { "ilustrador": "AKIRA EGAWA", "id": "akira-egawa" },
+  { "ilustrador": "Shinji Kanda", "id": "shinji-kanda" }
 ]

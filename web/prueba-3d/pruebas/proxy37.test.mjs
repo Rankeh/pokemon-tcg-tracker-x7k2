@@ -1,19 +1,30 @@
-// Proxies de las 5 promos sin imagen: existen, tienen tamaño de mini, y el productor `mini` los usa solo si no hay copia oficial.
+// Proxies de las cartas sin imagen (las 5 promos de Teselia y, desde 3.33, 2 de Shinji Kanda): existen, tienen tamaño de mini, y el productor `mini` los usa solo si no hay copia oficial.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import './mundo.mjs';   // registra los dobles de three
-import { PROXIES, rutaProxy } from '../js/proxies.js';
+import { PROXIES, ARTE, rutaProxy } from '../js/proxies.js';
 
 const raiz = new URL('../', import.meta.url);
 const catalogo = JSON.parse(fs.readFileSync(new URL('../../../datos/catalogo/coleccion-teselia.json', import.meta.url), 'utf8'));
 const cartas = Array.isArray(catalogo) ? catalogo : catalogo.cartas;
 
-test('P1: cada carta sin imagen oficial tiene proxy, y solo esas', () => {
+test('P1: cada carta sin imagen oficial tiene proxy (Teselia: las 5 promos), y solo esas', () => {
   const sin = cartas.filter((c) => c.estadoImagen === 'sin-imagen').map((c) => c.id).sort();
-  assert.deepEqual(Object.keys(PROXIES).sort(), sin);
+  assert.deepEqual(Object.keys(PROXIES).filter((id) => id.startsWith('svp-')).sort(), sin);
   assert.equal(sin.length, 5);
   assert.equal(rutaProxy('svp-1'), null);
+});
+
+test('P1b (3.33): en TODOS los álbumes, cada carta sin imagen en TCGdex tiene arte real o proxy, y los proxies son solo de cartas sin imagen', () => {
+  const dir = new URL('../../../datos/catalogo/', import.meta.url), sin = new Set();
+  for (const f of fs.readdirSync(dir).filter((n) => /^coleccion-.*\.json$/.test(n))) {
+    for (const c of JSON.parse(fs.readFileSync(new URL(f, dir), 'utf8')).cartas) if (c.estadoImagen === 'sin-imagen') sin.add(c.id);
+  }
+  for (const id of sin) assert.ok(ARTE[id] || PROXIES[id], id + ': sin arte ni proxy');
+  for (const id of Object.keys(PROXIES)) assert.ok(sin.has(id), id + ': tiene proxy pero sí tiene imagen');
+  for (const id of Object.keys(ARTE)) assert.ok(sin.has(id), id + ': tiene arte descargado pero sí tiene imagen');
+  for (const r of [...Object.values(PROXIES), ...Object.values(ARTE)]) assert.equal(r, r.toLowerCase(), 'nombre en minúsculas (GitHub Pages): ' + r);
 });
 
 test('P2: los PNG existen, son PNG de 256x358', () => {
@@ -75,7 +86,7 @@ test('3.15 · toda carta sin imagen oficial en el manifiesto tiene arte descarga
   const { ARTE, rutasArte, rutaProxy } = await import('../js/proxies.js');
   const base = new URL('../', import.meta.url), raiz = new URL('../../../', import.meta.url);
   const manifiesto = JSON.parse(await readFile(new URL('assets/cartas/manifiesto.json', base), 'utf8')).cartas;
-  for (const cat of ['coleccion-teselia.json', 'coleccion-asako-ito.json', 'coleccion-osare.json', 'coleccion-pikachu-30.json']) {
+  for (const cat of ['coleccion-teselia.json', 'coleccion-asako-ito.json', 'coleccion-osare.json', 'coleccion-pikachu-30.json', 'coleccion-akira-egawa.json', 'coleccion-shinji-kanda.json']) {
     for (const c of JSON.parse(await readFile(new URL('datos/catalogo/' + cat, raiz), 'utf8')).cartas) {
       if (manifiesto[c.id]) continue;
       const rutas = [...rutasArte(c.id), rutaProxy(c.id)].filter(Boolean);

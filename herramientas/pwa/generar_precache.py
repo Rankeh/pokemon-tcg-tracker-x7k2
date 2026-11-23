@@ -1,7 +1,7 @@
 """Genera precache.json: los archivos que la app instalada (sw.js) guarda en el dispositivo para funcionar sin conexión.
 
 - «nucleo»: páginas, estilos, código, catálogos, precios, modelos 3D e iconos (se guardan al instalar).
-- «miniaturas»: las imágenes pequeñas de todas las cartas (se descargan después, en segundo plano).
+- «miniaturas»: las imágenes pequeñas de todas las cartas, y el arte y las cartas proxy de las que TCGdex no tiene (después, en segundo plano).
 - «externos»: Three.js desde jsDelivr (versión fija).
 Las imágenes grandes no se precargan: se guardan la primera vez que abres la ficha de cada carta.
 Uso (en la raíz del repo):  python herramientas/pwa/generar_precache.py      (--comprobar: falla si precache.json no está al día)"""
@@ -26,6 +26,7 @@ def lista():
                 nucleo.append(rel(p))
     nucleo = list(dict.fromkeys(nucleo))
     minis = [rel(p) for p in sorted((RAIZ / 'web/prueba-3d/assets/cartas/mini').glob('*.webp'))]
+    minis += [rel(p) for p in sorted((RAIZ / 'web/prueba-3d/assets/proxies').rglob('*.png'))]   # cartas sin imagen en TCGdex
     # sin «versión»: el código se pide siempre primero a la red, y la app revisa esta lista cada vez que se abre con conexión
     return {'nucleo': nucleo, 'miniaturas': minis, 'externos': EXTERNOS}
 

@@ -97,6 +97,44 @@ const ALBUMES = [
       codigo: '30TH', cifra: '{n}', marca: 'paleta', colores: ['#ffd23f', '#e5432f', '#f2f2f2'] },   // amarillo, mejillas rojas y blanco
     orden: 3,
   },
+  {
+    id: 'akira-egawa',
+    nombre: 'Akira Egawa',
+    subtitulo: 'Colección de artista',
+    descripcion: 'Todas las cartas físicas ilustradas por Akira Egawa según TCGdex (de Sol y Luna a Megaevolución), sin las de TCG Pocket.',
+    expansiones: [],
+    meta: 'Ilustrador · {n} cartas · desde 2019',
+    serie: 'artistas',
+    nombreSerie: 'Artistas',
+    cartas: 95,                                     // respaldo si no se puede leer el catálogo; la cifra real sale del catálogo
+    catalogo: 'datos/catalogo/coleccion-akira-egawa.json',
+    precios: 'datos/catalogo/precios-akira-egawa.json',
+    ruta: 'web/prueba-3d/index.html?album=akira-egawa',
+    portada: { titulo: 'Akira Egawa', subtitulo: 'Colección de artista', arribaIzq: 'Pokémon TCG', arribaDer: 'Ilustrador',
+      pie: 'Desde Sol y Luna · {n} cartas', banda: 'Akira Egawa', bandaCodigo: 'ARTISTA', cartas: ['sv03-223', 'me01-181'] },   // Charizard ex y Mega-Latias ex
+    lomo: { diseno: 'editorial', material: 'cuero', color: '#11141b', titulo: 'AKIRA EGAWA', subtitulo: 'COLECCIÓN DE ARTISTA',
+      codigo: 'ARTISTA', cifra: '{n}', marca: 'paleta', colores: ['#ff6b3d', '#3d8bff', '#b46bff'] },   // prismático: naranja, azul y violeta
+    orden: 4,
+  },
+  {
+    id: 'shinji-kanda',
+    nombre: 'Shinji Kanda',
+    subtitulo: 'Colección de artista',
+    descripcion: 'Todas las cartas físicas ilustradas por Shinji Kanda según TCGdex (de Espada y Escudo a Megaevolución), sin las de TCG Pocket.',
+    expansiones: [],
+    meta: 'Ilustrador · {n} cartas · desde 2019',
+    serie: 'artistas',
+    nombreSerie: 'Artistas',
+    cartas: 32,                                     // respaldo si no se puede leer el catálogo; la cifra real sale del catálogo
+    catalogo: 'datos/catalogo/coleccion-shinji-kanda.json',
+    precios: 'datos/catalogo/precios-shinji-kanda.json',
+    ruta: 'web/prueba-3d/index.html?album=shinji-kanda',
+    portada: { titulo: 'Shinji Kanda', subtitulo: 'Colección de artista', arribaIzq: 'Pokémon TCG', arribaDer: 'Ilustrador',
+      pie: 'Desde Espada y Escudo · {n} cartas', banda: 'Shinji Kanda', bandaCodigo: 'ARTISTA', cartas: ['sv02-203', 'sv08.5-162'] },   // Magikarp y Bramaluna ex
+    lomo: { diseno: 'editorial', material: 'cuero', color: '#11141b', titulo: 'SHINJI KANDA', subtitulo: 'COLECCIÓN DE ARTISTA',
+      codigo: 'ARTISTA', cifra: '{n}', marca: 'paleta', colores: ['#f2c14e', '#3fb6d9', '#e5432f'] },   // dorado, agua y rojo Magikarp
+    orden: 5,
+  },
 ];
 
 /** PURO · Comprueba que un álbum tiene lo mínimo para colocarse en la estantería. Devuelve la lista de problemas (vacía = válido). */

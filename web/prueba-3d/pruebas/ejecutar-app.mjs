@@ -30,6 +30,7 @@ let fallos = 0, total = 0;
 const ok = (c, msg) => { total++; console.log((c ? 'OK      ' : 'FALLO   ') + msg); if (!c) fallos++; };
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 const precache = JSON.parse(await readFile(path.join(raiz, 'precache.json'), 'utf8'));
+const urlsMinis = () => precache.miniaturas.map((u) => new URL(u, base + '/').href);   // miniaturas + arte y proxies de cartas sin imagen
 const manifiesto = JSON.parse(await readFile(path.join(raiz, 'manifest.webmanifest'), 'utf8'));
 
 // ------------------------------------------------ manifiesto
@@ -68,13 +69,13 @@ let copias = {};
 for (let i = 0; i < 120; i++) {
   copias = await contar();
   const rec = copias['recursos-v1'] || [];
-  if ((copias['nucleo-v1'] || []).length >= precache.nucleo.length && rec.filter((u) => u.includes('/mini/')).length >= precache.miniaturas.length) break;
+  if ((copias['nucleo-v1'] || []).length >= precache.nucleo.length && urlsMinis().every((u) => rec.includes(u))) break;
   await dormir(500);
 }
 const nucleo = copias['nucleo-v1'] || [], rec = copias['recursos-v1'] || [];
 const faltan = precache.nucleo.map((u) => new URL(u, base + '/').href).filter((u) => !nucleo.includes(u));
 ok(faltan.length === 0, `guarda el núcleo entero: ${nucleo.length} archivos (páginas, código, catálogos, modelos)` + (faltan.length ? ' · faltan: ' + faltan.slice(0, 5).join(', ') : ''));
-ok(rec.filter((u) => u.includes('/mini/')).length === precache.miniaturas.length, `guarda las ${precache.miniaturas.length} miniaturas en segundo plano`);
+ok(urlsMinis().every((u) => rec.includes(u)), `guarda en segundo plano las ${precache.miniaturas.length} imágenes de la lista (miniaturas, arte y proxies)`);
 ok(precache.externos.every((u) => rec.includes(u)), 'guarda Three.js (versión fija)');
 ok(!rec.some((u) => u.includes('/grande/')), 'las imágenes grandes no se precargan (solo al abrir una ficha)');
 
@@ -86,7 +87,7 @@ await pag.waitForFunction(() => window.__album3d && document.getElementById('car
 // ------------------------------------------------ SIN CONEXIÓN
 await ctx.setOffline(true);
 await pag.goto(`${base}/index.html?sw=1`);
-ok(await pag.evaluate(() => document.querySelectorAll('#lista-albumes a').length) === 4, 'sin conexión: la biblioteca abre (lista de los 4 álbumes)');
+ok(await pag.evaluate(() => document.querySelectorAll('#lista-albumes a').length) === 6, 'sin conexión: la biblioteca abre (lista de los 6 álbumes)');
 await pag.goto(`${base}/web/prueba-3d/index.html?album=pikachu-30&sw=1&bd=prueba-app-${Math.random().toString(36).slice(2)}`);
 const abrio = await pag.waitForFunction(() => window.__album3d && document.getElementById('cargando').hidden, null, { timeout: 30000 }).then(() => true, () => false);
 ok(abrio, 'sin conexión: el álbum 3D abre entero (código, Three.js, modelo y catálogo guardados)');

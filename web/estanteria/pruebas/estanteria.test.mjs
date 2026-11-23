@@ -53,9 +53,9 @@ test('encuadre: el libro de cara ocupa ~la mitad del alto; en vertical caben la 
   assert.ok(LIBRO.alto / altoVisible(iphone) > 0.3, 'iPhone: el libro no queda diminuto');
 });
 
-test('álbumes: Teselia (primero, ruta de siempre), Asako Ito, osare y Pikachu 30 (?album=<id>)', async () => {
+test('álbumes: Teselia (primero, ruta de siempre), Asako Ito, osare, Pikachu 30, Akira Egawa y Shinji Kanda (?album=<id>)', async () => {
   const lista = await listarAlbumes();
-  assert.deepEqual(lista.map((a) => a.id), ['teselia', 'asako-ito', 'osare', 'pikachu-30']);
+  assert.deepEqual(lista.map((a) => a.id), ['teselia', 'asako-ito', 'osare', 'pikachu-30', 'akira-egawa', 'shinji-kanda']);
   assert.equal(albumPorId('osare').ruta, 'web/prueba-3d/index.html?album=osare');
   const pk = (await leerJson(albumPorId('pikachu-30').catalogo)).cartas;
   assert.equal(pk.length, 30, 'los 30 Pikachu'); assert.deepEqual(pk.map((c) => +c.numero), Array.from({ length: 30 }, (_, i) => 23 + i), '30th 023–052');

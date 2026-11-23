@@ -466,3 +466,13 @@ está en `datos/albumes-artista.json`, así que se refresca cada lunes como los 
 - El registro va DESPUÉS del import map de Three.js: un módulo cargado antes haría que el navegador ignorase el import map.
 - En las pruebas automáticas (`navigator.webdriver`) no se registra salvo con `?sw=1`, para no tapar los dobles de Three.js.
 - Prueba: `pruebas/ejecutar-app.mjs` (service worker real en Chromium: guarda, abre el álbum sin conexión, primero la red, Supabase fuera).
+
+## 3.33 — Álbumes de artista «Akira Egawa» y «Shinji Kanda»
+- **Akira Egawa** (en TCGdex, «AKIRA EGAWA»): 95 cartas físicas de Sol y Luna a Megaevolución (28 de TCG Pocket excluidas), 14 IR/SIR.
+  Modelo de 6 hojas (`album-6h.glb`, nuevo). Portada con Charizard ex y Mega-Latias ex; lomo prismático naranja/azul/violeta.
+- **Shinji Kanda**: 32 cartas físicas de Espada y Escudo a Megaevolución (7 de TCG Pocket excluidas). Modelo de 2 hojas.
+  Portada con Magikarp IR y Bramaluna ex; lomo dorado/agua/rojo.
+- Cartas sin imagen en TCGdex: 9 con su arte real en español de limitlesstcg (galerías GG67–70 de Cenit Supremo, TG de Astros Brillantes,
+  Tempestad Plateada y Origen Perdido, y la promo MEP 024), y 2 que no existen en ningún sitio con carta proxy (Moltres de Galar SWSH284 y
+  Magikarp de la Colección Clásica del 30.º Aniversario). `generar_proxies.py` lee ahora todos los catálogos.
+- Los dos están en `datos/albumes-artista.json`: reciben cada lunes sus cartas nuevas. El arte y las proxies van también a la app sin conexión.

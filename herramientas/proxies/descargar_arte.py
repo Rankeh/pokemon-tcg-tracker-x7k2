@@ -21,7 +21,14 @@ for n in range(208, 213):
             print('fallo', id_, p.split('/')[-1], e)
     else: print('SIN ARTE', id_, '(seguirá el proxy)')
 # 3.15 · otras cartas que TCGdex no tiene (sin proxy): URL comprobada en limitlesstcg.com. Nombre en minúsculas (GitHub Pages).
-EXTRA = {'swsh12.5gg-gg19': 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRZ/CRZ_GG19_R_ES_LG.png'}   # Altaria (Asako Ito)
+L = 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/'
+EXTRA = {'swsh12.5gg-gg19': 'https://limitlesstcg.nyc3.cdn.digitaloceanspaces.com/tpci/CRZ/CRZ_GG19_R_ES_LG.png',   # Altaria (Asako Ito)
+         # 3.33 · Akira Egawa (galerías de Cenit Supremo, Astros Brillantes, Tempestad Plateada y Origen Perdido) y Shinji Kanda (promo MEP)
+         'swsh12.5gg-gg67': L + 'CRZ/CRZ_GG67_R_ES_LG.png', 'swsh12.5gg-gg68': L + 'CRZ/CRZ_GG68_R_ES_LG.png',
+         'swsh12.5gg-gg69': L + 'CRZ/CRZ_GG69_R_ES_LG.png', 'swsh12.5gg-gg70': L + 'CRZ/CRZ_GG70_R_ES_LG.png',
+         'swsh9tg-tg05': L + 'BRS/BRS_TG5_R_ES_LG.png', 'swsh12tg-tg05': L + 'SIT/SIT_TG5_R_ES_LG.png',
+         'swsh11tg-tg18': L + 'LOR/LOR_TG18_R_ES_LG.png', 'swsh12tg-tg21': L + 'SIT/SIT_TG21_R_ES_LG.png',
+         'mep-024': L + 'MEP/MEP_024_R_ES_LG.png'}
 for id_, url in EXTRA.items():
     try:
         datos = urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'}), timeout=20).read()

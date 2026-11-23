@@ -1,0 +1,2831 @@
+{
+ "generado": "2026-11-23",
+ "fuente": "TCGdex (datos MIT), ilustrador = «AKIRA EGAWA» (coincidencia exacta)",
+ "ilustrador": "AKIRA EGAWA",
+ "totales": {
+  "total": 95,
+  "imagenEspanol": 87,
+  "imagenOtroIdioma": 0,
+  "sinImagen": 8,
+  "excluidas": [
+   {
+    "id": "A3a-004",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A1a-011",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A3-015",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A4a-022",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2a-024",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A4-026",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B2a-034",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A3b-047",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B1a-048",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2a-050",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B1a-061",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B2a-062",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2-075",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2-076",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2-077",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2-078",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B2-080",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B2a-084",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A2-091",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A4-093",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A1-095",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B1-147",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A3-204",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A3-207",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A4-208",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A1-236",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "A1-278",
+    "motivo": "TCG Pocket (digital)"
+   },
+   {
+    "id": "B1-284",
+    "motivo": "TCG Pocket (digital)"
+   }
+  ]
+ },
+ "cartas": [
+  {
+   "id": "swsh6-7",
+   "categoriaColeccion": "otra",
+   "nombre": "Celebi V",
+   "numero": "7",
+   "expansion": "swsh6",
+   "nombreExpansion": "Reinado Escalofriante",
+   "serie": "swsh",
+   "rareza": "Holo Rara V",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh6/7/high.webp",
+   "dexId": [
+    251
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh4.5-7",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Dartrix",
+   "numero": "7",
+   "expansion": "swsh4.5",
+   "nombreExpansion": "Destinos Brillantes",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh4.5/7/high.webp",
+   "dexId": [
+    723
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh5-9",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Carnivine",
+   "numero": "9",
+   "expansion": "swsh5",
+   "nombreExpansion": "Estilos de Combate",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh5/9/high.webp",
+   "dexId": [
+    455
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me06-009",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Virizion",
+   "numero": "009",
+   "expansion": "me06",
+   "nombreExpansion": "Dominio Delta",
+   "serie": "me",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/me06/009/high.webp",
+   "dexId": null,
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "cel25-12",
+   "categoriaColeccion": "rara",
+   "nombre": "Xerneas",
+   "numero": "12",
+   "expansion": "cel25",
+   "nombreExpansion": "Celebraciones",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/cel25/12/high.webp",
+   "dexId": [
+    716
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv04.5-015",
+   "categoriaColeccion": "rara",
+   "nombre": "Armarouge",
+   "numero": "015",
+   "expansion": "sv04.5",
+   "nombreExpansion": "Destinos de Paldea",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv04.5/015/high.webp",
+   "dexId": [
+    936
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sm11-16",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Lurantis",
+   "numero": "16",
+   "expansion": "sm11",
+   "nombreExpansion": "Mentes Unidas",
+   "serie": "sm",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm11/16/high.webp",
+   "dexId": [
+    754
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh11-016",
+   "categoriaColeccion": "comun",
+   "nombre": "Phantump",
+   "numero": "016",
+   "expansion": "swsh11",
+   "nombreExpansion": "Origen Perdido",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh11/016/high.webp",
+   "dexId": [
+    708
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me02-017",
+   "categoriaColeccion": "rara",
+   "nombre": "Reshiram",
+   "numero": "017",
+   "expansion": "me02",
+   "nombreExpansion": "Fuegos Fantasmales",
+   "serie": "me",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/me02/017/high.webp",
+   "dexId": [
+    643
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "cel25-19",
+   "categoriaColeccion": "rara",
+   "nombre": "Yveltal",
+   "numero": "19",
+   "expansion": "cel25",
+   "nombreExpansion": "Celebraciones",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/cel25/19/high.webp",
+   "dexId": [
+    717
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh9-020",
+   "categoriaColeccion": "rara",
+   "nombre": "Magmortar",
+   "numero": "020",
+   "expansion": "swsh9",
+   "nombreExpansion": "Astros Brillantes",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh9/020/high.webp",
+   "dexId": [
+    467
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh6-21",
+   "categoriaColeccion": "otra",
+   "nombre": "Blaziken VMAX",
+   "numero": "21",
+   "expansion": "swsh6",
+   "nombreExpansion": "Reinado Escalofriante",
+   "serie": "swsh",
+   "rareza": "Holo Rara VMAX",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh6/21/high.webp",
+   "dexId": [
+    257
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv04.5-022",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Kilowattrel",
+   "numero": "022",
+   "expansion": "sv04.5",
+   "nombreExpansion": "Destinos de Paldea",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv04.5/022/high.webp",
+   "dexId": [
+    941
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh4.5-23",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Floatzel",
+   "numero": "23",
+   "expansion": "swsh4.5",
+   "nombreExpansion": "Destinos Brillantes",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh4.5/23/high.webp",
+   "dexId": [
+    419
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv07-025",
+   "categoriaColeccion": "comun",
+   "nombre": "Turtonator",
+   "numero": "025",
+   "expansion": "sv07",
+   "nombreExpansion": "Corona Astral",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv07/025/high.webp",
+   "dexId": [
+    776
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sm12-25",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Flareon",
+   "numero": "25",
+   "expansion": "sm12",
+   "nombreExpansion": "Eclipse Cósmico",
+   "serie": "sm",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm12/25/high.webp",
+   "dexId": [
+    136
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh3.5-25",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Machoke",
+   "numero": "25",
+   "expansion": "swsh3.5",
+   "nombreExpansion": "Camino de Campeones",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh3.5/25/high.webp",
+   "dexId": [
+    67
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh2-25",
+   "categoriaColeccion": "rara",
+   "nombre": "Ninetales",
+   "numero": "25",
+   "expansion": "swsh2",
+   "nombreExpansion": "Choque Rebelde",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh2/25/high.webp",
+   "dexId": [
+    38
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me03-025",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Volcanion",
+   "numero": "025",
+   "expansion": "me03",
+   "nombreExpansion": "Equilibrio Perfecto",
+   "serie": "me",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/me03/025/high.webp",
+   "dexId": [
+    721
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh3.5-27",
+   "categoriaColeccion": "otra",
+   "nombre": "Lucario V",
+   "numero": "27",
+   "expansion": "swsh3.5",
+   "nombreExpansion": "Camino de Campeones",
+   "serie": "swsh",
+   "rareza": "Holo Rara V",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh3.5/27/high.webp",
+   "dexId": [
+    448
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv02-028",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Tauros de Paldea",
+   "numero": "028",
+   "expansion": "sv02",
+   "nombreExpansion": "Evoluciones en Paldea",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv02/028/high.webp",
+   "dexId": [
+    128
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh11-037",
+   "categoriaColeccion": "rara",
+   "nombre": "Kingdra",
+   "numero": "037",
+   "expansion": "swsh11",
+   "nombreExpansion": "Origen Perdido",
+   "serie": "swsh",
+   "rareza": "Holo Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh11/037/high.webp",
+   "dexId": [
+    230
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv08-038",
+   "categoriaColeccion": "rara",
+   "nombre": "Flamariete",
+   "numero": "038",
+   "expansion": "sv08",
+   "nombreExpansion": "Chispas Fulgurantes",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv08/038/high.webp",
+   "dexId": [
+    1020
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh3-39",
+   "categoriaColeccion": "rara",
+   "nombre": "Milotic",
+   "numero": "39",
+   "expansion": "swsh3",
+   "nombreExpansion": "Oscuridad Incandescente",
+   "serie": "swsh",
+   "rareza": "Holo Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh3/39/high.webp",
+   "dexId": [
+    350
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh8-40",
+   "categoriaColeccion": "otra",
+   "nombre": "Chandelure VMAX",
+   "numero": "40",
+   "expansion": "swsh8",
+   "nombreExpansion": "Golpe Fusión",
+   "serie": "swsh",
+   "rareza": "Holo Rara VMAX",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh8/40/high.webp",
+   "dexId": [
+    609
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv01-041",
+   "categoriaColeccion": "rara",
+   "nombre": "Armarouge",
+   "numero": "041",
+   "expansion": "sv01",
+   "nombreExpansion": "Escarlata y Púrpura",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv01/041/high.webp",
+   "dexId": [
+    936
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh11-045",
+   "categoriaColeccion": "rara",
+   "nombre": "Basculegion de Hisui",
+   "numero": "045",
+   "expansion": "swsh11",
+   "nombreExpansion": "Origen Perdido",
+   "serie": "swsh",
+   "rareza": "Holo Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh11/045/high.webp",
+   "dexId": [
+    902
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh9-047",
+   "categoriaColeccion": "rara",
+   "nombre": "Electivire",
+   "numero": "047",
+   "expansion": "swsh9",
+   "nombreExpansion": "Astros Brillantes",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh9/047/high.webp",
+   "dexId": [
+    466
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh4-48",
+   "categoriaColeccion": "rara",
+   "nombre": "Zapdos",
+   "numero": "48",
+   "expansion": "swsh4",
+   "nombreExpansion": "Voltaje Vívido",
+   "serie": "swsh",
+   "rareza": "Holo Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh4/48/high.webp",
+   "dexId": [
+    145
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh5-50",
+   "categoriaColeccion": "otra",
+   "nombre": "Tapu Koko V",
+   "numero": "50",
+   "expansion": "swsh5",
+   "nombreExpansion": "Estilos de Combate",
+   "serie": "swsh",
+   "rareza": "Holo Rara V",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh5/50/high.webp",
+   "dexId": [
+    785
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh10-050",
+   "categoriaColeccion": "otra",
+   "nombre": "Luxray V",
+   "numero": "050",
+   "expansion": "swsh10",
+   "nombreExpansion": "Resplandor Astral",
+   "serie": "swsh",
+   "rareza": "Holo Rara V",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh10/050/high.webp",
+   "dexId": [
+    405
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sm12-57",
+   "categoriaColeccion": "rara",
+   "nombre": "Phione",
+   "numero": "57",
+   "expansion": "sm12",
+   "nombreExpansion": "Eclipse Cósmico",
+   "serie": "sm",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm12/57/high.webp",
+   "dexId": [
+    489
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv02-058",
+   "categoriaColeccion": "comun",
+   "nombre": "Frigibax",
+   "numero": "058",
+   "expansion": "sv02",
+   "nombreExpansion": "Evoluciones en Paldea",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv02/058/high.webp",
+   "dexId": [
+    996
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo · snowflake",
+     "sello": [
+      "snowflake"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh10-058",
+   "categoriaColeccion": "comun",
+   "nombre": "Misdreavus",
+   "numero": "058",
+   "expansion": "swsh10",
+   "nombreExpansion": "Resplandor Astral",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh10/058/high.webp",
+   "dexId": [
+    200
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sm12-67",
+   "categoriaColeccion": "rara",
+   "nombre": "Raichu",
+   "numero": "67",
+   "expansion": "sm12",
+   "nombreExpansion": "Eclipse Cósmico",
+   "serie": "sm",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm12/67/high.webp",
+   "dexId": [
+    26
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh12.5-068",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Graveler",
+   "numero": "068",
+   "expansion": "swsh12.5",
+   "nombreExpansion": "Cenit Supremo",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh12.5/068/high.webp",
+   "dexId": [
+    75
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv03-071",
+   "categoriaColeccion": "comun",
+   "nombre": "Toxel",
+   "numero": "071",
+   "expansion": "sv03",
+   "nombreExpansion": "Llamas Obsidianas",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv03/071/high.webp",
+   "dexId": [
+    848
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me06-072",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Druddigon",
+   "numero": "072",
+   "expansion": "me06",
+   "nombreExpansion": "Dominio Delta",
+   "serie": "me",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/me06/072/high.webp",
+   "dexId": null,
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv06.5-074",
+   "categoriaColeccion": "ir",
+   "nombre": "Okidogi",
+   "numero": "074",
+   "expansion": "sv06.5",
+   "nombreExpansion": "Fabula Sombría",
+   "serie": "sv",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06.5/074/high.webp",
+   "dexId": [
+    1014
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh5-80",
+   "categoriaColeccion": "rara",
+   "nombre": "Coalossal",
+   "numero": "80",
+   "expansion": "swsh5",
+   "nombreExpansion": "Estilos de Combate",
+   "serie": "swsh",
+   "rareza": "Holo Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh5/80/high.webp",
+   "dexId": [
+    839
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh10-090",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Overqwil de Hisui",
+   "numero": "090",
+   "expansion": "swsh10",
+   "nombreExpansion": "Resplandor Astral",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh10/090/high.webp",
+   "dexId": [
+    904
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh9-091",
+   "categoriaColeccion": "rara",
+   "nombre": "Liepard",
+   "numero": "091",
+   "expansion": "swsh9",
+   "nombreExpansion": "Astros Brillantes",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh9/091/high.webp",
+   "dexId": [
+    510
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh11-094",
+   "categoriaColeccion": "comun",
+   "nombre": "Sudowoodo",
+   "numero": "094",
+   "expansion": "swsh11",
+   "nombreExpansion": "Origen Perdido",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh11/094/high.webp",
+   "dexId": [
+    185
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv09-095",
+   "categoriaColeccion": "rara",
+   "nombre": "Tyranitar",
+   "numero": "095",
+   "expansion": "sv09",
+   "nombreExpansion": "Juntos de Aventuras",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv09/095/high.webp",
+   "dexId": [
+    248
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal · player-rewards-program",
+     "sello": [
+      "player-rewards-program"
+     ]
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh7-95",
+   "categoriaColeccion": "otra",
+   "nombre": "Umbreon VMAX",
+   "numero": "95",
+   "expansion": "swsh7",
+   "nombreExpansion": "Cielos Evolutivos",
+   "serie": "swsh",
+   "rareza": "Holo Rara VMAX",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh7/95/high.webp",
+   "dexId": [
+    197
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv10.5b-100",
+   "categoriaColeccion": "ir",
+   "nombre": "Volcarona",
+   "numero": "100",
+   "expansion": "sv10.5b",
+   "nombreExpansion": "Fulgor Negro",
+   "serie": "sv",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv10.5b/100/high.webp",
+   "dexId": [
+    637
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv09-100",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Lokix",
+   "numero": "100",
+   "expansion": "sv09",
+   "nombreExpansion": "Juntos de Aventuras",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv09/100/high.webp",
+   "dexId": [
+    920
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv06-101",
+   "categoriaColeccion": "comun",
+   "nombre": "Nosepass",
+   "numero": "101",
+   "expansion": "sv06",
+   "nombreExpansion": "Mascarada Crepuscular",
+   "serie": "sv",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06/101/high.webp",
+   "dexId": [
+    299
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-106",
+   "categoriaColeccion": "rara",
+   "nombre": "Zacian",
+   "numero": "106",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/106/high.webp",
+   "dexId": [
+    888
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv04-109",
+   "categoriaColeccion": "rara",
+   "nombre": "Ting-Lu",
+   "numero": "109",
+   "expansion": "sv04",
+   "nombreExpansion": "Brecha Paradójica",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv04/109/high.webp",
+   "dexId": [
+    1003
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "svp-112",
+   "categoriaColeccion": "promo",
+   "nombre": "Bisharp",
+   "numero": "112",
+   "expansion": "svp",
+   "nombreExpansion": "SVP Black Star Promos",
+   "serie": "sv",
+   "rareza": "Promo",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/svp/112/high.webp",
+   "dexId": [
+    625
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sm11-116",
+   "categoriaColeccion": "comun",
+   "nombre": "Riolu",
+   "numero": "116",
+   "expansion": "sm11",
+   "nombreExpansion": "Mentes Unidas",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm11/116/high.webp",
+   "dexId": [
+    447
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me05-116",
+   "categoriaColeccion": "sir",
+   "nombre": "Mega-Darkrai ex",
+   "numero": "116",
+   "expansion": "me05",
+   "nombreExpansion": "Oscuridad Absoluta",
+   "serie": "me",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/me05/116/high.webp",
+   "dexId": [
+    491
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh2-118",
+   "categoriaColeccion": "rara",
+   "nombre": "Garbodor",
+   "numero": "118",
+   "expansion": "swsh2",
+   "nombreExpansion": "Choque Rebelde",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh2/118/high.webp",
+   "dexId": [
+    569
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv10-121",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Golbat del Team Rocket",
+   "numero": "121",
+   "expansion": "sv10",
+   "nombreExpansion": "Rivales Predestinados",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv10/121/high.webp",
+   "dexId": [
+    42
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv06-123",
+   "categoriaColeccion": "rara",
+   "nombre": "Heatran",
+   "numero": "123",
+   "expansion": "sv06",
+   "nombreExpansion": "Mascarada Crepuscular",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv06/123/high.webp",
+   "dexId": [
+    485
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh11-126",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Bronzong",
+   "numero": "126",
+   "expansion": "swsh11",
+   "nombreExpansion": "Origen Perdido",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh11/126/high.webp",
+   "dexId": [
+    437
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh4-128",
+   "categoriaColeccion": "rara",
+   "nombre": "Magearna",
+   "numero": "128",
+   "expansion": "swsh4",
+   "nombreExpansion": "Voltaje Vívido",
+   "serie": "swsh",
+   "rareza": "Holo Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh4/128/high.webp",
+   "dexId": [
+    801
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh1-129",
+   "categoriaColeccion": "comun",
+   "nombre": "Mawile",
+   "numero": "129",
+   "expansion": "swsh1",
+   "nombreExpansion": "Espada y Escudo",
+   "serie": "swsh",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh1/129/high.webp",
+   "dexId": [
+    303
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh12-140",
+   "categoriaColeccion": "otra",
+   "nombre": "Ho-Oh V",
+   "numero": "140",
+   "expansion": "swsh12",
+   "nombreExpansion": "Tempestad Plateada",
+   "serie": "swsh",
+   "rareza": "Holo Rara V",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh12/140/high.webp",
+   "dexId": [
+    250
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv08-141",
+   "categoriaColeccion": "rara",
+   "nombre": "Eternatus",
+   "numero": "141",
+   "expansion": "sv08",
+   "nombreExpansion": "Chispas Fulgurantes",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv08/141/high.webp",
+   "dexId": [
+    890
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh3-147",
+   "categoriaColeccion": "rara",
+   "nombre": "Staraptor",
+   "numero": "147",
+   "expansion": "swsh3",
+   "nombreExpansion": "Oscuridad Incandescente",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh3/147/high.webp",
+   "dexId": [
+    398
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv03.5-150",
+   "categoriaColeccion": "rara",
+   "nombre": "Mewtwo",
+   "numero": "150",
+   "expansion": "sv03.5",
+   "nombreExpansion": "151",
+   "serie": "sv",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv03.5/150/high.webp",
+   "dexId": [
+    150
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "30th-155",
+   "categoriaColeccion": "sir",
+   "nombre": "Jirachi ex",
+   "numero": "155",
+   "expansion": "30th",
+   "nombreExpansion": "Celebración 30.º Aniversario",
+   "serie": "me",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/30th/155/high.webp",
+   "dexId": [
+    385
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · sello 30.º aniversario",
+     "sello": [
+      "30th-anniversary"
+     ]
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "me02.5-155",
+   "categoriaColeccion": "rara",
+   "nombre": "Zekrom de N",
+   "numero": "155",
+   "expansion": "me02.5",
+   "nombreExpansion": "Héroes Ascendentes",
+   "serie": "me",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/me02.5/155/high.webp",
+   "dexId": [
+    644
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal · player-rewards-program",
+     "sello": [
+      "player-rewards-program"
+     ]
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    },
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sm12-160",
+   "categoriaColeccion": "comun",
+   "nombre": "Jangmo-o",
+   "numero": "160",
+   "expansion": "sm12",
+   "nombreExpansion": "Eclipse Cósmico",
+   "serie": "sm",
+   "rareza": "Común",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sm/sm12/160/high.webp",
+   "dexId": [
+    782
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo",
+     "deducida": true
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv01-163",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Cyclizar",
+   "numero": "163",
+   "expansion": "sv01",
+   "nombreExpansion": "Escarlata y Púrpura",
+   "serie": "sv",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv01/163/high.webp",
+   "dexId": [
+    967
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me01-181",
+   "categoriaColeccion": "sir",
+   "nombre": "Mega-Latias ex",
+   "numero": "181",
+   "expansion": "me01",
+   "nombreExpansion": "Megaevolución",
+   "serie": "me",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/me01/181/high.webp",
+   "dexId": [
+    380
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv04-197",
+   "categoriaColeccion": "ir",
+   "nombre": "Espathra",
+   "numero": "197",
+   "expansion": "sv04",
+   "nombreExpansion": "Brecha Paradójica",
+   "serie": "sv",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv04/197/high.webp",
+   "dexId": [
+    956
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh6-200",
+   "categoriaColeccion": "otra",
+   "nombre": "Blaziken VMAX",
+   "numero": "200",
+   "expansion": "swsh6",
+   "nombreExpansion": "Reinado Escalofriante",
+   "serie": "swsh",
+   "rareza": "Rara Secreta",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh6/200/high.webp",
+   "dexId": [
+    257
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv01-207",
+   "categoriaColeccion": "ir",
+   "nombre": "Dondozo",
+   "numero": "207",
+   "expansion": "sv01",
+   "nombreExpansion": "Escarlata y Púrpura",
+   "serie": "sv",
+   "rareza": "Rara Ilustración",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv01/207/high.webp",
+   "dexId": [
+    977
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh8-213",
+   "categoriaColeccion": "infrecuente",
+   "nombre": "Lopunny",
+   "numero": "213",
+   "expansion": "swsh8",
+   "nombreExpansion": "Golpe Fusión",
+   "serie": "swsh",
+   "rareza": "Uncommon",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh8/213/high.webp",
+   "dexId": [
+    428
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "normal",
+     "nombre": "Normal"
+    },
+    {
+     "id": "reverse",
+     "nombre": "Reverse holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh7-214",
+   "categoriaColeccion": "otra",
+   "nombre": "Umbreon VMAX",
+   "numero": "214",
+   "expansion": "swsh7",
+   "nombreExpansion": "Cielos Evolutivos",
+   "serie": "swsh",
+   "rareza": "Rara Secreta",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh7/214/high.webp",
+   "dexId": [
+    197
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "sv03-223",
+   "categoriaColeccion": "sir",
+   "nombre": "Charizard ex",
+   "numero": "223",
+   "expansion": "sv03",
+   "nombreExpansion": "Llamas Obsidianas",
+   "serie": "sv",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv03/223/high.webp",
+   "dexId": [
+    6
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv10-229",
+   "categoriaColeccion": "sir",
+   "nombre": "Moltres ex del Team Rocket",
+   "numero": "229",
+   "expansion": "sv10",
+   "nombreExpansion": "Rivales Predestinados",
+   "serie": "sv",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv10/229/high.webp",
+   "dexId": [
+    146
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv04.5-234",
+   "categoriaColeccion": "sir",
+   "nombre": "Charizard ex",
+   "numero": "234",
+   "expansion": "sv04.5",
+   "nombreExpansion": "Destinos de Paldea",
+   "serie": "sv",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv04.5/234/high.webp",
+   "dexId": [
+    6
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv08-240",
+   "categoriaColeccion": "sir",
+   "nombre": "Hydreigon ex",
+   "numero": "240",
+   "expansion": "sv08",
+   "nombreExpansion": "Chispas Fulgurantes",
+   "serie": "sv",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv08/240/high.webp",
+   "dexId": [
+    635
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv04-259",
+   "categoriaColeccion": "sir",
+   "nombre": "Tuli",
+   "numero": "259",
+   "expansion": "sv04",
+   "nombreExpansion": "Brecha Paradójica",
+   "serie": "sv",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv04/259/high.webp",
+   "dexId": null,
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "sv02-259",
+   "categoriaColeccion": "sir",
+   "nombre": "Chi-Yu ex",
+   "numero": "259",
+   "expansion": "sv02",
+   "nombreExpansion": "Evoluciones en Paldea",
+   "serie": "sv",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/sv/sv02/259/high.webp",
+   "dexId": [
+    1004
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh8-265",
+   "categoriaColeccion": "otra",
+   "nombre": "Chandelure VMAX",
+   "numero": "265",
+   "expansion": "swsh8",
+   "nombreExpansion": "Golpe Fusión",
+   "serie": "swsh",
+   "rareza": "Rara Secreta",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh8/265/high.webp",
+   "dexId": [
+    609
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh8-269",
+   "categoriaColeccion": "otra",
+   "nombre": "Mew VMAX",
+   "numero": "269",
+   "expansion": "swsh8",
+   "nombreExpansion": "Golpe Fusión",
+   "serie": "swsh",
+   "rareza": "Rara Secreta",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swsh8/269/high.webp",
+   "dexId": [
+    151
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "me02.5-283",
+   "categoriaColeccion": "sir",
+   "nombre": "Mega-Hawlucha ex",
+   "numero": "283",
+   "expansion": "me02.5",
+   "nombreExpansion": "Héroes Ascendentes",
+   "serie": "me",
+   "rareza": "Rara Ilustración Especial",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/me/me02.5/283/high.webp",
+   "dexId": [
+    701
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh12.5gg-GG67",
+   "categoriaColeccion": "otra",
+   "nombre": "Palkia Origen V-ASTRO",
+   "numero": "GG67",
+   "expansion": "swsh12.5gg",
+   "nombreExpansion": "Cenit Supremo Galería de Galar",
+   "serie": "swsh",
+   "rareza": "Rara Secreta",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": null,
+   "dexId": [
+    484
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh12.5gg-GG68",
+   "categoriaColeccion": "otra",
+   "nombre": "Dialga Origen V-ASTRO",
+   "numero": "GG68",
+   "expansion": "swsh12.5gg",
+   "nombreExpansion": "Cenit Supremo Galería de Galar",
+   "serie": "swsh",
+   "rareza": "Rara Secreta",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": null,
+   "dexId": [
+    483
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh12.5gg-GG69",
+   "categoriaColeccion": "otra",
+   "nombre": "Giratina V-ASTRO",
+   "numero": "GG69",
+   "expansion": "swsh12.5gg",
+   "nombreExpansion": "Cenit Supremo Galería de Galar",
+   "serie": "swsh",
+   "rareza": "Rara Secreta",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": null,
+   "dexId": [
+    487
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh12.5gg-GG70",
+   "categoriaColeccion": "otra",
+   "nombre": "Arceus V-ASTRO",
+   "numero": "GG70",
+   "expansion": "swsh12.5gg",
+   "nombreExpansion": "Cenit Supremo Galería de Galar",
+   "serie": "swsh",
+   "rareza": "Rara Secreta",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": null,
+   "dexId": [
+    493
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swshp-SWSH113",
+   "categoriaColeccion": "promo",
+   "nombre": "Inteleon",
+   "numero": "SWSH113",
+   "expansion": "swshp",
+   "nombreExpansion": "Cartas de promoción ESES",
+   "serie": "swsh",
+   "rareza": "Promo",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swshp/SWSH113/high.webp",
+   "dexId": [
+    818
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo · set-logo",
+     "sello": [
+      "set-logo"
+     ]
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swshp-SWSH159",
+   "categoriaColeccion": "promo",
+   "nombre": "Mewtwo V-UNIÓN",
+   "numero": "SWSH159",
+   "expansion": "swshp",
+   "nombreExpansion": "Cartas de promoción ESES",
+   "serie": "swsh",
+   "rareza": "Promo",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swshp/SWSH159/high.webp",
+   "dexId": [
+    150
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swshp-SWSH160",
+   "categoriaColeccion": "promo",
+   "nombre": "Mewtwo V-UNIÓN",
+   "numero": "SWSH160",
+   "expansion": "swshp",
+   "nombreExpansion": "Cartas de promoción ESES",
+   "serie": "swsh",
+   "rareza": "Promo",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swshp/SWSH160/high.webp",
+   "dexId": [
+    150
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swshp-SWSH161",
+   "categoriaColeccion": "promo",
+   "nombre": "Mewtwo V-UNIÓN",
+   "numero": "SWSH161",
+   "expansion": "swshp",
+   "nombreExpansion": "Cartas de promoción ESES",
+   "serie": "swsh",
+   "rareza": "Promo",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swshp/SWSH161/high.webp",
+   "dexId": [
+    150
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swshp-SWSH162",
+   "categoriaColeccion": "promo",
+   "nombre": "Mewtwo V-UNIÓN",
+   "numero": "SWSH162",
+   "expansion": "swshp",
+   "nombreExpansion": "Cartas de promoción ESES",
+   "serie": "swsh",
+   "rareza": "Promo",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": "https://assets.tcgdex.net/es/swsh/swshp/SWSH162/high.webp",
+   "dexId": [
+    150
+   ],
+   "estadoImagen": "espanol-verificada",
+   "idiomaImagen": "es",
+   "imagenCarga": true,
+   "origenImagen": "TCGdex (campo image)",
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": false
+  },
+  {
+   "id": "swsh9tg-TG05",
+   "categoriaColeccion": "rara",
+   "nombre": "Zekrom",
+   "numero": "TG05",
+   "expansion": "swsh9tg",
+   "nombreExpansion": "Astros Brillantes Galería de Entrenador",
+   "serie": "swsh",
+   "rareza": "Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": null,
+   "dexId": [
+    644
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh12tg-TG05",
+   "categoriaColeccion": "rara",
+   "nombre": "Gardevoir",
+   "numero": "TG05",
+   "expansion": "swsh12tg",
+   "nombreExpansion": "Tempestad Plateada Galería de Entrenador",
+   "serie": "swsh",
+   "rareza": "Holo Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": null,
+   "dexId": [
+    282
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh11tg-TG18",
+   "categoriaColeccion": "otra",
+   "nombre": "Enamorus V",
+   "numero": "TG18",
+   "expansion": "swsh11tg",
+   "nombreExpansion": "Origen Perdido Galería de Entrenador",
+   "serie": "swsh",
+   "rareza": "Ultra Rara",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": null,
+   "dexId": [
+    905
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  },
+  {
+   "id": "swsh12tg-TG21",
+   "categoriaColeccion": "otra",
+   "nombre": "Duraludon VMAX",
+   "numero": "TG21",
+   "expansion": "swsh12tg",
+   "nombreExpansion": "Tempestad Plateada Galería de Entrenador",
+   "serie": "swsh",
+   "rareza": "Holo Rara VMAX",
+   "ilustrador": "AKIRA EGAWA",
+   "imagen": null,
+   "dexId": [
+    884
+   ],
+   "estadoImagen": "sin-imagen",
+   "idiomaImagen": null,
+   "imagenCarga": false,
+   "origenImagen": null,
+   "variantes": [
+    {
+     "id": "holo",
+     "nombre": "Holo"
+    }
+   ],
+   "arteCompleto": true
+  }
+ ]
+}
