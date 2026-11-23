@@ -8,7 +8,7 @@
    "tendencia": 0.23,
    "bajo": 0.02,
    "medio30": 0.19,
-   "actualizado": "2026-11-22T22:16:19.123Z",
+   "actualizado": "2026-11-22T22:16:19.213Z",
    "variantes": {
     "normal": {
      "tendencia": 0.23,
@@ -24,7 +24,7 @@
    "tendencia": 0.05,
    "bajo": 0.02,
    "medio30": 0.04,
-   "actualizado": "2026-11-22T22:16:19.162Z",
+   "actualizado": "2026-11-22T22:16:19.149Z",
    "variantes": {
     "normal": {
      "tendencia": 0.05,
@@ -40,13 +40,13 @@
    "tendencia": 0.13,
    "bajo": 0.02,
    "medio30": 0.14,
-   "actualizado": "2026-11-22T22:16:19.157Z"
+   "actualizado": "2026-11-22T22:16:19.123Z"
   },
   "sm5-10": {
    "tendencia": 0.34,
    "bajo": 0.02,
    "medio30": 0.37,
-   "actualizado": "2026-11-22T22:16:19.157Z"
+   "actualizado": "2026-11-22T22:16:19.162Z"
   },
   "me05-015": {
    "tendencia": 0.04,
@@ -68,7 +68,7 @@
    "tendencia": 0.05,
    "bajo": 0.02,
    "medio30": 0.06,
-   "actualizado": "2026-11-22T22:16:19.169Z",
+   "actualizado": "2026-11-22T22:16:19.162Z",
    "variantes": {
     "normal": {
      "tendencia": 0.05,
@@ -84,7 +84,7 @@
    "tendencia": 0.05,
    "bajo": 0.02,
    "medio30": 0.05,
-   "actualizado": "2026-11-22T22:16:19.169Z",
+   "actualizado": "2026-11-22T22:16:19.123Z",
    "variantes": {
     "normal": {
      "tendencia": 0.05,
@@ -100,7 +100,7 @@
    "tendencia": 0.44,
    "bajo": 0.06,
    "medio30": 0.69,
-   "actualizado": "2026-11-22T22:16:19.169Z",
+   "actualizado": "2026-11-22T22:16:19.213Z",
    "variantes": {
     "holo": {
      "tendencia": 0.44,
@@ -134,19 +134,19 @@
    "tendencia": 21.91,
    "bajo": 10.99,
    "medio30": 20.28,
-   "actualizado": "2026-11-22T22:16:19.157Z"
+   "actualizado": "2026-11-22T22:16:19.123Z"
   },
   "sm7-44": {
    "tendencia": 0.37,
    "bajo": 0.02,
    "medio30": 0.6,
-   "actualizado": "2026-11-22T22:16:19.213Z"
+   "actualizado": "2026-11-22T22:16:19.157Z"
   },
   "sm3-44": {
    "tendencia": 0.15,
    "bajo": 0.02,
    "medio30": 0.13,
-   "actualizado": "2026-11-22T22:16:19.210Z",
+   "actualizado": "2026-11-22T22:16:19.162Z",
    "variantes": {
     "normal": {
      "tendencia": 0.15,
@@ -162,25 +162,25 @@
    "tendencia": 0.33,
    "bajo": 0.02,
    "medio30": 0.25,
-   "actualizado": "2026-11-22T22:16:19.210Z"
+   "actualizado": "2026-11-22T22:16:19.162Z"
   },
   "sm10-53": {
    "tendencia": 1.1,
    "bajo": 0.03,
    "medio30": 0.98,
-   "actualizado": "2026-11-22T22:16:19.213Z"
+   "actualizado": "2026-11-22T22:16:19.123Z"
   },
   "sm12-58": {
    "tendencia": 0.17,
    "bajo": 0.02,
    "medio30": 0.16,
-   "actualizado": "2026-11-22T22:16:19.213Z"
+   "actualizado": "2026-11-22T22:16:19.162Z"
   },
   "swsh4-72": {
    "tendencia": 0.1,
    "bajo": 0.02,
    "medio30": 0.08,
-   "actualizado": "2026-11-22T22:16:19.169Z",
+   "actualizado": "2026-11-22T22:16:19.162Z",
    "variantes": {
     "normal": {
      "tendencia": 0.1,
@@ -212,7 +212,7 @@
    "tendencia": 0.05,
    "bajo": 0.02,
    "medio30": 0.06,
-   "actualizado": "2026-11-22T22:16:19.123Z",
+   "actualizado": "2026-11-22T22:16:19.213Z",
    "variantes": {
     "normal": {
      "tendencia": 0.05,
@@ -234,7 +234,7 @@
    "tendencia": 0.09,
    "bajo": 0.02,
    "medio30": 0.08,
-   "actualizado": "2026-11-22T22:16:19.158Z",
+   "actualizado": "2026-11-22T22:16:19.162Z",
    "variantes": {
     "normal": {
      "tendencia": 0.09,
@@ -250,7 +250,7 @@
    "tendencia": 0.1,
    "bajo": 0.02,
    "medio30": 0.11,
-   "actualizado": "2026-11-22T22:16:19.169Z",
+   "actualizado": "2026-11-22T22:16:19.123Z",
    "variantes": {
     "normal": {
      "tendencia": 0.1,
@@ -282,25 +282,25 @@
    "tendencia": 0.2,
    "bajo": 0.02,
    "medio30": 0.16,
-   "actualizado": "2026-11-22T22:16:19.213Z"
+   "actualizado": "2026-11-22T22:16:19.123Z"
   },
   "sm8-101": {
    "tendencia": 0.89,
    "bajo": 0.02,
    "medio30": 1.02,
-   "actualizado": "2026-11-22T22:16:19.123Z"
+   "actualizado": "2026-11-22T22:16:19.162Z"
   },
   "sm7-105": {
    "tendencia": 3.72,
    "bajo": 0.27,
    "medio30": 6.15,
-   "actualizado": "2026-11-22T22:16:19.157Z"
+   "actualizado": "2026-11-22T22:16:19.162Z"
   },
   "swsh12.5-109": {
    "tendencia": 0.6,
    "bajo": 0.02,
    "medio30": 0.67,
-   "actualizado": "2026-11-22T22:16:19.158Z",
+   "actualizado": "2026-11-22T22:16:19.213Z",
    "variantes": {
     "normal": {
      "tendencia": 0.6,
@@ -316,7 +316,7 @@
    "tendencia": 0.18,
    "bajo": 0.02,
    "medio30": 0.23,
-   "actualizado": "2026-11-22T22:16:19.169Z",
+   "actualizado": "2026-11-22T22:16:19.213Z",
    "variantes": {
     "normal": {
      "tendencia": 0.18,
@@ -332,19 +332,19 @@
    "tendencia": 0.69,
    "bajo": 0.02,
    "medio30": 1.39,
-   "actualizado": "2026-11-22T22:16:19.158Z"
+   "actualizado": "2026-11-22T22:16:19.213Z"
   },
   "sm11-112": {
    "tendencia": 0.41,
    "bajo": 0.02,
    "medio30": 0.27,
-   "actualizado": "2026-11-22T22:16:19.157Z"
+   "actualizado": "2026-11-22T22:16:19.162Z"
   },
   "sm7-117": {
    "tendencia": 0.11,
    "bajo": 0.02,
    "medio30": 0.17,
-   "actualizado": "2026-11-22T22:16:19.158Z"
+   "actualizado": "2026-11-22T22:16:19.213Z"
   },
   "sv09-120": {
    "tendencia": 1.73,
@@ -366,7 +366,7 @@
    "tendencia": 0.06,
    "bajo": 0.02,
    "medio30": 0.07,
-   "actualizado": "2026-11-22T22:16:19.123Z",
+   "actualizado": "2026-11-22T22:16:19.157Z",
    "variantes": {
     "normal": {
      "tendencia": 0.06,
@@ -382,19 +382,19 @@
    "tendencia": 0.58,
    "bajo": 0.02,
    "medio30": 0.51,
-   "actualizado": "2026-11-22T22:16:19.123Z"
+   "actualizado": "2026-11-22T22:16:19.161Z"
   },
   "sm12-146": {
    "tendencia": 5.75,
    "bajo": 3,
    "medio30": 5.32,
-   "actualizado": "2026-11-22T22:16:19.158Z"
+   "actualizado": "2026-11-22T22:16:19.157Z"
   },
   "sv10.5b-151": {
    "tendencia": 39.58,
    "bajo": 9.99,
    "medio30": 24.46,
-   "actualizado": "2026-11-22T22:16:19.123Z",
+   "actualizado": "2026-11-22T22:16:19.213Z",
    "variantes": {
     "holo": {
      "tendencia": 39.58,
@@ -406,7 +406,7 @@
    "tendencia": 8.18,
    "bajo": 3,
    "medio30": 8.53,
-   "actualizado": "2026-11-22T22:16:19.158Z",
+   "actualizado": "2026-11-22T22:16:19.162Z",
    "variantes": {
     "holo": {
      "tendencia": 8.18,
