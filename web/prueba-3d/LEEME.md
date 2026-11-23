@@ -542,3 +542,10 @@ Botón «Continuar con Google» en la página de cuenta (Supabase OAuth). Hay qu
   para el 3D: las de español van por el intermediario (`?tcgdex=`) y las demás, si fallan, se reintentan por él (`conRespaldo`).
 - Colección Clásica del 30.º Aniversario: limitlesstcg la numera en otro orden (su CC18 es N, no Gengar); tabla cruzada por nombre.
 - Con todo esto, el álbum de Gengar (27 cartas) y la búsqueda «haunter» (32) salen sin ningún hueco.
+
+## 3.42 — Todas las variantes del Pokémon y más imágenes de cartas especiales
+- El campo «Pokémon» trae ahora todas sus variantes, por palabra completa y sin distinguir mayúsculas ni tildes (`esDelPokemon`):
+  «meowth» → 68 cartas (de Alola, de Galar, del Team Rocket, de Giovanni, δ, ex, V, VMAX…); «mew» no trae Mewtwo. En el paso de elegir
+  caben hasta 600 (se quitan las que no quieras); al guardar, como siempre, máximo 360.
+- Intermediario: kits de entrenador EX (`tk1a/tk1b/tk2a/tk2b`) y colecciones de McDonald's (`2016xy` → `mcd16`) en pokemontcg.io,
+  comprobados mirando las cartas. Sin imagen en ninguna fuente quedan muy pocas (p. ej. el kit de HeartGold & SoulSilver).

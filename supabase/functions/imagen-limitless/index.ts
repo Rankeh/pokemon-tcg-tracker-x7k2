@@ -22,6 +22,10 @@ const ESPECIALES: Record<string, { codigo: string; mapa?: Record<string, string>
   "swshp": { codigo: "SP" }, "svp": { codigo: "SVP" }, "mep": { codigo: "MEP" }, "30th-c": { codigo: "30C", mapa: CLASICA_30 },
 };
 
+// 3.42 · ids de pokemontcg.io que no coinciden con los de TCGdex (comprobados mirando las cartas): kits de entrenador EX y McDonald's
+const PIO_IDS: Record<string, string> = { "tk-ex-latia": "tk1a", "tk-ex-latio": "tk1b", "tk-ex-p": "tk2a", "tk-ex-m": "tk2b" };
+const idPio = (id: string) => PIO_IDS[id] ?? (/^20(\d\d)[a-z]+$/.exec(id) ? "mcd" + /^20(\d\d)/.exec(id)![1] : id);   // 2016xy → mcd16
+
 const json = (cuerpo: unknown, status = 200) =>
   new Response(JSON.stringify(cuerpo), { status, headers: { ...CORS, "Content-Type": "application/json", "Cache-Control": "public, max-age=86400" } });
 
@@ -82,7 +86,7 @@ Deno.serve(async (req: Request) => {
       if (p) return json(p);
     }
     if (!ESPECIALES[id]?.mapa) for (const n of numeros(num.replace(/^([A-Za-z]+)0+(\d)/, "$1$2"))) {   // cartas antiguas: pokemontcg.io con el id de TCGdex (base1, ecard3…)
-      const pio = `${id}/${n}_hires.png`;
+      const pio = `${idPio(id)}/${n}_hires.png`;
       if (RUTA_PIO.test(pio) && (await fetch(PIO + pio, { method: "HEAD" })).ok) return json({ pio });
     }
     return json({ ruta: null }, 404);

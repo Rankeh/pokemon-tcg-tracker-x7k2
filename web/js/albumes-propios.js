@@ -31,7 +31,7 @@ export function nombrePropuesto(def, cartas = []) {
   if (def.tipo === "ilustrador") return nombreBonito(def.ilustrador);
   // el nombre tal como sale en las cartas de ESE Pokémon (en castellano si las hay), aunque se hayan añadido otras a mano
   const plano = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-  const suyas = cartas.filter((c) => plano(c.nombre) === plano(def.pokemon));
+  const suyas = cartas.filter((c) => plano(c.nombre) === plano(def.pokemon));   // «Meowth», no «Meowth V» (aunque estén en el álbum)
   const masComun = Object.entries((suyas.length ? suyas : cartas).reduce((m, c) => ((m[c.nombre] = (m[c.nombre] || 0) + 1), m), {})).sort((a, b) => b[1] - a[1])[0]?.[0];
   return suyas.length ? masComun : def.pokemon;
 }

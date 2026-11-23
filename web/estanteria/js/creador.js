@@ -203,7 +203,7 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
       if (navigator.onLine === false) { decir('Sin conexión: para crear un álbum hace falta internet.', true); return; }
       control = new AbortController(); ocupado(true); barra.value = 0; decir('Buscando las cartas en TCGdex…');
       try {
-        const { catalogo, precios } = await generarCatalogo(def, { senal: control.signal,
+        const { catalogo, precios } = await generarCatalogo(def, { senal: control.signal, max: 600,   // se pueden quitar en el paso 2 (máx. 360 al guardar)
           progreso: (h, t) => { barra.max = t || 1; barra.value = h; decir(`Preparando las cartas: ${h} de ${t}…`); } });
         origen = def; ocupado(false); control = null;
         if (!$('n-nombre').value.trim()) $('n-nombre').placeholder = nombrePropuesto(def, catalogo.cartas);

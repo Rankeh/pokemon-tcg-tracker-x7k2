@@ -78,6 +78,11 @@ async function pedir(ruta, { senal, intentos = 3 } = {}) {
   }
 }
 const q = encodeURIComponent;
+/** PURO · ¿la carta `nombre` es del Pokémon `pokemon`? Por palabra completa, sin tildes ni mayúsculas (3.42). */
+export function esDelPokemon(nombre, pokemon) {
+  const p = plano(pokemon).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return p !== "" && new RegExp(`(^|[^a-z0-9])${p}([^a-z0-9]|$)`).test(plano(nombre));
+}
 /** PURO · texto para comparar nombres: sin tildes, sin mayúsculas y sin espacios de más. */
 export const plano = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 
@@ -100,10 +105,11 @@ async function idsDe(def, senal) {
   }
   if (def.tipo === "ilustrador") return ((await pedir("en/cards?illustrator=" + q("eq:" + def.ilustrador), { senal })) || []).map((c) => c.id);
   if (def.tipo === "pokemon") {        // el nombre puede estar en castellano o en inglés
-    // 3.41 · da igual mayúsculas o tildes: TCGdex busca «contiene» sin distinguirlas y aquí se queda solo el nombre exacto
-    // («gengar» → Gengar, pero no Gengar ex ni M-Gengar EX)
+    // 3.41 · da igual mayúsculas o tildes (TCGdex busca «contiene» sin distinguirlas).
+    // 3.42 · todas las variantes del Pokémon: ex, EX, V, VMAX, VSTAR, GX, de Alola/Galar, del Team Rocket, δ…; por palabra completa
+    // («mew» trae Mew ex y Mew VMAX, pero no Mewtwo)
     const [en, es] = await Promise.all(["en", "es"].map((l) => pedir(l + "/cards?name=" + q(def.pokemon), { senal })));
-    const ids = [...new Set([...(en || []), ...(es || [])].filter((c) => plano(c.name) === plano(def.pokemon)).map((c) => c.id))];
+    const ids = [...new Set([...(en || []), ...(es || [])].filter((c) => esDelPokemon(c.name, def.pokemon)).map((c) => c.id))];
     return def.expansion ? ids.filter((id) => id.startsWith(def.expansion + "-")) : ids;
   }
   throw new Error("Tipo de álbum desconocido");
@@ -113,10 +119,10 @@ async function idsDe(def, senal) {
  * Genera el catálogo: { catalogo: { generado, fuente, totales, cartas }, precios: { fecha, fuente, unidad, cartas } }.
  * `progreso(hechas, total)` para la barra; `senal` (AbortSignal) para cancelar. Lanza si no hay cartas o hay demasiadas.
  */
-export async function generarCatalogo(def, { progreso = () => {}, senal } = {}) {
+export async function generarCatalogo(def, { progreso = () => {}, senal, max = MAX_CARTAS } = {}) {   // max: más en el paso de elegir cartas
   const ids = await idsDe(def, senal);
   if (!ids.length) throw new Error(def.tipo === "lista" ? "El álbum no tiene ninguna carta." : "TCGdex no tiene cartas para eso. Revisa el nombre (exacto, como en las cartas).");
-  if (ids.length > MAX_CARTAS * 1.3) throw new Error(`Son ${ids.length} cartas: el máximo de un álbum es ${MAX_CARTAS}. Prueba con algo más concreto.`);
+  if (ids.length > max * 1.3) throw new Error(`Son ${ids.length} cartas: demasiadas para un álbum (máximo ${MAX_CARTAS}). Prueba con algo más concreto.`);
   const sets = new Map();                                       // id → { serie, en, es } (una petición por expansión, no por carta)
   const datosSet = (id) => {
     if (!sets.has(id)) sets.set(id, Promise.all([pedir("en/sets/" + q(id), { senal }), pedir("es/sets/" + q(id), { senal }).catch(() => null)])
@@ -155,7 +161,7 @@ export async function generarCatalogo(def, { progreso = () => {}, senal } = {}) 
   const cola = [...ids];
   await Promise.all(Array.from({ length: Math.min(EN_PARALELO, cola.length) }, async () => { while (cola.length) await una(cola.shift()); }));
   if (!cartas.length) throw new Error(def.tipo === "lista" ? "Ninguna de esas cartas está en TCGdex." : "Ninguna de esas cartas es física (todas son de TCG Pocket).");
-  if (cartas.length > MAX_CARTAS) throw new Error(`Son ${cartas.length} cartas: el máximo de un álbum es ${MAX_CARTAS}. Prueba con algo más concreto.`);
+  if (cartas.length > max) throw new Error(`Son ${cartas.length} cartas: demasiadas para un álbum (máximo ${MAX_CARTAS}). Prueba con algo más concreto.`);
   return armarCatalogo(def, cartas, precios, fuera);
 }
 

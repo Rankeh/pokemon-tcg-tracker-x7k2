@@ -56,10 +56,10 @@ test('3.40 · selección propia: el nombre propuesto sigue siendo el del Pokémo
   assert.equal(r2.subtitulo, 'Colección de artista', 'con origen: las etiquetas del origen');
 });
 
-test('3.41 · Pokémon: da igual mayúsculas o tildes, y solo el nombre exacto (sin «Gengar ex» ni «M-Gengar EX»)', async () => {
+test('3.41/3.42 · Pokémon: da igual mayúsculas o tildes, y con todas sus variantes por palabra completa (no «Gengarito»)', async () => {
   const { generarCatalogo, plano } = await import('../../js/generador-album.js');
   assert.equal(plano('  FLABÉBÉ  '), 'flabebe');
-  const lista = [{ id: 's1-1', name: 'Gengar' }, { id: 's1-2', name: 'Gengar ex' }, { id: 's1-3', name: 'M-Gengar EX' }, { id: 's2-9', name: 'GENGAR' }];
+  const lista = [{ id: 's1-1', name: 'Gengar' }, { id: 's1-2', name: 'Gengar ex' }, { id: 's1-3', name: 'M-Gengar EX' }, { id: 's2-9', name: 'GENGAR' }, { id: 's3-1', name: 'Gengarito' }];
   const pedidas = [], original = globalThis.fetch;
   globalThis.fetch = async (u) => {
     const p = decodeURIComponent(String(u)).replace('https://api.tcgdex.net/v2/', ''); pedidas.push(p);
@@ -71,7 +71,7 @@ test('3.41 · Pokémon: da igual mayúsculas o tildes, y solo el nombre exacto (
   };
   try {
     const { catalogo } = await generarCatalogo({ tipo: 'pokemon', pokemon: 'gengar' });
-    assert.deepEqual(catalogo.cartas.map((x) => x.id).sort(), ['s1-1', 's2-9']);
+    assert.deepEqual(catalogo.cartas.map((x) => x.id).sort(), ['s1-1', 's1-2', 's1-3', 's2-9']);
     assert.ok(pedidas.some((p) => p.endsWith('cards?name=gengar')) && !pedidas.some((p) => p.includes('eq:')), 'búsqueda «contiene» (sin «eq:», que sí distingue mayúsculas)');
   } finally { globalThis.fetch = original; }
 });
