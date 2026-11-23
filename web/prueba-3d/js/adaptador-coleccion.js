@@ -112,7 +112,7 @@ export class AdaptadorColeccion {
     const c = b.carta;
     return { id: c.id, nombre: c.nombre, nombreExpansion: c.nombreExpansion, expansion: c.expansion, numero: c.numero, rareza: c.rareza,
              pagina: b.pagina, posicion: b.posicion, cantidad: this.cantidad(c.id), url: urlTextura(c, 'high'), urlMiniatura: urlTextura(c, 'low'),
-             imagen: c.imagen || null,                                      // 3.37: álbumes creados en la app (sin copia local) → imagen de TCGdex
+             imagen: c.imagen || null, imagenAlternativa: c.imagenAlternativa || null,                                      // 3.37: álbumes creados en la app (sin copia local) → imagen de TCGdex
              // 3.16: variantes del catálogo (normal, reverse, holo…) y el desglose guardado; sin variantes en el catálogo, la ficha es la de siempre
              variantes: Array.isArray(c.variantes) && c.variantes.length ? c.variantes : null, registro: this.registro(c.id),
              visible: this.acabado(c.id), arteCompleto: esArteCompleto(c) };

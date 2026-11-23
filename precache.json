@@ -36,6 +36,7 @@
   "web/js/pwa.js",
   "web/js/sincronizacion.js",
   "web/js/supabase-config.js",
+  "web/js/supabase-url.js",
   "web/js/variantes.js",
   "web/prueba-3d/js/adaptador-coleccion.js",
   "web/prueba-3d/js/album3d.js",

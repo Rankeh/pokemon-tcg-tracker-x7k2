@@ -515,3 +515,11 @@ Botón «Continuar con Google» en la página de cuenta (Supabase OAuth). Hay qu
 - La app instalada solo descarga las miniaturas de esos álbumes para el administrador.
 - Si el 3D no carga, `estanteria/js/lista.js` pinta igualmente la lista de álbumes y el botón «Nuevo álbum» (antes la lista era fija en el HTML).
 - En las pruebas automáticas se siguen viendo; `?visitante` prueba la vista de un visitante.
+
+## 3.39 — Imagen de limitlesstcg cuando TCGdex no la tiene (automático)
+- Función de Supabase `imagen-limitless` (`supabase/functions/`): busca la imagen de la carta en limitlesstcg con el código oficial de la
+  expansión que da TCGdex (y unas pocas excepciones: promos SP/SVP/MEP, Colección Clásica `30C` con números `CC`) y la devuelve con CORS.
+  Resuelve sola las 11 cartas que había buscado a mano (galerías, TG, SWSH284, CC30…).
+- Álbumes creados en la app: al crearlos, cada carta sin imagen en TCGdex se busca ahí (`imagenAlternativa`); bolsillo, ficha y portada la usan.
+- Álbumes de la web: el proceso de cada lunes (`actualizar.py → arte_limitless`) baja el arte de las cartas nuevas sin imagen y lo apunta
+  en el manifiesto de imágenes. Si no está en ningún sitio, la carta sale con el marcador «Sin imagen», como siempre.

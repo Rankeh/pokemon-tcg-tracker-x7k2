@@ -5,11 +5,16 @@ import * as THREE from 'three';
 import { dibujarMarcador, dibujarEtiquetaPendiente } from './marcadores.js';
 import { memoriaTexturaBytes } from './logica.js';
 import { rutaProxy, rutasArte } from './proxies.js';
+import { FUNCION_LIMITLESS } from '../../js/supabase-url.js';
 
 export const TAM_MINI = { w: 256, h: 358 };
 /** 3.37 · imagen de TCGdex de la carta («low» ≈ 245×337 para el bolsillo, «high» para la ficha), o null. Solo de assets.tcgdex.net. */
-export const urlRemota = (carta, calidad = 'low') =>
-  (typeof carta?.imagen === 'string' && /^https:\/\/assets\.tcgdex\.net\/.+\/high\.webp$/.test(carta.imagen) ? carta.imagen.replace(/\/high\.webp$/, '/' + calidad + '.webp') : null);
+export const urlRemota = (carta, calidad = 'low') => {
+  if (typeof carta?.imagen === 'string' && /^https:\/\/assets\.tcgdex\.net\/.+\/high\.webp$/.test(carta.imagen)) return carta.imagen.replace(/\/high\.webp$/, '/' + calidad + '.webp');
+  // 3.39 · sin imagen en TCGdex: la de limitlesstcg, a través del intermediario de Supabase (con CORS)
+  if (typeof carta?.imagenAlternativa === 'string' && carta.imagenAlternativa.startsWith(FUNCION_LIMITLESS + '?ruta=')) return carta.imagenAlternativa;
+  return null;
+};
 export const TAM_ETIQUETA = { w: 128, h: 179 };
 
 export function crearProductores({ manifiesto, rutaBase = 'assets/cartas/', anisotropia = 1, remotas = false, crearLienzo = (w, h) => Object.assign(document.createElement('canvas'), { width: w, height: h }) }) {

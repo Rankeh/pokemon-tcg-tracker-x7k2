@@ -3,6 +3,8 @@
 // categoría por rareza, variantes (con el reverse que TCGdex no registra en Sol y Luna), arte completo y precios de Cardmarket.
 // Tres tipos de álbum:  { tipo: 'expansion', expansion }  ·  { tipo: 'ilustrador', ilustrador }  ·  { tipo: 'pokemon', pokemon, expansion? }
 
+import { FUNCION_LIMITLESS } from "./supabase-url.js";
+
 export const API = "https://api.tcgdex.net/v2/";
 export const MAX_CARTAS = 360;                         // 20 hojas: el modelo 3D más grande (web/prueba-3d/modelo/album-20h.glb)
 const EN_PARALELO = 6;
@@ -112,7 +114,7 @@ export async function generarCatalogo(def, { progreso = () => {}, senal } = {}) 
   const sets = new Map();                                       // id → { serie, en, es } (una petición por expansión, no por carta)
   const datosSet = (id) => {
     if (!sets.has(id)) sets.set(id, Promise.all([pedir("en/sets/" + q(id), { senal }), pedir("es/sets/" + q(id), { senal }).catch(() => null)])
-      .then(([en, es]) => ({ serie: en?.serie?.id || "", nombreEs: es?.name || null, nombreEn: en?.name || id,
+      .then(([en, es]) => ({ serie: en?.serie?.id || "", nombreEs: es?.name || null, nombreEn: en?.name || id, codigo: en?.abbreviation?.official || en?.tcgOnline || "",
         cartasEs: new Map((es?.cards || []).map((c) => [c.id, c])) })));
     return sets.get(id);
   };
@@ -129,12 +131,16 @@ export async function generarCatalogo(def, { progreso = () => {}, senal } = {}) 
     if (s.serie === "tcgp" && def.tipo !== "expansion") { fuera.push({ id, motivo: "TCG Pocket (digital)" }); return; }
     const es = s.cartasEs.get(id), cat = categoria(en.rarity);
     const imagen = es?.image || en.image || null, idioma = es?.image ? "es" : "en";
+    // 3.39 · sin imagen en TCGdex: se busca en limitlesstcg (a través del intermediario de Supabase, que le añade CORS para el 3D)
+    const alternativa = imagen ? null : await buscarEnLimitless(s.codigo, en.localId, en.set.id, senal);
     cartas.push({
       id, categoriaColeccion: cat, nombre: es?.name || en.name, numero: en.localId, expansion: en.set.id,
       nombreExpansion: s.nombreEs || en.set.name, serie: s.serie, rareza: rarezaEs(en.rarity), ilustrador: en.illustrator || null,
       imagen: imagen ? imagen + "/high.webp" : null, dexId: en.dexId || null,
-      estadoImagen: imagen ? (idioma === "es" ? "espanol-verificada" : "otro-idioma") : "sin-imagen", idiomaImagen: imagen ? idioma : null,
-      imagenCarga: Boolean(imagen), origenImagen: imagen ? "TCGdex (campo image)" : null,
+      estadoImagen: imagen ? (idioma === "es" ? "espanol-verificada" : "otro-idioma") : alternativa ? "limitless" : "sin-imagen",
+      idiomaImagen: imagen ? idioma : alternativa ? alternativa.idioma : null,
+      imagenCarga: Boolean(imagen || alternativa), origenImagen: imagen ? "TCGdex (campo image)" : alternativa ? "limitlesstcg" : null,
+      ...(alternativa ? { imagenAlternativa: alternativa.url } : {}),
       variantes: variantes(en, cat), arteCompleto: arteCompleto(en, cat),
     });
     const p = precio(en);
@@ -154,10 +160,22 @@ export async function generarCatalogo(def, { progreso = () => {}, senal } = {}) 
   };
 }
 
+/** 3.39 · Imagen de la carta en limitlesstcg: { url, idioma } o null. Nunca lanza (sin imagen se ve el marcador, como siempre). */
+export async function buscarEnLimitless(codigo, numero, expansion, senal) {
+  if (!numero) return null;                    // sin código oficial (promos) también: el intermediario conoce esas expansiones por su id
+  try {
+    const r = await fetch(`${FUNCION_LIMITLESS}?buscar=1&set=${q(codigo)}&num=${q(numero)}&id=${q(expansion)}`, { signal: senal });
+    const ruta = r.ok ? (await r.json()).ruta : null;
+    return ruta ? { url: `${FUNCION_LIMITLESS}?ruta=${q(ruta)}`, idioma: /_ES_LG\.png$/.test(ruta) ? "es" : "en" } : null;
+  } catch { return null; }
+}
+/** URL de la imagen grande de la carta: la de TCGdex o, si no tiene, la de limitlesstcg. */
+export const imagenDe = (c) => c.imagen || c.imagenAlternativa || null;
+
 /** PURO · las 2 cartas de la portada: las más vistosas (SIR, IR…) y, entre ellas, las más caras; siempre con imagen. */
 export function cartasPortada(cartas, precios = {}) {
   const peso = { sir: 4, ir: 3, promo: 1, rara: 1 };
-  return [...cartas].filter((c) => c.imagen)
+  return [...cartas].filter((c) => imagenDe(c))
     .sort((a, b) => (peso[b.categoriaColeccion] || 0) - (peso[a.categoriaColeccion] || 0) || (precios[b.id]?.tendencia || 0) - (precios[a.id]?.tendencia || 0) || a.id.localeCompare(b.id))
-    .slice(0, 2).map((c) => c.imagen);
+    .slice(0, 2).map((c) => imagenDe(c));
 }

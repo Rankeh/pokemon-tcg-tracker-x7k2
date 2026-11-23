@@ -21,7 +21,10 @@ test('P1b (3.33): en TODOS los álbumes, cada carta sin imagen en TCGdex tiene a
   for (const f of fs.readdirSync(dir).filter((n) => /^coleccion-.*\.json$/.test(n))) {
     for (const c of JSON.parse(fs.readFileSync(new URL(f, dir), 'utf8')).cartas) if (c.estadoImagen === 'sin-imagen') sin.add(c.id);
   }
-  for (const id of sin) assert.ok(ARTE[id] || PROXIES[id], id + ': sin arte ni proxy');
+  // 3.39: o una entrada del manifiesto que apunte al arte que bajó solo el proceso semanal (actualizar.py → arte_limitless)
+  const man = JSON.parse(fs.readFileSync(new URL('assets/cartas/manifiesto.json', raiz), 'utf8')).cartas;
+  const enManifiesto = (id) => man[id] && fs.existsSync(new URL('assets/cartas/' + man[id].mini, raiz));
+  for (const id of sin) assert.ok(ARTE[id] || PROXIES[id] || enManifiesto(id), id + ': sin arte ni proxy');
   for (const id of Object.keys(PROXIES)) assert.ok(sin.has(id), id + ': tiene proxy pero sí tiene imagen');
   for (const id of Object.keys(ARTE)) assert.ok(sin.has(id), id + ': tiene arte descargado pero sí tiene imagen');
   for (const r of [...Object.values(PROXIES), ...Object.values(ARTE)]) assert.equal(r, r.toLowerCase(), 'nombre en minúsculas (GitHub Pages): ' + r);

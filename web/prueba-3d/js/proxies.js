@@ -19,4 +19,5 @@ export const ARTE = {
   'swshp-SWSH284': 'assets/proxies/arte/swshp-swsh284.png', '30th-c-030': 'assets/proxies/arte/30th-c-030.png',
 };
 // Si has ejecutado herramientas/proxies/descargar_arte.py existe también el arte real en esta ruta; la app lo prueba primero.
+// (3.39: el arte que baja solo el proceso semanal no hace falta aquí: va en el manifiesto de imágenes, ver actualizar.py → arte_limitless)
 export const rutasArte = (id) => (ARTE[id] ? [ARTE[id]] : PROXIES[id] ? ['png', 'webp'].map((e) => 'assets/proxies/arte/' + id + '.' + e) : []);

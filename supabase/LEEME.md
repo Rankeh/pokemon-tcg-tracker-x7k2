@@ -28,3 +28,8 @@ La web ya tiene el botón «Continuar con Google» (`web/js/cuenta.js`); falta a
    `https://rankeh.github.io/pokemon-tcg-tracker-x7k2/**`.
 
 Si ya tenías cuenta con el mismo correo (verificado), Supabase une las dos: es la misma cuenta y la misma colección.
+
+## Funciones (Edge Functions)
+| Función | Qué hace |
+|---|---|
+| `functions/imagen-limitless` | Intermediario de imágenes de cartas de limitlesstcg: Limitless no envía CORS y el 3D no podría usarlas. `?buscar=1&set&num&id` → `{ ruta }`; `?ruta=` → la imagen con CORS. Solo acepta rutas con la forma exacta de una imagen de carta de ese servidor. Sin sesión (imágenes públicas, también para visitantes). |

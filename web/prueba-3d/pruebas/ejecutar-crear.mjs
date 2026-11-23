@@ -32,7 +32,8 @@ const IMG = 'https://assets.tcgdex.net/';
 const carta = (n, nombre, dex, rarity, ilu = 'Ilustradora Prueba') => ({ id: 'x1-00' + n, localId: '00' + n, name: nombre, rarity, dexId: [dex], illustrator: ilu,
   set: { id: 'x1', name: 'Test Set' }, variants: { normal: true, reverse: true, holo: false }, image: IMG + 'en/sv/x1/00' + n,
   pricing: { cardmarket: { trend: n * 2.5, low: n, updated: '2026-11-20T00:00:00Z' } } });
-const CARTAS = [carta(1, 'Charmander', 4, 'Common'), carta(2, 'Charizard ex', 6, 'Special illustration rare', 'Otra Persona'), carta(3, 'Pikachu', 25, 'Rare')];
+const CARTAS = [carta(1, 'Charmander', 4, 'Common'), carta(2, 'Charizard ex', 6, 'Special illustration rare', 'Otra Persona'), carta(3, 'Pikachu', 25, 'Rare'),
+  { ...carta(4, 'Mewtwo', 150, 'Rare'), image: undefined }];                  // 3.39: sin imagen en TCGdex → la de limitlesstcg
 const pedidas = [];
 const tcgdex = (u) => {
   const p = decodeURIComponent(new URL(u).pathname + new URL(u).search).replace('/v2/', '');
@@ -40,8 +41,8 @@ const tcgdex = (u) => {
   if (p === 'es/sets') return [{ id: 'x1', name: 'Expansión de Prueba', cardCount: { total: 3 } }, { id: 'A1', name: 'Pocket digital', cardCount: { total: 9 } }];
   if (p === 'en/series/tcgp') return { id: 'tcgp', sets: [{ id: 'A1' }] };
   if (p === 'en/illustrators') return ['Ilustradora Prueba', 'Otra Persona', 'Mitsuhiro Arita'];
-  if (p === 'en/sets/x1') return { id: 'x1', name: 'Test Set', serie: { id: 'sv' }, cards: CARTAS.map((c) => ({ id: c.id })) };
-  if (p === 'es/sets/x1') return { id: 'x1', name: 'Expansión de Prueba', cards: CARTAS.map((c) => ({ id: c.id, name: c.name, image: IMG + 'es/sv/x1/' + c.localId })) };
+  if (p === 'en/sets/x1') return { id: 'x1', name: 'Test Set', serie: { id: 'sv' }, abbreviation: { official: 'TST' }, cards: CARTAS.map((c) => ({ id: c.id })) };
+  if (p === 'es/sets/x1') return { id: 'x1', name: 'Expansión de Prueba', cards: CARTAS.map((c) => ({ id: c.id, name: c.name, image: c.image && IMG + 'es/sv/x1/' + c.localId })) };
   const m = /^en\/cards\/(x1-\d+)$/.exec(p); if (m) return CARTAS.find((c) => c.id === m[1]) ?? null;
   if (p === 'en/cards?illustrator=eq:Ilustradora Prueba') return CARTAS.filter((c) => c.illustrator === 'Ilustradora Prueba').map((c) => ({ id: c.id }));
   if (/^(en|es)\/cards\?name=eq:Pikachu$/.test(p)) return [{ id: 'x1-003' }];
@@ -56,6 +57,12 @@ async function preparar(ctx) {
     r.fulfill({ contentType: 'text/javascript', body: await readFile(path.join(dirThree, rel)) });
   });
   await ctx.route('**/api.tcgdex.net/**', (r) => { const d = tcgdex(r.request().url()); r.fulfill(d === null ? { status: 404, body: '{}' } : { contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(d) }); });
+  await ctx.route('**/functions/v1/imagen-limitless**', (r) => {            // intermediario de limitlesstcg (Supabase), simulado
+    const q = new URL(r.request().url()).searchParams; pedidasImg.push(r.request().url());
+    if (q.get('buscar')) return r.fulfill({ contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({ ruta: q.get('set') === 'TST' && q.get('num') === '004' ? 'TST/TST_004_R_ES_LG.png' : null }), status: q.get('num') === '004' ? 200 : 404 });
+    return r.fulfill({ contentType: 'image/png', headers: { 'access-control-allow-origin': '*' }, body: imagen });
+  });
   await ctx.route('**/assets.tcgdex.net/**', (r) => { pedidasImg.push(r.request().url()); r.fulfill({ contentType: 'image/webp', headers: { 'access-control-allow-origin': '*' }, body: imagen }); });
 }
 
@@ -103,7 +110,7 @@ await crear('expansion', async () => {
 ok(!(await pag.evaluate(() => document.getElementById('d-nuevo').open)), 'se crea y se cierra la ventana');
 let p = await propios();
 const exp = p.albumes.find((a) => a.tipo === 'expansion');
-ok(exp && exp.nombre === 'Expansión de Prueba' && exp.cartas === 3, 'álbum guardado en el dispositivo con sus 3 cartas: ' + JSON.stringify(exp));
+ok(exp && exp.nombre === 'Expansión de Prueba' && exp.cartas === 4, 'álbum guardado en el dispositivo con sus 4 cartas: ' + JSON.stringify(exp));
 ok(exp?.portada[0]?.includes('/es/sv/x1/002'), 'portada con la carta más vistosa (la SIR) en español: ' + exp?.portada);
 ok(p.pend.includes(exp?.id), 'queda pendiente de subir a la cuenta (para el resto de dispositivos)');
 await pag.waitForFunction(() => document.getElementById('i-titulo').textContent === 'Expansión de Prueba', null, { timeout: 15000 }).catch(() => {});   // la lista se recarga tras crear
@@ -119,15 +126,19 @@ const abrio = await pag.waitForFunction(() => window.__album3d && document.getEl
 ok(abrio, 'el visor 3D abre el álbum creado' + (abrio ? '' : ': ' + await pag.textContent('#cargando')));
 if (abrio) {
   const v = await pag.evaluate(() => { const a = window.__album3d; return { hojas: a.album.geo.n, cartas: a.adaptador.mapa.cartas.length, titulo: document.title, orden: a.adaptador.mapa.paginas[0].bolsillos.slice(0, 3).map((c) => c?.nombre) }; });
-  ok(v.hojas === 1 && v.cartas === 3, `modelo de 1 hoja (album-1h.glb) y 3 cartas (${JSON.stringify(v)})`);
+  ok(v.hojas === 1 && v.cartas === 4, `modelo de 1 hoja (album-1h.glb) y 4 cartas (${JSON.stringify(v)})`);
   ok(v.titulo === 'Álbum Expansión de Prueba', 'título del álbum');
   ok(JSON.stringify(v.orden) === '["Charmander","Charizard ex","Pikachu"]', 'en orden de Pokédex');
+  await marcar('x1-004', 1);
   await pag.click('#b-abrir'); await pag.waitForFunction(() => !window.__album3d.album.estado.animando, null, { timeout: 60000 }); await dormir(1500);
   ok(pedidasImg.some((u) => u.endsWith('/es/sv/x1/002/low.webp')), 'la carta marcada se pinta con la imagen pequeña de TCGdex (en español)');
   await pag.evaluate(() => { const a = window.__album3d; a.ctrl.ultimoCierre = -Infinity; a.ctrl.seleccionar(a.adaptador.mapa.porId.get('x1-002').nombre); });
   await dormir(800);
   ok((await pag.getAttribute('#f-imagen img', 'src') || '').endsWith('/es/sv/x1/002/high.webp'), 'la ficha usa la imagen grande de TCGdex');
   ok((await pag.textContent('#ficha')).includes('Rara Ilustración Especial') && (await pag.textContent('#ficha')).includes('5'), 'ficha con rareza en castellano y precio');
+  await pag.click('#f-cerrar'); await dormir(600);
+  await pag.evaluate(() => { const a = window.__album3d; a.ctrl.ultimoCierre = -Infinity; a.ctrl.seleccionar(a.adaptador.mapa.porId.get('x1-004').nombre); }); await dormir(800);
+  ok((await pag.getAttribute('#f-imagen img', 'src') || '').includes('imagen-limitless?ruta=TST%2FTST_004_R_ES_LG.png'), 'carta sin imagen en TCGdex: la ficha usa la de limitlesstcg (vía Supabase)');
 }
 
 // 3) por Pokémon y por ilustrador (sugerencias)
@@ -135,7 +146,7 @@ await crear('pokemon', async () => { await pag.fill('#n-pok', 'Pikachu'); });
 await crear('ilustrador', async () => { await dormir(300); await pag.fill('#n-ilu', 'ilus'); await pag.click('#n-ilu-lista button'); await pag.fill('#n-nombre', 'Mi ilustradora'); });
 p = await propios();
 ok(p.albumes.some((a) => a.tipo === 'pokemon' && a.nombre === 'Pikachu' && a.cartas === 1), 'álbum de Pokémon (Pikachu, 1 carta)');
-ok(p.albumes.some((a) => a.tipo === 'ilustrador' && a.nombre === 'Mi ilustradora' && a.cartas === 2), 'álbum de ilustrador con nombre propio (2 cartas, sin las de otra persona)');
+ok(p.albumes.some((a) => a.tipo === 'ilustrador' && a.nombre === 'Mi ilustradora' && a.cartas === 3), 'álbum de ilustrador con nombre propio (3 cartas, sin la de otra persona)');
 
 // 4) errores: nombre que no existe → aviso y no se guarda nada; sin elegir → aviso
 await crear('pokemon', async () => { await pag.fill('#n-pok', 'Noexiste'); });
