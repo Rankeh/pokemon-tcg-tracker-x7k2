@@ -61,3 +61,5 @@ jobs:
         run: node web/prueba-3d/pruebas/ejecutar-sincronizacion.mjs
       - name: App instalable y sin conexión
         run: node web/prueba-3d/pruebas/ejecutar-app.mjs
+      - name: Cuenta (entrar con Google)
+        run: node web/prueba-3d/pruebas/ejecutar-cuenta.mjs
