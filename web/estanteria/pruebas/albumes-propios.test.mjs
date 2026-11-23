@@ -115,3 +115,16 @@ test('novedades: las nuevas (nunca vistas) y las que se quitaron, sin las del á
   assert.deepEqual(sinVistas.nuevas, [], 'sin saber cuáles se vieron, ninguna se marca como nueva');
   assert.equal(sinVistas.otras.length, 3);
 });
+
+// 3.45 · filtros sobre las cartas del álbum
+import { cumpleCarta } from '../../js/generador-album.js';
+test('cumpleCarta: filtra las cartas del catálogo; null si es de antes de 3.45 (sin datos)', () => {
+  const c = { rarezaEn: 'Shiny rare', clase: 'Pokemon', tipos: ['Colorless'], legal: { standard: false, expanded: true }, variantes: [{ id: 'holo' }], expansion: 'swsh4.5sv', serie: 'swsh' };
+  assert.equal(cumpleCarta(c, {}), true);
+  assert.equal(cumpleCarta(c, { shiny: true, era: 'swsh', tipo: 'Colorless' }), true);
+  assert.equal(cumpleCarta(c, { era: 'sv' }), false);
+  assert.equal(cumpleCarta(c, { primeraEdicion: true }), false);
+  assert.equal(cumpleCarta({ ...c, variantes: [{ id: 'firstEdition' }] }, { primeraEdicion: true }), true);
+  assert.equal(cumpleCarta({ id: 'x' }, { rareza: 'rara' }), null);
+  assert.equal(cumpleCarta({ id: 'x' }, {}), true);
+});

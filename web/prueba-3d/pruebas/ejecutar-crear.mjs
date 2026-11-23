@@ -209,15 +209,25 @@ ok(nov.n === 1 && nov.nuevas.length === 1 && nov.nuevas[0].startsWith('Pikachu e
 await pag.click('#n-nov-todas');
 await pag.waitForFunction(() => document.getElementById('n-cuenta').textContent.startsWith('3 de 3'), null, { timeout: 10000 }).catch(() => {});
 ok((await pag.textContent('#n-cuenta')).startsWith('3 de 3'), '«Añadir todas» la mete en el álbum');
-// filtros del buscador (sin escribir nombre)
-await pag.selectOption('#nf-rareza', 'rara');
+// 3.45 · los filtros valen para las cartas del álbum: «Rara» deja ver solo esas, y «Todas/Ninguna» actúan sobre las que se ven
+await pag.selectOption('#nf-rareza', 'rara'); await dormir(400);
+const rej = await pag.evaluate(() => [...document.querySelectorAll('#n-rejilla button')].map((b) => b.title.split(' · ')[0]));
+ok(JSON.stringify(rej.sort()) === '["Mewtwo","Pikachu"]' && (await pag.textContent('#n-cuenta')).includes('se ven 2'), 'filtro «Rara» en el álbum: solo las raras (no Pikachu ex) ' + JSON.stringify(rej));
+ok(await pag.locator('#n-resultados button').count() === 0 && await pag.isVisible('#n-buscar-filtros'), 'sin nombre no busca solo en TCGdex: ofrece el botón');
+await pag.click('#n-ninguna');
+ok((await pag.textContent('#n-cuenta')).startsWith('1 de 3'), '«Ninguna» quita solo las que se ven (1 de 3)');
+await pag.click('#n-todas');
+ok((await pag.textContent('#n-cuenta')).startsWith('3 de 3'), '«Todas» las vuelve a poner');
+await pag.click('#n-buscar-filtros');
 await pag.waitForFunction(() => document.querySelectorAll('#n-resultados button').length > 0, null, { timeout: 10000 }).catch(() => {});
 const raras = await pag.evaluate(() => ({ t: [...document.querySelectorAll('#n-resultados button')].map((b) => b.title.split(' · ')[0]).sort(), total: document.getElementById('n-total').textContent }));
-ok(JSON.stringify(raras.t) === '["Mewtwo","Pikachu"]' && raras.total === '2 cartas', 'filtro «Rara» sin nombre: solo las raras ' + JSON.stringify(raras));
+ok(JSON.stringify(raras.t) === '["Mewtwo","Pikachu"]' && raras.total === '2 cartas', 'botón: todas las raras de TCGdex ' + JSON.stringify(raras));
 ok(pedidas.includes('en/cards?rarity=eq:Rare'), 'el filtro se pide a TCGdex');
-await pag.click('#nf-shiny');
+await pag.click('#nf-shiny'); await dormir(400);
+ok(await pag.isDisabled('#nf-rareza') && (await pag.textContent('#n-ayuda')).includes('Ninguna carta del álbum') && await pag.locator('#n-rejilla button').count() === 0, 'Shiny: desactiva la rareza y, sin shinys en el álbum, lo dice');
+await pag.click('#n-buscar-filtros');
 await pag.waitForFunction(() => /esos filtros/.test(document.getElementById('n-estado').textContent), null, { timeout: 10000 }).catch(() => {});
-ok(await pag.isDisabled('#nf-rareza') && (await pag.textContent('#n-estado')).includes('Ninguna carta con esos filtros') && await pag.locator('#n-resultados button').count() === 0, 'Shiny: desactiva la rareza y, sin shinys, lo dice');
+ok((await pag.textContent('#n-estado')).includes('Ninguna carta con esos filtros') && await pag.locator('#n-resultados button').count() === 0, 'y en TCGdex tampoco hay');
 await pag.selectOption('#nf-era', 'sv'); await pag.fill('#n-buscar', 'pika');
 await dormir(900);
 ok(await pag.isVisible('#nf-limpiar') && pedidas.includes('en/cards?name=pika&rarity=shiny'), 'nombre + shiny + era a la vez');
@@ -231,15 +241,21 @@ salidas = 2;
 const r = await pag.evaluate(async ([bd, id]) => { const { Almacen } = await import('/web/js/almacen.js'); const { actualizarAlbumPropio } = await import('/web/js/albumes-propios.js');
   const a = await Almacen.abrir(bd); const r = await actualizarAlbumPropio(a, id); a.cerrar(); return { nuevas: r.nuevas, cartas: r.cartas }; }, [bd, pika.id]);
 ok(r.nuevas === 1 && r.cartas === 3, 'actualización: avisa de 1 carta nueva y no la mete sola ' + JSON.stringify(r));
+await pag.evaluate(async ([bd, id]) => { const { Almacen } = await import('/web/js/almacen.js'); const a = await Almacen.abrir(bd); const x = await a.albumPropio(id);   // como un álbum de antes de 3.45
+  for (const c of x.datos.catalogo.cartas) { delete c.rarezaEn; delete c.tipos; delete c.clase; delete c.legal; }
+  await a.guardarAlbumPropio({ id, registro: x.registro, datos: x.datos, creado: x.creado }); a.cerrar(); }, [bd, pika.id]);
 await pag.goto(`${base}/web/prueba-3d/index.html?album=${pika.id}&bd=${bd}`);
 await pag.waitForFunction(() => window.__album3d && document.getElementById('cargando').hidden, null, { timeout: 120000 }).catch(() => {});
 await pag.click('#b-opciones');
-ok(await pag.isVisible('#m-editar'), 'visor: el menú ⋯ ofrece «Añadir o quitar cartas»');
+ok(await pag.isVisible('#m-editar') && await pag.isVisible('#m-borrar'), 'visor: el menú ⋯ ofrece «Añadir o quitar cartas» y «Borrar este álbum»');
 await pag.click('#m-editar');
 await pag.waitForSelector('#d-nuevo[open]', { timeout: 90000 }).catch(() => {});
 ok((await pag.textContent('#n-titulo')) === 'Editar cartas' && !pag.url().includes('editar='), '…que abre el selector de ese álbum en la biblioteca');
 await pag.waitForSelector('#n-novedades:not([hidden])', { timeout: 10000 }).catch(() => {});
 ok((await pag.textContent('#n-nov-titulo')).startsWith('1 carta nueva'), 'y enseña la nueva (Pikachu V)');
+await pag.selectOption('#nf-rareza', 'doble');
+await pag.waitForFunction(() => document.querySelectorAll('#n-rejilla button').length === 1, null, { timeout: 15000 }).catch(() => {});
+ok((await pag.getAttribute('#n-rejilla button', 'title') || '').startsWith('Pikachu ex'), 'álbum de antes de 3.45 (sin rareza en inglés): al filtrar se piden sus datos y funciona');
 await pag.click('#n-cancelar');
 
 // 4) errores: nombre que no existe → aviso y no se guarda nada; sin elegir → aviso
@@ -259,6 +275,24 @@ ok(!p.albumes.some((a) => a.id === exp.id) && p.pend.includes(exp.id), 'quitado 
 ok(sigue === 1, 'la carta marcada de ese álbum sigue en la colección');
 await pag.goto(`${base}/web/prueba-3d/index.html?album=${exp.id}&bd=${bd}`); await dormir(3000);
 ok((await pag.textContent('#cargando')).includes('otro dispositivo'), 'abrir un álbum que no está aquí lo explica');
+// 6) 3.45 · borrar desde «Editar cartas» y desde el menú ⋯ del visor
+p = await propios();
+const pk = p.albumes.find((a) => a.nombre === 'Pikachu'), mi = p.albumes.find((a) => a.nombre === 'Mi ilustradora');
+await pag.evaluate((id) => localStorage.setItem('biblioteca.sel', id), pk.id); await biblioteca();
+ok((await pag.textContent('#quitar-album')) === 'Borrar álbum', 'la biblioteca dice «Borrar álbum»');
+await pag.click('#editar-album'); await pag.waitForSelector('#d-nuevo[open]');
+ok(await pag.isVisible('#n-borrar'), '«Editar cartas» también tiene «Borrar álbum»');
+await pag.click('#n-borrar'); await dormir(800);
+p = await propios();
+ok(!p.albumes.some((a) => a.id === pk.id) && !(await pag.evaluate(() => document.getElementById('d-nuevo').open)), 'borrado desde el editor (y se cierra)');
+await pag.goto(`${base}/web/prueba-3d/index.html?album=${mi.id}&bd=${bd}`);
+await pag.waitForFunction(() => window.__album3d && document.getElementById('cargando').hidden, null, { timeout: 120000 }).catch(() => {});
+await pag.click('#b-opciones'); await pag.click('#m-borrar');
+await pag.waitForFunction(() => document.body.classList.contains('lista'), null, { timeout: 90000 }).catch(() => {});
+p = await propios();
+ok(!p.albumes.some((a) => a.id === mi.id) && pag.url().includes('/index.html'), 'borrado desde el visor, que vuelve a la biblioteca');
+const quedan = await pag.evaluate(async (bd) => { const { Almacen } = await import('/web/js/almacen.js'); const a = await Almacen.abrir(bd); const n = [await a.cantidad('x1-003'), await a.cantidad('x1-002')]; a.cerrar(); return n; }, bd);
+ok(quedan[0] === 2 && quedan[1] === 1, 'las cartas marcadas siguen en la colección ' + JSON.stringify(quedan));
 const inesperados = errores.filter((e) => !/otro dispositivo|privado/.test(e));     // los avisos de «no está aquí» y «privado» son esperados
 ok(inesperados.length === 0, 'sin errores de JS' + (inesperados.length ? ': ' + inesperados.join(' | ') : ''));
 await ctx.close(); await nav.close(); servidor.close();

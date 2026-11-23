@@ -167,6 +167,8 @@ export async function generarCatalogo(def, { progreso = () => {}, senal, max = M
       imagenCarga: Boolean(imagen || alternativa), origenImagen: imagen ? "TCGdex (campo image)" : alternativa ? "limitlesstcg" : null,
       ...(alternativa ? { imagenAlternativa: alternativa.url } : {}),
       variantes: variantes(en, cat), arteCompleto: arteCompleto(en, cat),
+      // 3.45 · para los filtros del selector de cartas
+      rarezaEn: en.rarity || null, clase: en.category || null, tipos: en.types || [], legal: en.legal || null,
     });
     const p = precio(en);
     if (p) precios[id] = p;
@@ -250,6 +252,14 @@ export function cumple(d, f = {}, setsEra = null) {
   if (f.expansion && d.set?.id !== f.expansion) return false;
   if (setsEra && !setsEra.has(d.set?.id)) return false;
   return true;
+}
+/** PURO · 3.45 · ¿cumple los filtros una carta del catálogo (las del álbum, en el selector)? null si faltan sus datos (catálogos anteriores a 3.45). */
+export function cumpleCarta(c, f = {}) {
+  if (!hayFiltros(f)) return true;
+  if (c.rarezaEn === undefined) return null;
+  return cumple({ rarity: c.rarezaEn, category: c.clase, types: c.tipos, legal: c.legal || {},
+    variants: { firstEdition: (c.variantes || []).some((v) => v.id === "firstEdition") }, set: { id: c.expansion } }, { ...f, era: "" })
+    && (!f.era || c.serie === f.era);
 }
 const erasCache = new Map();
 /** Expansiones de una era (serie de TCGdex), una vez por sesión. */

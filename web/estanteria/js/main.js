@@ -281,15 +281,17 @@ async function recargar(id = null) {
 
 async function iniciar() {
   try { almacen = await Almacen.abrir(params.get('bd') || undefined); } catch (e) { console.warn('Sin almacenamiento: no se pueden crear álbumes.', e); }
-  creador = montarCreador({ almacen, alCrear: (reg) => { recargar(reg.id); avisar(`Álbum «${reg.nombre}» creado con ${reg.cartas} cartas.`); },
+  /** 3.45 · «Borrar álbum» (biblioteca y «Editar cartas»): con confirmación; las cartas marcadas no se tocan. true si se borró. */
+  async function borrarAlbum(a) {
+    if (!a?.propio || !confirm(`¿Borrar el álbum «${a.nombre}»?\n\nLas cartas que tengas marcadas NO se borran: siguen en tu colección y en los demás álbumes.`)) return false;
+    await almacen.quitarAlbumPropio(a.id);
+    await recargar(); avisar(`Álbum «${a.nombre}» borrado.`);
+    return true;
+  }
+  creador = montarCreador({ almacen, alBorrar: (id) => borrarAlbum(albumes.find((x) => x.id === id)), alCrear: (reg) => { recargar(reg.id); avisar(`Álbum «${reg.nombre}» creado con ${reg.cartas} cartas.`); },
     alEditar: (reg) => { cache.delete(reg.id); libros.olvidar(reg.id); recargar(reg.id); avisar(`«${reg.nombre}»: ${reg.cartas} cartas.`); } });   // 3.40: portada y lomo nuevos
   $('editar-album').onclick = () => { const a = items[sel]?.album; if (a?.propio) creador.editar(a.id); };
-  $('quitar-album').onclick = async () => {
-    const a = items[sel]?.album;
-    if (!a?.propio || !confirm(`¿Quitar «${a.nombre}» de la biblioteca?\n\nLas cartas que tengas marcadas NO se borran: siguen en tu colección y en los demás álbumes.`)) return;
-    await almacen.quitarAlbumPropio(a.id);
-    await recargar(); avisar(`«${a.nombre}» quitado de la biblioteca.`);
-  };
+  $('quitar-album').onclick = () => borrarAlbum(items[sel]?.album);
   const aEditar = params.get('editar');                                   // 3.44 · «Añadir o quitar cartas» desde el visor
   if (aEditar) guardar('biblioteca.sel', aEditar);
   await cargarLista();

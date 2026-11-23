@@ -4,7 +4,7 @@
 // 3.44 · Filtros del buscador (rareza, tipo, era, expansión, formato, shiny, 1.ª edición) y «Novedades»: al editar un álbum hecho a partir de un
 // Pokémon, ilustrador o expansión, las cartas de ese origen que no están en el álbum, marcando las que han salido después («Nueva»).
 // La lógica de los datos está en web/js/generador-album.js y web/js/albumes-propios.js; aquí solo la interfaz.
-import { listarExpansiones, listarIlustradores, generarCatalogo, armarCatalogo, buscarCartas, buscarEnLimitless, imagenDe, MAX_CARTAS, FILTROS, hayFiltros, candidatasDe } from '../../js/generador-album.js';
+import { listarExpansiones, listarIlustradores, generarCatalogo, armarCatalogo, buscarCartas, buscarEnLimitless, imagenDe, MAX_CARTAS, FILTROS, hayFiltros, candidatasDe, cumpleCarta } from '../../js/generador-album.js';
 import { crearAlbumPropio, editarCartasAlbum, nombrePropuesto, nombreBonito, separarNovedades, definicionBase } from '../../js/albumes-propios.js';
 import { ordenarPorPokedex } from '../../js/album/distribucion.js';
 import { conCors, conRespaldo } from '../../js/supabase-url.js';
@@ -23,7 +23,7 @@ export function filtrar(lista, texto, clave = (x) => x, max = 40) {
 /** PURO · miniatura de una carta para la rejilla: la pequeña de TCGdex o la de limitlesstcg / pokemontcg.io (la ligera). */
 export const miniatura = (c) => { const u = imagenDe(c); return u ? conCors(u.replace(/\/high\.webp$/, '/low.webp').replace(/_hires\.png$/, '.png')) : null; };
 
-export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
+export function montarCreador({ almacen, alCrear, alEditar = alCrear, alBorrar = null }) {
   const d = $('d-nuevo'), estado = $('n-estado'), barra = $('n-progreso'), crear = $('n-crear');
   let tipo = 'expansion', expansiones = null, ilustradores = null, control = null, paso = 1, editando = null, origen = null;
   const eleccion = { expansion: null, ilustrador: null, pokExp: null };
@@ -86,7 +86,7 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     return eleccion.pokExp ? { tipo, pokemon: p, expansion: eleccion.pokExp.id } : { tipo, pokemon: p };
   }
   const ocupado = (si) => {
-    for (const el of d.querySelectorAll('input, select, [data-tipo], #n-crear, #n-atras, #n-todas, #n-ninguna, #n-nov-todas, .n-filtros button, .n-rejilla button')) el.disabled = si;
+    for (const el of d.querySelectorAll('input, select, [data-tipo], #n-crear, #n-atras, #n-borrar, #n-todas, #n-ninguna, #n-nov-todas, .n-filtros button, .n-rejilla button')) el.disabled = si;
     barra.hidden = !si; $('n-cancelar').textContent = si ? 'Detener' : 'Cancelar';
   };
 
@@ -97,11 +97,15 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     $('n-atras').hidden = n !== 2 || Boolean(editando);
     crear.textContent = n === 1 ? 'Elegir cartas →' : editando ? 'Guardar cartas' : 'Crear álbum';
     $('n-titulo').textContent = editando ? 'Editar cartas' : 'Nuevo álbum';
+    $('n-borrar').hidden = !editando || !alBorrar;
     decir('');
   }
   function contar() {
-    const n = elegidas.size;
-    $('n-cuenta').textContent = `${n} de ${conocidas.size} elegidas` + (n > MAX_CARTAS ? ` · máximo ${MAX_CARTAS}` : '');
+    const n = elegidas.size, vistasAqui = visibles().length;
+    $('n-cuenta').textContent = `${n} de ${conocidas.size} elegidas` + (n > MAX_CARTAS ? ` · máximo ${MAX_CARTAS}` : '')
+      + (vistasAqui !== orden.length ? ` · se ven ${vistasAqui}` : '');
+    $('n-todas').textContent = vistasAqui !== orden.length ? `Todas (${vistasAqui})` : 'Todas';
+    $('n-ninguna').textContent = vistasAqui !== orden.length ? `Ninguna (${vistasAqui})` : 'Ninguna';
     crear.disabled = paso === 2 && (n === 0 || n > MAX_CARTAS);
   }
   function tarjeta(c, { pulsada, alPulsar, estado: est }) {
@@ -123,8 +127,13 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     b.append(img, n); b.onclick = () => alPulsar(b);
     li.append(b); return li;
   }
+  /** 3.45 · las cartas del álbum que pasan los filtros (sin filtros, todas). */
+  const visibles = () => { const f = filtros(); return orden.filter((id) => cumpleCarta(conocidas.get(id).carta, f) !== false); };
   function pintarRejilla() {
-    $('n-rejilla').replaceChildren(...orden.map((id) => tarjeta(conocidas.get(id).carta, {
+    const lista = visibles();
+    $('n-ayuda').textContent = lista.length || !orden.length ? 'Toca una carta para quitarla o volver a ponerla. Los filtros sirven para estas cartas y para la búsqueda de abajo.'
+      : 'Ninguna carta del álbum con esos filtros.';
+    $('n-rejilla').replaceChildren(...lista.map((id) => tarjeta(conocidas.get(id).carta, {
       pulsada: elegidas.has(id),
       alPulsar: (b) => { if (elegidas.has(id)) elegidas.delete(id); else elegidas.add(id); b.setAttribute('aria-pressed', String(elegidas.has(id))); contar(); },
     })));
@@ -159,12 +168,36 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     for (const id of ['nf-rareza', 'nf-tipo', 'nf-era', 'nf-expansion', 'nf-formato']) $(id).classList.toggle('activo', Boolean($(id).value));
     $('nf-rareza').disabled = f.shiny;                                // shiny ya es una rareza (Variocolor)
     $('nf-limpiar').hidden = !hayFiltros(f);
+    $('n-buscar-filtros').hidden = !hayFiltros(f) || Boolean($('n-buscar').value.trim());
   }
-  for (const id of ['nf-rareza', 'nf-tipo', 'nf-era', 'nf-expansion', 'nf-formato']) $(id).addEventListener('change', () => { pintarFiltros(); buscar(0); });
+  const alFiltrar = () => { pintarFiltros(); filtrarRejilla(); if ($('n-buscar').value.trim()) buscar(0); else limpiarResultados(); };
+  for (const id of ['nf-rareza', 'nf-tipo', 'nf-era', 'nf-expansion', 'nf-formato']) $(id).addEventListener('change', alFiltrar);
   for (const id of ['nf-shiny', 'nf-primera']) $(id).onclick = () => {
-    $(id).setAttribute('aria-pressed', String($(id).getAttribute('aria-pressed') !== 'true')); pintarFiltros(); buscar(0);
+    $(id).setAttribute('aria-pressed', String($(id).getAttribute('aria-pressed') !== 'true')); alFiltrar();
   };
-  $('nf-limpiar').onclick = () => { limpiarFiltros(); buscar(0); };
+  $('nf-limpiar').onclick = () => { limpiarFiltros(); alFiltrar(); };
+  // 3.45 · sin nombre, buscar con los filtros en TODAS las cartas de TCGdex se pide con este botón (si no, filtrar el álbum lo inundaría)
+  $('n-buscar-filtros').onclick = () => buscar(0, true);
+  /** Las cartas del álbum hechas antes de 3.45 no traen tipo, formato… : se piden a TCGdex la primera vez que se filtra. */
+  let enriqueciendo = null;
+  async function filtrarRejilla() {
+    const f = filtros();
+    const faltan = hayFiltros(f) ? orden.filter((id) => cumpleCarta(conocidas.get(id).carta, f) === null) : [];
+    if (faltan.length && !enriqueciendo) {
+      enriqueciendo = (async () => {
+        ocupado(true); barra.value = 0;
+        try {
+          const { catalogo, precios } = await generarCatalogo({ tipo: 'lista', ids: faltan }, { max: 600,
+            progreso: (h, t) => { barra.max = t || 1; barra.value = h; decir(`Preparando los filtros: ${h} de ${t} cartas…`); } });
+          for (const c of catalogo.cartas) conocidas.set(c.id, { carta: c, precio: precios.cartas[c.id] ?? conocidas.get(c.id)?.precio });
+          decir('');
+        } catch (e) { decir('No se pudieron preparar los filtros (hace falta conexión).', true); }
+        finally { ocupado(false); pintarFiltros(); enriqueciendo = null; }
+      })();
+      await enriqueciendo;
+    }
+    pintarRejilla();
+  }
   function limpiarFiltros() {
     for (const id of ['nf-rareza', 'nf-tipo', 'nf-era', 'nf-expansion', 'nf-formato']) $(id).value = '';
     for (const id of ['nf-shiny', 'nf-primera']) $(id).setAttribute('aria-pressed', 'false');
@@ -205,12 +238,13 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     completarImagenes(filas, () => mia === busqueda);
   }
   $('n-mas').onclick = () => mostrarResultados(mostradas);
-  function buscar(espera = 300) {
+  function limpiarResultados() { busqueda++; resultados = []; $('n-resultados').replaceChildren(); $('n-mas').hidden = true; $('n-total').hidden = true; }
+  function buscar(espera = 300, soloFiltros = false) {
     const texto = $('n-buscar').value, f = filtros(), mia = ++busqueda;
     clearTimeout(buscar.t);
     buscar.t = setTimeout(async () => {
-      if (texto.trim().length < 2 && !(hayFiltros(f) && !texto.trim())) {
-        resultados = []; $('n-resultados').replaceChildren(); $('n-mas').hidden = true; $('n-total').hidden = true;
+      if (texto.trim().length < 2 && !(soloFiltros && hayFiltros(f) && !texto.trim())) {
+        limpiarResultados();
         if (texto.trim()) decir('');
         return;
       }
@@ -222,7 +256,7 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
       resultados = res; mostrarResultados(0);
     }, espera);
   }
-  $('n-buscar').addEventListener('input', () => buscar());
+  $('n-buscar').addEventListener('input', () => { pintarFiltros(); buscar(); });
 
   // ---------------------------------------------------------------- 3.44 · novedades del origen (al editar)
   let novedades = [];
@@ -284,8 +318,9 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
     decir(`${r.nombre} añadida al álbum.`);
     pintarRejilla();
   }
-  $('n-todas').onclick = () => { elegidas = new Set(orden); pintarRejilla(); };
-  $('n-ninguna').onclick = () => { elegidas = new Set(); pintarRejilla(); };
+  // 3.45 · «Todas» / «Ninguna» actúan sobre las cartas que se ven (con filtros, solo esas)
+  $('n-todas').onclick = () => { for (const id of visibles()) elegidas.add(id); pintarRejilla(); };
+  $('n-ninguna').onclick = () => { for (const id of visibles()) elegidas.delete(id); pintarRejilla(); };
   $('n-atras').onclick = () => irAPaso(1);
 
   /** El catálogo final con las cartas elegidas. Si son justo las de la definición, se guarda la definición (recibe cartas nuevas cada semana);
@@ -330,6 +365,7 @@ export function montarCreador({ almacen, alCrear, alEditar = alCrear }) {
       (editando ? alEditar : alCrear)(reg);
     } catch (e) { ocupado(false); decir(e.message || String(e), true); }
   };
+  $('n-borrar').onclick = async () => { if (editando && alBorrar && await alBorrar(editando)) d.close(); };
   $('n-cancelar').onclick = () => { if (control) control.abort(); else d.close(); };
   d.addEventListener('cancel', (e) => { if (control) { e.preventDefault(); control.abort(); } });   // Esc durante la búsqueda: la detiene
 

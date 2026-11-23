@@ -47,7 +47,7 @@
     <button type="button" class="abrir e-caja e-llena" id="abrir">Abrir álbum</button>
     <div class="acciones-album" id="acciones-album" hidden>
       <button type="button" class="e-caja" id="editar-album">Editar cartas</button>
-      <button type="button" class="e-caja" id="quitar-album">Quitar de la biblioteca</button>
+      <button type="button" class="e-caja e-peligro" id="quitar-album">Borrar álbum</button>
     </div>
   </section>
 
@@ -88,19 +88,7 @@
           <p class="e-etiqueta" id="n-cuenta" aria-live="polite"></p>
           <div class="n-botones"><button type="button" class="e-caja" id="n-todas">Todas</button><button type="button" class="e-caja" id="n-ninguna">Ninguna</button></div>
         </div>
-        <p class="n-ayuda">Toca una carta para quitarla o volver a ponerla.</p>
-        <ul class="n-rejilla" id="n-rejilla" aria-label="Cartas del álbum"></ul>
-        <!-- 3.44 · cartas que han salido (o que no se eligieron) del Pokémon, ilustrador o expansión de origen -->
-        <section class="n-novedades" id="n-novedades" hidden>
-          <div class="n-cabeza">
-            <p class="e-etiqueta" id="n-nov-titulo"></p>
-            <div class="n-botones"><button type="button" class="e-caja" id="n-nov-todas">Añadir todas</button></div>
-          </div>
-          <ul class="n-rejilla n-resultados" id="n-nov-lista" aria-label="Cartas que no están en el álbum"></ul>
-        </section>
-        <label class="e-etiqueta" for="n-buscar">Añadir otras cartas</label>
-        <input id="n-buscar" type="search" autocomplete="off" placeholder="Nombre, o solo filtros">
-        <!-- 3.44 · filtros del buscador (con filtros, el nombre es opcional) -->
+        <!-- 3.44 · filtros (3.45: para las cartas del álbum y para la búsqueda) -->
         <div class="n-filtros" id="n-filtros">
           <select id="nf-rareza" aria-label="Rareza"><option value="">Rareza</option></select>
           <select id="nf-tipo" aria-label="Tipo"><option value="">Tipo</option></select>
@@ -111,6 +99,19 @@
           <button type="button" class="e-caja n-chip" id="nf-primera" aria-pressed="false">1.ª edición</button>
           <button type="button" class="e-caja n-chip" id="nf-limpiar" hidden>Quitar filtros</button>
         </div>
+        <p class="n-ayuda" id="n-ayuda">Toca una carta para quitarla o volver a ponerla. Los filtros sirven para estas cartas y para la búsqueda de abajo.</p>
+        <ul class="n-rejilla" id="n-rejilla" aria-label="Cartas del álbum"></ul>
+        <!-- 3.44 · cartas que han salido (o que no se eligieron) del Pokémon, ilustrador o expansión de origen -->
+        <section class="n-novedades" id="n-novedades" hidden>
+          <div class="n-cabeza">
+            <p class="e-etiqueta" id="n-nov-titulo"></p>
+            <div class="n-botones"><button type="button" class="e-caja" id="n-nov-todas">Añadir todas</button></div>
+          </div>
+          <ul class="n-rejilla n-resultados" id="n-nov-lista" aria-label="Cartas que no están en el álbum"></ul>
+        </section>
+        <label class="e-etiqueta" for="n-buscar">Añadir otras cartas</label>
+        <input id="n-buscar" type="search" autocomplete="off" placeholder="Busca por nombre: Charizard, Mew…">
+        <button type="button" class="e-caja n-mas" id="n-buscar-filtros" hidden>Buscar en todas las cartas con estos filtros</button>
         <p class="n-ayuda" id="n-total" hidden></p>
         <ul class="n-rejilla n-resultados" id="n-resultados" aria-label="Resultados de la búsqueda"></ul>
         <button type="button" class="e-caja n-mas" id="n-mas" hidden>Ver más</button>
@@ -122,6 +123,7 @@
       <p class="n-estado" id="n-estado" role="status" aria-live="polite"></p>
       <progress id="n-progreso" max="1" value="0" hidden></progress>
       <div class="n-acciones">
+        <button type="button" class="e-caja e-peligro n-borrar" id="n-borrar" hidden>Borrar álbum</button>
         <button type="button" class="e-caja" id="n-atras" hidden>‹ Atrás</button>
         <button type="button" class="e-caja" id="n-cancelar">Cancelar</button>
         <button type="button" class="e-caja e-llena" id="n-crear">Elegir cartas →</button>

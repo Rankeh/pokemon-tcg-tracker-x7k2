@@ -571,3 +571,11 @@ Para las pocas cartas sin imagen en ninguna fuente accesible (p. ej. Meowth del 
 - Si se eligieron las cartas a mano, el álbum guarda cuáles había (`definicion.vistas`); las que salgan después **no se añaden solas**: el visor avisa («Han salido N cartas nuevas…») y en **Editar cartas** aparecen arriba, marcadas «Nueva», con «Añadir todas». También salen las del origen que quitaste, por si quieres recuperarlas.
 - Desde el visor: **⋯ › Añadir o quitar cartas** abre el selector de ese álbum en la biblioteca (`index.html?editar=<id>`).
 - Pruebas: `ejecutar-crear.mjs` (55 comprobaciones) y `albumes-propios.test.mjs`.
+
+## 3.45 — Filtros sobre las cartas del álbum y «Borrar álbum»
+
+- Los filtros del selector (rareza, tipo, era, expansión, formato, shiny, 1.ª edición) se aplican **a las cartas del álbum** (p. ej. un álbum de Pokémon: ver solo sus shinys o solo las de una era) y a la búsqueda. **Todas** / **Ninguna** actúan solo sobre las que se ven («Todas (12)»).
+- Sin nombre, buscar con filtros en todo TCGdex se pide con el botón «Buscar en todas las cartas con estos filtros» (para no inundar la búsqueda al filtrar el álbum).
+- El catálogo guarda ahora `rarezaEn`, `clase`, `tipos` y `legal` de cada carta. En álbumes anteriores se piden a TCGdex la primera vez que se filtra (`cumpleCarta` devuelve null si faltan).
+- **Borrar álbum**: en la biblioteca (antes «Quitar de la biblioteca»), en «Editar cartas» y en el menú ⋯ del visor. Pide confirmación; las cartas marcadas nunca se borran. Se sincroniza con la cuenta.
+- Pruebas: `ejecutar-crear.mjs` (66 comprobaciones).

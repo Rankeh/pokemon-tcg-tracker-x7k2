@@ -28,7 +28,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.44';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.45';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -656,6 +656,15 @@ async function arrancar() {
       const u = new URL($('b-biblioteca').href);
       u.searchParams.set('editar', albumActual.id);
       if (params.get('bd')) u.searchParams.set('bd', params.get('bd'));                     // pruebas: la misma base de datos
+      location.href = u.href;
+    };
+    // 3.45 · borrar el álbum desde el visor (las cartas marcadas no se tocan) y volver a la biblioteca
+    const borrar = $('m-borrar'); borrar.hidden = false;
+    borrar.onclick = async () => {
+      if (!confirm(`¿Borrar el álbum «${albumActual.nombre}»?\n\nLas cartas que tengas marcadas NO se borran: siguen en tu colección y en los demás álbumes.`)) return;
+      await almacen.quitarAlbumPropio(albumActual.id);
+      const u = new URL($('b-biblioteca').href);
+      if (params.get('bd')) u.searchParams.set('bd', params.get('bd'));
       location.href = u.href;
     };
   }

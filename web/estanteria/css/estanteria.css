@@ -152,3 +152,8 @@ body.lista .cargando, body.sin-3d .cargando { opacity: 0; }
 .nuevo-album .n-rejilla button[data-nueva]::before { content: "Nueva"; position: absolute; z-index: 1; left: 4px; top: 4px; padding: 1px 5px; border-radius: 3px;
   background: var(--e-rojo); color: #fff; font: 600 .58rem/1.4 var(--e-fuente); letter-spacing: .04em; text-transform: uppercase; }
 .nuevo-album [hidden] { display: none !important; }       /* los botones con display propio (.e-caja) también se ocultan */
+/* 3.45 · borrar álbum (biblioteca y «Editar cartas») */
+.info .acciones-album .e-peligro, .nuevo-album .e-peligro { color: var(--e-rojo); }
+.info .acciones-album .e-peligro { border-color: var(--e-linea); }
+.nuevo-album .n-acciones .n-borrar { margin-right: auto; }
+.nuevo-album .n-filtros { margin: 8px 0 4px; }
