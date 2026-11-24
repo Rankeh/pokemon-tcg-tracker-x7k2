@@ -69,3 +69,20 @@ export function albumesConCarta(indice, texto) {
   }
   return res;
 }
+
+/** PURO · 3.47 · texto predictivo de «Buscar carta»: nombres de cartas de tus álbumes que contienen lo escrito. Primero los que empiezan
+ *  por ello, y entre ellos los más cortos («Meowth» antes que «Meowth V»: elegirlo ya encuentra todas sus variantes). [{ nombre, albumes }] */
+export function sugerencias(indice, texto, max = 8) {
+  const t = plano(texto);
+  if (!t) return [];
+  const nombres = new Map();                                    // nombre plano → { nombre, albumes: Set }
+  for (const [id, lista] of indice) for (const n of lista) {
+    const k = plano(n);
+    if (!k.includes(t)) continue;
+    if (!nombres.has(k)) nombres.set(k, { nombre: n, albumes: new Set() });
+    nombres.get(k).albumes.add(id);
+  }
+  return [...nombres.entries()]
+    .sort(([a], [b]) => Number(b.startsWith(t)) - Number(a.startsWith(t)) || a.length - b.length || a.localeCompare(b, 'es'))
+    .slice(0, max).map(([k, v]) => ({ nombre: v.nombre, albumes: v.albumes.size, exacto: k === t }));
+}

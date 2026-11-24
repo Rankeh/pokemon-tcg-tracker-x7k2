@@ -153,3 +153,15 @@ test('albumesConCarta: los álbumes que tienen la carta, con cuántas (sin tilde
   assert.deepEqual(it.map((x) => [x.id, x.encontradas]), [['a', 2], ['b', 2], ['nuevo', undefined]], 'solo los que la tienen, y «Nuevo álbum»');
   assert.deepEqual(elementosCarrusel(albumes, 's1', albumesConCarta(indice, 'meowth')).map((x) => x.id), ['a', 'nuevo'], 'junto con el filtro de serie');
 });
+
+// 3.47 · texto predictivo de «Buscar carta»
+import { sugerencias } from '../js/carrusel.js';
+test('sugerencias: empiezan por lo escrito primero, el nombre corto antes que sus variantes, con en cuántos álbumes está', () => {
+  const indice = new Map([['a', ['Meowth', 'Meowth V', 'Pikachu']], ['b', ['Meowth', 'Alolan Meowth', 'Meowth de Galar']], ['c', ['Mew', 'Mewtwo']]]);
+  assert.deepEqual(sugerencias(indice, ''), []);
+  assert.deepEqual(sugerencias(indice, 'meo').map((s) => [s.nombre, s.albumes]),
+    [['Meowth', 2], ['Meowth V', 1], ['Meowth de Galar', 1], ['Alolan Meowth', 1]]);
+  assert.deepEqual(sugerencias(indice, 'MEW').map((s) => s.nombre), ['Mew', 'Mewtwo'], 'sin mayúsculas');
+  assert.equal(sugerencias(indice, 'mew')[0].exacto, true);
+  assert.equal(sugerencias(indice, 'e', 2).length, 2, 'como mucho `max`');
+});

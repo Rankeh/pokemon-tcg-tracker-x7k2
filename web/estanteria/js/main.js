@@ -12,7 +12,7 @@ import { iniciarSincronizacion } from '../../js/sincronizacion.js';
 import { montarCreador } from './creador.js';
 import { adminGuardado, comprobarAdmin } from '../../js/admin.js';
 import { LIBRO, grosorAlbum } from './disposicion.js';
-import { poses, mover, elementos, series, altoVisible, CARRUSEL, albumesConCarta } from './carrusel.js';
+import { poses, mover, elementos, series, altoVisible, CARRUSEL, albumesConCarta, sugerencias } from './carrusel.js';
 import { crearFabricaLibros } from './libros.js';
 
 export const FASE = 'biblioteca-editorial-1';
@@ -256,7 +256,19 @@ $('ant').onclick = () => seleccionar(sel - 1);
 $('sig').onclick = () => seleccionar(sel + 1);
 $('abrir').onclick = abrir;
 let esperaBusqueda = 0;
-$('b-carta').addEventListener('input', () => { clearTimeout(esperaBusqueda); esperaBusqueda = setTimeout(() => buscarCarta($('b-carta').value), 200); });
+// 3.47 · texto predictivo: los nombres de las cartas de tus álbumes que contienen lo escrito (el navegador los ofrece en una lista)
+function predecir() {
+  const lista = sugerencias(indice, $('b-carta').value);
+  $('b-carta-lista').replaceChildren(...(lista.length === 1 && lista[0].exacto ? [] : lista).map((s) => {
+    const o = document.createElement('option'); o.value = s.nombre; o.label = `${s.albumes} ${s.albumes === 1 ? 'álbum' : 'álbumes'}`; return o;
+  }));
+}
+$('b-carta').addEventListener('input', (e) => {
+  predecir(); clearTimeout(esperaBusqueda);
+  // elegida de la lista (el navegador la escribe entera): se busca al momento
+  if (e.inputType === 'insertReplacementText' || e.inputType === undefined) buscarCarta($('b-carta').value);
+  else esperaBusqueda = setTimeout(() => buscarCarta($('b-carta').value), 200);
+});
 $('b-carta').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { e.preventDefault(); clearTimeout(esperaBusqueda); buscarCarta($('b-carta').value); if (items[sel]?.tipo === 'album') abrir(); }
   else if (e.key === 'Escape' && $('b-carta').value) { e.preventDefault(); $('b-carta').value = ''; buscarCarta(''); }

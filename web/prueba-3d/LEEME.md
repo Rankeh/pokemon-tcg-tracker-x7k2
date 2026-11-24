@@ -586,3 +586,8 @@ Para las pocas cartas sin imagen en ninguna fuente accesible (p. ej. Meowth del 
 - Los nombres salen de los catálogos que la biblioteca ya leía para contar cartas (los fijos) y de los guardados en el dispositivo (los creados en la app): `albumesConCarta` en `web/estanteria/js/carrusel.js`.
 - **Abrir** (o Intro en la casilla) lleva al álbum con `?buscar=<texto>`: el visor abre por la primera página donde está esa carta.
 - Esc borra la búsqueda. Pruebas: `estanteria.test.mjs` y `ejecutar-crear.mjs` (72 comprobaciones).
+
+## 3.47 — Texto predictivo en «Buscar carta»
+
+- Al escribir en «Buscar carta…» de la biblioteca, el navegador propone los nombres de las cartas de tus álbumes que contienen lo escrito (`<datalist>`), con en cuántos álbumes está cada una. Primero los que empiezan por lo escrito y el nombre corto antes que sus variantes («Meowth» antes que «Meowth V»: elegirlo ya encuentra todas). Elegir uno busca al momento.
+- `sugerencias` en `web/estanteria/js/carrusel.js`. Pruebas: `estanteria.test.mjs`, `ejecutar-crear.mjs` (73).
