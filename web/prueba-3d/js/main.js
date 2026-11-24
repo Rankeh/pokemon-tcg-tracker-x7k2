@@ -16,7 +16,8 @@ import { albumPorId, conCifras } from '../../estanteria/js/albumes.js';
 import { montarMenu, copiasParaCompletar, copiasSinAlbum, compartidasCon } from './completar.js';
 import { adminGuardado, comprobarAdmin } from '../../js/admin.js';
 import { prepararImagen, imagenPegada } from '../../js/imagen-propia.js';
-import { esPropio, listarTodos, cargarAlbum as cargarAlbumColeccion, actualizarAlbumPropio } from '../../js/albumes-propios.js';
+import { plano } from '../../js/texto.js';
+import { borrarAlbumPropio, esPropio, listarTodos, cargarAlbum as cargarAlbumColeccion, actualizarAlbumPropio } from '../../js/albumes-propios.js';
 import { fijarTemaMarcadores } from './marcadores.js';
 import { Diagnostico } from './diagnostico.js';
 import { CacheTexturas } from './texturas.js';
@@ -597,10 +598,11 @@ async function arrancar() {
   resaltado = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro });
   cursor = new Resaltado({ reducirMovimiento: () => reducirMovimiento, color: TEMAS[tema].aro, opacidad: 0.5 });   // 3.27: cursor del teclado, más tenue que la selección
 
-  const manifiesto = await cargarManifiesto();
-  // 3.43 · tus imágenes propias (Map id → data URL): el 3D y la ficha las usan antes que cualquier otra
-  const propias = almacen ? await almacen.imagenesPropias().catch(() => new Map()) : new Map();
-  precios = propio ? (carga.precios?.cartas ? carga.precios : null) : await cargarPrecios('../../' + albumActual.precios);   // opcional: null si no hay precios
+  // manifiesto, tus imágenes propias (3.43: Map id → data URL, el 3D y la ficha las usan antes que cualquier otra) y precios, a la vez
+  const [manifiesto, propias, preciosAlbum] = await Promise.all([cargarManifiesto(),
+    almacen ? almacen.imagenesPropias().catch(() => new Map()) : new Map(),
+    propio ? (carga.precios?.cartas ? carga.precios : null) : cargarPrecios('../../' + albumActual.precios)]);   // precios: opcional, null si no hay
+  precios = preciosAlbum;
   cache = new CacheTexturas({ presupuestoBytes: (+params.get('mem') || 32) * 1048576, concurrencia: 4 });
   vista = new VistaBolsillos({ album, adaptador, cache, materialCarta: (c, r) => aspecto.materialCarta(c, r), reducirMovimiento: () => reducirMovimiento,
     productores: crearProductores({ manifiesto, remotas: propio, propias, anisotropia: Math.min(4, renderer.capabilities.getMaxAnisotropy()) }) });   // propio: imágenes de TCGdex
@@ -651,22 +653,17 @@ async function arrancar() {
     .map(async (a) => ({ nombre: a.nombre, ids: (await cargarAlbumColeccion(a.id, almacen)).catalogo.cartas.map((c) => c.id) }))));   // 3.37: también los creados en la app
   // 3.44 · álbumes creados en la app: «Editar cartas» (añadir las que salgan más adelante, quitar…) abre el selector en la biblioteca
   if (propio && !soloLectura) {
-    const b = $('m-editar'); b.hidden = false;
-    b.onclick = () => {
+    /** La biblioteca (con la misma base de datos en las pruebas: ?bd=), con `extra` en la dirección. */
+    const irABiblioteca = (extra = {}) => {
       const u = new URL($('b-biblioteca').href);
-      u.searchParams.set('editar', albumActual.id);
-      if (params.get('bd')) u.searchParams.set('bd', params.get('bd'));                     // pruebas: la misma base de datos
+      for (const [k, v] of Object.entries({ ...extra, bd: params.get('bd') })) if (v) u.searchParams.set(k, v);
       location.href = u.href;
     };
+    $('m-editar').hidden = false;
+    $('m-editar').onclick = () => irABiblioteca({ editar: albumActual.id });
     // 3.45 · borrar el álbum desde el visor (las cartas marcadas no se tocan) y volver a la biblioteca
-    const borrar = $('m-borrar'); borrar.hidden = false;
-    borrar.onclick = async () => {
-      if (!confirm(`¿Borrar el álbum «${albumActual.nombre}»?\n\nLas cartas que tengas marcadas NO se borran: siguen en tu colección y en los demás álbumes.`)) return;
-      await almacen.quitarAlbumPropio(albumActual.id);
-      const u = new URL($('b-biblioteca').href);
-      if (params.get('bd')) u.searchParams.set('bd', params.get('bd'));
-      location.href = u.href;
-    };
+    $('m-borrar').hidden = false;
+    $('m-borrar').onclick = async () => { if (await borrarAlbumPropio(almacen, albumActual)) irABiblioteca(); };
   }
   menuAlbum = montarMenu({ boton: $('b-opciones'), menu: $('menu-album'), todas: $('m-todas'), quitar: $('m-quitar'), deshacer: $('m-deshacer'),
     dialogo: $('d-todas'), titulo: $('d-todas-t'), texto: $('d-todas-txt'), aceptar: $('d-aceptar'), cancelar: $('d-cancelar') }, {
@@ -714,8 +711,8 @@ async function arrancar() {
   metricas.tiempo('modeloListoMs', performance.now());
   metricas.tiempo('arranqueMs', performance.now() - t0);
   // 3.46 · desde «Buscar carta» de la biblioteca (?buscar=meowth): se abre por la primera página donde está esa carta
-  const buscada = String(params.get('buscar') || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  const paginaBuscada = buscada.length >= 2 ? mapa.paginas.find((p) => p.bolsillos.some((c) => c && String(c.nombre).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(buscada)))?.numero : null;
+  const buscada = plano(params.get('buscar'));
+  const paginaBuscada = buscada.length >= 2 ? mapa.paginas.find((p) => p.bolsillos.some((c) => c && plano(c.nombre).includes(buscada)))?.numero : null;
   const inicial = +params.get('pagina') || paginaBuscada || 0;
   if (inicial >= 1 && inicial <= mapa.totalPaginas) { album.estado.irA(vueltasParaPagina(inicial)); album.aplicar(); lado = inicial % 2 === 1 ? 'der' : 'izq'; }
   sincronizarTexturas(); pintarProgreso(); actualizarUi();

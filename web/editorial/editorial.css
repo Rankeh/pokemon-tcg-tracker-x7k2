@@ -3,6 +3,9 @@
    Fondo casi negro enmarcado, tipografía de grotesca del sistema (titulares ligeros y grandes, etiquetas pequeñas en versalitas espaciadas),
    un único acento rojo y controles finos de 1 px. La jerarquía la marcan el tamaño, el peso y el espacio, no los adornos.
    ===================================================================================================================================== */
+/* «hidden» oculta siempre, aunque el elemento tenga su propio display (.e-caja, flex…): una sola regla para todas las páginas */
+[hidden] { display: none !important; }
+
 :root {
   --e-fondo: #1c1c1c;
   --e-marco: #0b0b0b;

@@ -1,6 +1,7 @@
 // Carrusel de lomos (PURO, sin Three.js): una sola fila horizontal de álbumes de pie. El seleccionado sale hacia delante y gira para enseñar
 // la portada en el centro; los demás se apartan a los lados mostrando solo el lomo. Unidades: metros; y = 0 es la línea de apoyo.
 import { LIBRO } from './disposicion.js';
+import { plano } from '../../js/texto.js';
 
 export const CARRUSEL = {
   hueco: 0.016,          // separación entre lomos
@@ -53,8 +54,9 @@ export function altoVisible(aspecto) {
   return Math.max(porAlto, porAncho);
 }
 
-/** PURO · texto para comparar nombres de cartas: sin tildes, sin mayúsculas y sin espacios de más. */
-export const plano = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+// 3.46 · los nombres de las cartas se normalizan una sola vez (la búsqueda recorre todos los de todos los álbumes en cada tecla)
+const planos = new Map();
+const planoDe = (n) => { let p = planos.get(n); if (p === undefined) { p = plano(n); planos.set(n, p); } return p; };
 
 /** PURO · 3.46 · buscar una carta en los álbumes: `indice` = Map(id del álbum → nombres de sus cartas). Devuelve Map(id → nº de cartas
  *  que coinciden), solo los álbumes que tienen alguna; null si no se busca nada (menos de 2 letras). «meowth» encuentra Meowth, Meowth V,
@@ -64,7 +66,7 @@ export function albumesConCarta(indice, texto) {
   if (t.length < 2) return null;
   const res = new Map();
   for (const [id, nombres] of indice) {
-    const n = nombres.reduce((k, x) => k + (plano(x).includes(t) ? 1 : 0), 0);
+    const n = nombres.reduce((k, x) => k + (planoDe(x).includes(t) ? 1 : 0), 0);
     if (n) res.set(id, n);
   }
   return res;
@@ -77,7 +79,7 @@ export function sugerencias(indice, texto, max = 8) {
   if (!t) return [];
   const nombres = new Map();                                    // nombre plano → { nombre, albumes: Set }
   for (const [id, lista] of indice) for (const n of lista) {
-    const k = plano(n);
+    const k = planoDe(n);
     if (!k.includes(t)) continue;
     if (!nombres.has(k)) nombres.set(k, { nombre: n, albumes: new Set() });
     nombres.get(k).albumes.add(id);

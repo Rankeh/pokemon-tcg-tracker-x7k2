@@ -5,6 +5,8 @@
 //                  · 3.40: { tipo: 'lista', ids, origen }  (cartas elegidas a mano; `origen` = la definición de la que se partió, si la hay)
 
 import { FUNCION_LIMITLESS } from "./supabase-url.js";
+import { plano } from "./texto.js";
+export { plano };
 
 export const API = "https://api.tcgdex.net/v2/";
 export const MAX_CARTAS = 360;                         // 20 hojas: el modelo 3D más grande (web/prueba-3d/modelo/album-20h.glb)
@@ -23,7 +25,7 @@ const RAREZAS = {
   "promo": "Promo", "rare holo v": "Rara Holo V", "rare holo vmax": "Rara Holo VMAX", "rare holo vstar": "Rara Holo V-ASTRO", "amazing rare": "Rara Asombrosa",
   "radiant rare": "Rara Radiante", "secret rare": "Rara Secreta", "rare ultra": "Ultra Rara", "rare secret": "Rara Secreta", "rare rainbow": "Rara Arcoíris",
 };
-const rarezaEs = (r) => RAREZAS[String(r || "").trim().toLowerCase()] || r || null;
+const rarezaEs = (r) => (/^none$/i.test(String(r || "").trim()) ? null : RAREZAS[String(r || "").trim().toLowerCase()] || r || null);   // «None»: sin rareza
 
 const SELLOS = { "30th-anniversary": "sello 30.º aniversario" };
 const NOMBRES = { normal: "Normal", holo: "Holo", reverse: "Reverse holo", firstEdition: "1.ª edición", wPromo: "Sello W" };
@@ -78,18 +80,30 @@ async function pedir(ruta, { senal, intentos = 3 } = {}) {
   }
 }
 const q = encodeURIComponent;
+/** Lo que no cambia durante la sesión (expansiones, series) se pide una sola vez: se guarda la promesa; si falla, se olvida. */
+const unaVez = new Map();
+const recordar = (clave, pedirlo) => {
+  if (!unaVez.has(clave)) unaVez.set(clave, pedirlo().catch((e) => { unaVez.delete(clave); throw e; }));
+  return unaVez.get(clave);
+};
+/** Expansiones de una era (serie de TCGdex), como Set de ids. */
+const setsDeEra = (era) => recordar("serie:" + era, () => pedir("en/series/" + q(era)).then((s) => new Set((s?.sets || []).map((x) => x.id))));
+/** Las expansiones de TCG Pocket (digital): nunca entran en un álbum. Sin conexión con esa lista, ninguna se descarta. */
+const setsPocket = () => setsDeEra("tcgp").catch(() => new Set());
+const esPocket = (c, pocket) => /\/tcgp\//.test(c.image || "") || pocket.has(expansionDe(c.id));
+/** Una expansión en un idioma (con su lista de cartas). null si no existe. */
+const pedirSet = (lengua, id) => recordar(`set:${lengua}:${id}`, () => pedir(`${lengua}/sets/` + q(id)));
+/** Carta breve de una búsqueda o lista de TCGdex → la forma que usa el selector de cartas. */
+const breve = (c) => ({ id: c.id, nombre: c.name, numero: c.localId, expansion: expansionDe(c.id), imagen: c.image ? c.image + "/low.webp" : null });
 /** PURO · ¿la carta `nombre` es del Pokémon `pokemon`? Por palabra completa, sin tildes ni mayúsculas (3.42). */
 export function esDelPokemon(nombre, pokemon) {
   const p = plano(pokemon).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return p !== "" && new RegExp(`(^|[^a-z0-9])${p}([^a-z0-9]|$)`).test(plano(nombre));
 }
-/** PURO · texto para comparar nombres: sin tildes, sin mayúsculas y sin espacios de más. */
-export const plano = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 
 /** Expansiones de TCGdex para elegir (sin las de TCG Pocket), de la más reciente a la más antigua. [{ id, nombre, cartas }] */
 export async function listarExpansiones({ senal } = {}) {
-  const [es, pocket] = await Promise.all([pedir("es/sets", { senal }), pedir("en/series/tcgp", { senal }).catch(() => null)]);
-  const fuera = new Set((pocket?.sets || []).map((s) => s.id));
+  const [es, fuera] = await Promise.all([pedir("es/sets", { senal }), setsPocket()]);
   return (es || []).filter((s) => !fuera.has(s.id)).map((s) => ({ id: s.id, nombre: s.name, cartas: s.cardCount?.total ?? s.cardCount?.official ?? null })).reverse();
 }
 /** Ilustradores de TCGdex (para sugerir mientras se escribe). */
@@ -99,7 +113,7 @@ export async function listarIlustradores({ senal } = {}) { return (await pedir("
 async function brevesDe(def, senal) {
   if (def.tipo === "lista") return [...new Set(def.ids || [])].map((id) => ({ id }));
   if (def.tipo === "expansion") {
-    const s = await pedir("en/sets/" + q(def.expansion), { senal }) || await pedir("es/sets/" + q(def.expansion), { senal });
+    const s = await pedirSet("en", def.expansion) || await pedirSet("es", def.expansion);
     if (!s) throw new Error("No existe la expansión " + def.expansion);
     return s.cards;
   }
@@ -122,11 +136,16 @@ async function idsDe(def, senal) { return (await brevesDe(def, senal)).map((c) =
  *  Para «Novedades» al editar un álbum de cartas elegidas a mano. [{ id, nombre, numero, expansion, imagen }] */
 export async function candidatasDe(def, { senal } = {}) {
   if (!def || def.tipo === "lista") return [];
-  const [breves, pocket] = await Promise.all([brevesDe(def, senal), pedir("en/series/tcgp", { senal }).catch(() => null)]);
-  const fuera = new Set((pocket?.sets || []).map((s) => s.id));
-  return breves.filter((c) => !/\/tcgp\//.test(c.image || "") && !fuera.has(expansionDe(c.id)))
-    .map((c) => ({ id: c.id, nombre: c.name, numero: c.localId, expansion: expansionDe(c.id), imagen: c.image ? c.image + "/low.webp" : null }));
+  const [breves, pocket] = await Promise.all([brevesDe(def, senal), setsPocket()]);
+  return breves.filter((c) => !esPocket(c, pocket)).map(breve);
 }
+
+/** Datos de una expansión para el catálogo (una vez por sesión, no una por carta). */
+const datosSet = (id) => recordar("datos:" + id, async () => {
+  const [en, es] = await Promise.all([pedirSet("en", id), pedirSet("es", id).catch(() => null)]);
+  return { serie: en?.serie?.id || "", nombreEs: es?.name || null, nombreEn: en?.name || id, codigo: en?.abbreviation?.official || en?.tcgOnline || "",
+    cartasEs: new Map((es?.cards || []).map((c) => [c.id, c])) };
+});
 
 /**
  * Genera el catálogo: { catalogo: { generado, fuente, totales, cartas }, precios: { fecha, fuente, unidad, cartas } }.
@@ -136,13 +155,6 @@ export async function generarCatalogo(def, { progreso = () => {}, senal, max = M
   const ids = await idsDe(def, senal);
   if (!ids.length) throw new Error(def.tipo === "lista" ? "El álbum no tiene ninguna carta." : "TCGdex no tiene cartas para eso. Revisa el nombre (exacto, como en las cartas).");
   if (ids.length > max * 1.3) throw new Error(`Son ${ids.length} cartas: demasiadas para un álbum (máximo ${MAX_CARTAS}). Prueba con algo más concreto.`);
-  const sets = new Map();                                       // id → { serie, en, es } (una petición por expansión, no por carta)
-  const datosSet = (id) => {
-    if (!sets.has(id)) sets.set(id, Promise.all([pedir("en/sets/" + q(id), { senal }), pedir("es/sets/" + q(id), { senal }).catch(() => null)])
-      .then(([en, es]) => ({ serie: en?.serie?.id || "", nombreEs: es?.name || null, nombreEn: en?.name || id, codigo: en?.abbreviation?.official || en?.tcgOnline || "",
-        cartasEs: new Map((es?.cards || []).map((c) => [c.id, c])) })));
-    return sets.get(id);
-  };
   const cartas = [], precios = {}, fuera = [];
   let hechas = 0;
   progreso(0, ids.length);
@@ -261,46 +273,37 @@ export function cumpleCarta(c, f = {}) {
     variants: { firstEdition: (c.variantes || []).some((v) => v.id === "firstEdition") }, set: { id: c.expansion } }, { ...f, era: "" })
     && (!f.era || c.serie === f.era);
 }
-const erasCache = new Map();
-/** Expansiones de una era (serie de TCGdex), una vez por sesión. */
-async function setsDeEra(era, senal) {
-  if (!erasCache.has(era)) erasCache.set(era, pedir("en/series/" + q(era), { senal }).then((s) => new Set((s?.sets || []).map((x) => x.id)))
-    .catch((e) => { erasCache.delete(era); throw e; }));
-  return erasCache.get(era);
-}
 
 /** 3.40 · Busca cartas por nombre en TCGdex (contiene; castellano o inglés) para añadirlas a mano. Sin TCG Pocket. [{ id, nombre, numero, imagen }]
- *  3.44 · con `filtros` (rareza, tipo, formato, expansión, era, shiny, 1.ª edición); con filtros el nombre puede quedar vacío.
- *  El array devuelto lleva `total` (cuántas había antes de cortar en `max`). */
+ *  3.44 · con `filtros` (rareza, tipo, formato, expansión, era, shiny, 1.ª edición); con filtros el nombre puede quedar vacío. */
 export async function buscarCartas(texto, { senal, max = 60, filtros = {} } = {}) {
   const t = String(texto || "").trim(), conFiltros = hayFiltros(filtros);
-  if (t.length < 2 && !(conFiltros && !t)) return Object.assign([], { total: 0 });
-  const pocket = pedir("en/series/tcgp", { senal }).catch(() => null);
-  const setsEra = filtros.era ? await setsDeEra(filtros.era, senal) : null;
+  if (t.length < 2 && !(conFiltros && !t)) return [];
+  // todo lo que no depende de otra cosa, a la vez: lista de Pocket, era, búsqueda por nombre y búsquedas con filtros
+  const porNombre = t ? Promise.all([pedir("es/cards?name=" + q(t), { senal }), pedir("en/cards?name=" + q(t), { senal })]) : Promise.resolve([[], []]);
+  const filtradas = conFiltros ? Promise.all(consultas(t, filtros).map((c) => pedir("en/cards?" + c, { senal }))) : null;
+  const [pocket, setsEra] = await Promise.all([setsPocket(), filtros.era ? setsDeEra(filtros.era) : null]);
   let listas;
-  if (!conFiltros) listas = await Promise.all([pedir("es/cards?name=" + q(t), { senal }), pedir("en/cards?name=" + q(t), { senal })]);
+  if (!conFiltros) listas = await porNombre;
   else {
-    const filtradas = (await Promise.all(consultas(t, filtros).map((c) => pedir("en/cards?" + c, { senal })))).flat().filter(Boolean);
-    listas = [filtradas];
+    listas = [(await filtradas).flat().filter(Boolean)];
     if (t) {                                // nombres solo en castellano («Meowth de Galar»): se miran sus datos, como mucho 24
-      const [es, en] = await Promise.all([pedir("es/cards?name=" + q(t), { senal }), pedir("en/cards?name=" + q(t), { senal })]);
+      const [es, en] = await porNombre;
       const enIngles = new Set((en || []).map((c) => c.id));
       const soloEs = (es || []).filter((c) => !enIngles.has(c.id)).slice(0, 24);
       const datos = await Promise.all(soloEs.map((c) => pedir("en/cards/" + q(c.id), { senal }).catch(() => null)));
       listas.push(soloEs.filter((c, i) => cumple(datos[i], filtros, setsEra)));
     }
   }
-  const fueraSets = new Set(((await pocket)?.sets || []).map((s) => s.id));
   const vistos = new Map();
   for (const c of listas.flat().filter(Boolean)) {
     const exp = expansionDe(c.id);
-    if (vistos.has(c.id) || /\/tcgp\//.test(c.image || "") || fueraSets.has(exp)) continue;
+    if (vistos.has(c.id) || esPocket(c, pocket)) continue;
     if (filtros.expansion && exp !== filtros.expansion) continue;
     if (setsEra && !setsEra.has(exp)) continue;
-    vistos.set(c.id, { id: c.id, nombre: c.name, numero: c.localId, expansion: exp, imagen: c.image ? c.image + "/low.webp" : null });
+    vistos.set(c.id, breve(c));
   }
-  const todas = [...vistos.values()];
-  return Object.assign(todas.slice(0, max), { total: todas.length });
+  return [...vistos.values()].slice(0, max);
 }
 
 /** 3.39 · Imagen de la carta en limitlesstcg: { url, idioma } o null. Nunca lanza (sin imagen se ve el marcador, como siempre).

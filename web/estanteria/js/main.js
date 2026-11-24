@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { elegirCalidad, generarEntorno } from '../../prueba-3d/js/aspecto.js';
 import { conCifras } from './albumes.js';
-import { listarTodos } from '../../js/albumes-propios.js';
+import { listarTodos, borrarAlbumPropio } from '../../js/albumes-propios.js';
 import { Almacen } from '../../js/almacen.js';
 import { iniciarSincronizacion } from '../../js/sincronizacion.js';
 import { montarCreador } from './creador.js';
@@ -294,7 +294,7 @@ async function cargarLista() {
   const nuevoIndice = new Map();
   albumes = await Promise.all((await listarTodos(almacen, { fijos: verFijos })).map(async (a) => {
     if (a.propio) {                                                        // 3.37: el catálogo está en el dispositivo
-      try { nuevoIndice.set(a.id, (await almacen.albumPropio(a.id)).datos.catalogo.cartas.map((c) => c.nombre)); } catch { /* sin índice */ }
+      nuevoIndice.set(a.id, a.nombresCartas || []);
       return conCifras(a, a.cartas);
     }
     try { const cat = await (await fetch(a.catalogo)).json(); nuevoIndice.set(a.id, cat.cartas.map((c) => c.nombre)); return conCifras(a, cat.cartas.length); }
@@ -323,8 +323,7 @@ async function iniciar() {
   try { almacen = await Almacen.abrir(params.get('bd') || undefined); } catch (e) { console.warn('Sin almacenamiento: no se pueden crear álbumes.', e); }
   /** 3.45 · «Borrar álbum» (biblioteca y «Editar cartas»): con confirmación; las cartas marcadas no se tocan. true si se borró. */
   async function borrarAlbum(a) {
-    if (!a?.propio || !confirm(`¿Borrar el álbum «${a.nombre}»?\n\nLas cartas que tengas marcadas NO se borran: siguen en tu colección y en los demás álbumes.`)) return false;
-    await almacen.quitarAlbumPropio(a.id);
+    if (!a?.propio || !await borrarAlbumPropio(almacen, a)) return false;
     await recargar(); avisar(`Álbum «${a.nombre}» borrado.`);
     return true;
   }

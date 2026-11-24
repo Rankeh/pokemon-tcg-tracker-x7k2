@@ -3,6 +3,7 @@
 // y se juntan con ellos. Quitar un álbum NUNCA toca las cartas marcadas: solo su definición.
 import { listarAlbumes, albumPorId, normalizarAlbumes } from "../estanteria/js/albumes.js";
 import { generarCatalogo, cartasPortada, candidatasDe } from "./generador-album.js";
+import { plano } from "./texto.js";
 
 export const SERIE_PROPIOS = { id: "propios", nombre: "Mis álbumes" };
 export const esPropio = (id) => typeof id === "string" && id.startsWith("mio-");
@@ -13,14 +14,14 @@ const TIPOS = {
   lista: { arriba: "Selección", sub: "Mi selección", colores: ["#e5432f", "#f2f2f2", "#3d8bff"] },
 };
 /** 3.40 · la definición «de base» de un álbum (la de origen si sus cartas se eligieron a mano). */
-const base = (def) => (def.tipo === "lista" && def.origen ? def.origen : def);
+export const definicionBase = (def) => (def.tipo === "lista" && def.origen ? def.origen : def);
 
 /** PURO · «AKIRA EGAWA» → «Akira Egawa» (los nombres en mayúsculas de TCGdex); el resto, tal cual. */
 export const nombreBonito = (t) => (t && t === t.toUpperCase() && /[A-Z]/.test(t) ? t.toLowerCase().replace(/(^|[\s-])\p{L}/gu, (m) => m.toUpperCase()) : t);
 
 /** PURO · id nuevo: «mio-» + texto del nombre + 4 caracteres al azar (dos álbumes con el mismo nombre no chocan). */
 export function idNuevo(nombre, azar = Math.random) {
-  const base = String(nombre || "album").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "album";
+  const base = plano(nombre || "album").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "album";
   return `mio-${base}-${Math.floor(azar() * 36 ** 4).toString(36).padStart(4, "0")}`;
 }
 
@@ -30,7 +31,6 @@ export function nombrePropuesto(def, cartas = []) {
   if (def.tipo === "expansion") return cartas[0]?.nombreExpansion || def.expansion;
   if (def.tipo === "ilustrador") return nombreBonito(def.ilustrador);
   // el nombre tal como sale en las cartas de ESE Pokémon (en castellano si las hay), aunque se hayan añadido otras a mano
-  const plano = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const suyas = cartas.filter((c) => plano(c.nombre) === plano(def.pokemon));   // «Meowth», no «Meowth V» (aunque estén en el álbum)
   const masComun = Object.entries((suyas.length ? suyas : cartas).reduce((m, c) => ((m[c.nombre] = (m[c.nombre] || 0) + 1), m), {})).sort((a, b) => b[1] - a[1])[0]?.[0];
   return suyas.length ? masComun : def.pokemon;
@@ -38,7 +38,7 @@ export function nombrePropuesto(def, cartas = []) {
 
 /** PURO · entrada de la biblioteca (mismo formato que estanteria/js/albumes.js) para un álbum creado en la app. */
 export function registroDe(id, defCompleta, nombre, catalogo, precios, orden = 100) {
-  const def = base(defCompleta), t = TIPOS[def.tipo] || TIPOS.lista, cartas = catalogo.cartas;
+  const def = definicionBase(defCompleta), t = TIPOS[def.tipo] || TIPOS.lista, cartas = catalogo.cartas;
   const codigo = def.tipo === "expansion" ? String(def.expansion).toUpperCase() : def.tipo === "ilustrador" ? "ARTISTA" : def.tipo === "pokemon" ? "POKÉMON" : "MI ÁLBUM";
   const sub = def.tipo === "pokemon" && def.expansion ? cartas[0]?.nombreExpansion || t.sub : t.sub;
   return {
@@ -85,8 +85,6 @@ export function separarNovedades(candidatas, enAlbum, vistas = null) {
   const fuera = candidatas.filter((c) => !dentro.has(c.id));
   return { nuevas: vistasSet ? fuera.filter((c) => !vistasSet.has(c.id)) : [], otras: vistasSet ? fuera.filter((c) => vistasSet.has(c.id)) : fuera };
 }
-/** La definición «de base» de un álbum (exportada para el selector). */
-export const definicionBase = base;
 
 /** Vuelve a pedir a TCGdex el catálogo (cartas nuevas, precios) conservando nombre, portada elegida y orden.
  *  3.44 · si las cartas se eligieron a mano a partir de un Pokémon, ilustrador o expansión, NO se añaden solas: devuelve en `nuevas`
@@ -103,16 +101,27 @@ export async function actualizarAlbumPropio(almacen, id, { senal } = {}) {
     } catch (e) { console.warn("No se pudieron buscar cartas nuevas:", e); }
   }
   const { catalogo, precios } = await generarCatalogo(def, { senal });
-  const registro = { ...registroDe(id, def, a.registro.nombre, catalogo, precios, a.registro.orden) };
+  const registro = registroDe(id, def, a.registro.nombre, catalogo, precios, a.registro.orden);
   await almacen.guardarAlbumPropio({ id, registro, datos: { catalogo, precios }, creado: a.creado });
   return { ...registro, nuevas };
+}
+
+/** 3.45 · «Borrar álbum» (biblioteca, «Editar cartas» y visor): pide confirmación y lo quita. Las cartas marcadas no se tocan.
+ *  true si se borró; cada página decide qué hacer después (recargar la lista, volver a la biblioteca…). */
+export async function borrarAlbumPropio(almacen, album) {
+  if (!album || !esPropio(album.id) || !confirm(`¿Borrar el álbum «${album.nombre}»?\n\nLas cartas que tengas marcadas NO se borran: siguen en tu colección y en los demás álbumes.`)) return false;
+  await almacen.quitarAlbumPropio(album.id);
+  return true;
 }
 
 /** Biblioteca: los álbumes de la web (solo si `fijos`: el administrador, 3.38) y los creados en la app. Cada uno con `cartas` = nº real. */
 export async function listarTodos(almacen, { fijos: conFijos = true } = {}) {
   const fijos = conFijos ? await listarAlbumes() : [];
   let propios = [];
-  try { propios = almacen ? (await almacen.albumesPropios()).map((a) => ({ ...a.registro, cartas: a.datos.catalogo.cartas.length })) : []; }
+  try {
+    propios = almacen ? (await almacen.albumesPropios()).map((a) => ({ ...a.registro, cartas: a.datos.catalogo.cartas.length,
+      nombresCartas: a.datos.catalogo.cartas.map((c) => c.nombre) })) : [];   // 3.46: para «Buscar carta» sin volver a leer el catálogo
+  }
   catch (e) { console.warn("No se pudieron leer los álbumes creados en la app:", e); }
   return [...fijos, ...normalizarAlbumes(propios)];
 }

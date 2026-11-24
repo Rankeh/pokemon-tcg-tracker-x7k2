@@ -10,7 +10,6 @@ body { background: radial-gradient(120% 90% at 50% 35%, #2a3140 0%, var(--fondo)
 /* Altura dinámica: 100dvh sigue a las barras de Safari al mostrarse/ocultarse; 100% y 100vh son alternativas para navegadores antiguos */
 .app { position: fixed; left: 0; right: 0; top: 0; height: 100%; height: 100vh; height: 100dvh; overflow: hidden; }
 #lienzo { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-[hidden] { display: none !important; }
 .solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .cabecera { position: absolute; top: max(10px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); right: max(14px, env(safe-area-inset-right)); pointer-events: none; }
 h1 { margin: 0; font-size: 1.05rem; letter-spacing: 0.02em; }
