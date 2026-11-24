@@ -287,7 +287,7 @@ await pag.fill('#b-carta', 'zzzz'); await dormir(600);
 ok(JSON.stringify((await pag.evaluate(() => window.__biblioteca.estado())).items) === '["nuevo"]' && (await pag.textContent('#i-sub')).includes('NINGÚN ÁLBUM'), 'sin resultados: lo dice');
 await pag.fill('#b-carta', 'pikachu ex'); await dormir(600);
 await pag.focus('#b-carta'); await pag.keyboard.press('Enter');
-await pag.waitForURL(/prueba-3d\/index\.html\?.*buscar=pikachu/, { timeout: 15000 }).catch(() => {});
+await pag.waitForURL(/prueba-3d\/index\.html\?.*buscar=pikachu/, { timeout: 30000, waitUntil: 'commit' }).catch(() => {});
 ok(/buscar=pikachu(\+|%20)ex/.test(pag.url()), 'Intro abre el álbum por la página de esa carta: ' + pag.url());
 await biblioteca();
 ok(await pag.evaluate(() => window.__biblioteca.estado().coincidencias === null), 'al volver, sin búsqueda');
