@@ -579,3 +579,10 @@ Para las pocas cartas sin imagen en ninguna fuente accesible (p. ej. Meowth del 
 - El catálogo guarda ahora `rarezaEn`, `clase`, `tipos` y `legal` de cada carta. En álbumes anteriores se piden a TCGdex la primera vez que se filtra (`cumpleCarta` devuelve null si faltan).
 - **Borrar álbum**: en la biblioteca (antes «Quitar de la biblioteca»), en «Editar cartas» y en el menú ⋯ del visor. Pide confirmación; las cartas marcadas nunca se borran. Se sincroniza con la cuenta.
 - Pruebas: `ejecutar-crear.mjs` (66 comprobaciones).
+
+## 3.46 — Buscar una carta en los álbumes (biblioteca)
+
+- Primera casilla de la fila de filtros de la biblioteca: **Buscar carta…**. Al escribir (2 letras o más) solo quedan los álbumes que tienen esa carta, con cuántas en la ficha («3 cartas de «Meowth»») y en el contador. Sin tildes ni mayúsculas, y con todas sus variantes (Meowth V, Meowth de Galar, Alolan Meowth…). Se combina con las pestañas de serie.
+- Los nombres salen de los catálogos que la biblioteca ya leía para contar cartas (los fijos) y de los guardados en el dispositivo (los creados en la app): `albumesConCarta` en `web/estanteria/js/carrusel.js`.
+- **Abrir** (o Intro en la casilla) lleva al álbum con `?buscar=<texto>`: el visor abre por la primera página donde está esa carta.
+- Esc borra la búsqueda. Pruebas: `estanteria.test.mjs` y `ejecutar-crear.mjs` (72 comprobaciones).

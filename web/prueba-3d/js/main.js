@@ -28,7 +28,7 @@ import { etiquetaPaginas, paginasNecesarias, irAPagina, vueltasParaPagina, pasoL
 import { cargarPrecios, valorColeccion, eurEntero } from './precios.js';
 import { elegirBolsillo, candidatosTocables, rayoCaja } from './picking.js';
 
-export const FASE = '3.45';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
+export const FASE = '3.46';                                   // versión visible en consola y en ?debug=1: si tu navegador cachea módulos viejos, aquí se ve
 const $ = (id) => document.getElementById(id);
 const GRAD = Math.PI / 180;
 const params = new URLSearchParams(location.search);
@@ -713,7 +713,10 @@ async function arrancar() {
   metricas = new Metricas($('panel'), renderer, album, cache, vista);
   metricas.tiempo('modeloListoMs', performance.now());
   metricas.tiempo('arranqueMs', performance.now() - t0);
-  const inicial = +params.get('pagina');
+  // 3.46 · desde «Buscar carta» de la biblioteca (?buscar=meowth): se abre por la primera página donde está esa carta
+  const buscada = String(params.get('buscar') || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  const paginaBuscada = buscada.length >= 2 ? mapa.paginas.find((p) => p.bolsillos.some((c) => c && String(c.nombre).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(buscada)))?.numero : null;
+  const inicial = +params.get('pagina') || paginaBuscada || 0;
   if (inicial >= 1 && inicial <= mapa.totalPaginas) { album.estado.irA(vueltasParaPagina(inicial)); album.aplicar(); lado = inicial % 2 === 1 ? 'der' : 'izq'; }
   sincronizarTexturas(); pintarProgreso(); actualizarUi();
   ajustarTamano();                                              // primer encuadre (instantáneo) con la interfaz ya montada

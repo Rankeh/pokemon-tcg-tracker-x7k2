@@ -157,3 +157,9 @@ body.lista .cargando, body.sin-3d .cargando { opacity: 0; }
 .info .acciones-album .e-peligro { border-color: var(--e-linea); }
 .nuevo-album .n-acciones .n-borrar { margin-right: auto; }
 .nuevo-album .n-filtros { margin: 8px 0 4px; }
+/* 3.46 · buscar una carta en los álbumes (primera pestaña de la fila de filtros) */
+.filtros { align-items: stretch; }
+.filtros .b-carta { flex: 0 0 auto; width: 150px; min-height: 34px; padding: 0 10px; border: 1px solid var(--e-linea); border-radius: 0; background: var(--e-control);
+  color: var(--e-texto); font: 400 .85rem/1.2 var(--e-fuente); }
+.filtros .b-carta:focus { outline: none; border-color: var(--e-texto); }
+.filtros .b-carta.activo { border-color: var(--e-rojo); }

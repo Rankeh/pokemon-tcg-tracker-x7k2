@@ -138,3 +138,18 @@ test('3.20 · grosor real de cada álbum = el de su modelo 3D (2 tapas + hojas);
   }
   assert.ok(ANATOMIA.anchoTapa + ANATOMIA.lomo === LIBRO.fondo);
 });
+
+// 3.46 · buscar una carta en los álbumes
+import { albumesConCarta, elementos as elementosCarrusel } from '../js/carrusel.js';
+test('albumesConCarta: los álbumes que tienen la carta, con cuántas (sin tildes ni mayúsculas, todas sus variantes)', () => {
+  const indice = new Map([['a', ['Meowth', 'Meowth V', 'Pikachu']], ['b', ['Meowth de Galar', 'Alolan Meowth']], ['c', ['Pokémon Center Lady']]]);
+  assert.equal(albumesConCarta(indice, ''), null);
+  assert.equal(albumesConCarta(indice, 'm'), null, 'menos de 2 letras: no se busca');
+  assert.deepEqual([...albumesConCarta(indice, 'MEOWTH')], [['a', 2], ['b', 2]]);
+  assert.deepEqual([...albumesConCarta(indice, 'pokemon')], [['c', 1]], 'sin tildes');
+  assert.equal(albumesConCarta(indice, 'mewtwo').size, 0);
+  const albumes = [{ id: 'a', serie: 's1' }, { id: 'b', serie: 's2' }, { id: 'c', serie: 's1' }];
+  const it = elementosCarrusel(albumes, null, albumesConCarta(indice, 'meowth'));
+  assert.deepEqual(it.map((x) => [x.id, x.encontradas]), [['a', 2], ['b', 2], ['nuevo', undefined]], 'solo los que la tienen, y «Nuevo álbum»');
+  assert.deepEqual(elementosCarrusel(albumes, 's1', albumesConCarta(indice, 'meowth')).map((x) => x.id), ['a', 'nuevo'], 'junto con el filtro de serie');
+});

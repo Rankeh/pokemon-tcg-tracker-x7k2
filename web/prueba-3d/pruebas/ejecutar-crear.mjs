@@ -275,6 +275,23 @@ ok(!p.albumes.some((a) => a.id === exp.id) && p.pend.includes(exp.id), 'quitado 
 ok(sigue === 1, 'la carta marcada de ese álbum sigue en la colección');
 await pag.goto(`${base}/web/prueba-3d/index.html?album=${exp.id}&bd=${bd}`); await dormir(3000);
 ok((await pag.textContent('#cargando')).includes('otro dispositivo'), 'abrir un álbum que no está aquí lo explica');
+// 5b) 3.46 · buscar una carta en los álbumes de la biblioteca
+await biblioteca();
+await pag.fill('#b-carta', 'PIKACHU'); await dormir(600);
+const bus = await pag.evaluate(() => ({ ...window.__biblioteca.estado(), meta: document.getElementById('i-meta').textContent, contador: document.getElementById('contador').textContent }));
+const pikaId = (await propios()).albumes.find((a) => a.nombre === 'Pikachu').id;
+ok(bus.coincidencias[pikaId] === 2 && bus.coincidencias['pikachu-30'] >= 30 && !bus.items.includes('teselia-x') && bus.items.at(-1) === 'nuevo', 'buscar «PIKACHU»: salen los álbumes con Pikachu (el propio, con sus 2: Pikachu y Pikachu ex) ' + JSON.stringify(bus.coincidencias));
+ok(!Object.keys(bus.coincidencias).includes((await propios()).albumes.find((a) => a.nombre === 'Mi ilustradora')?.id), 'y no los que no lo tienen');
+ok(/álbum(es)? con «PIKACHU»/.test(bus.contador) && /de «PIKACHU»/i.test(bus.meta), 'el contador y la ficha lo dicen: ' + bus.contador + ' · ' + bus.meta);
+await pag.fill('#b-carta', 'zzzz'); await dormir(600);
+ok(JSON.stringify((await pag.evaluate(() => window.__biblioteca.estado())).items) === '["nuevo"]' && (await pag.textContent('#i-sub')).includes('NINGÚN ÁLBUM'), 'sin resultados: lo dice');
+await pag.fill('#b-carta', 'pikachu ex'); await dormir(600);
+await pag.focus('#b-carta'); await pag.keyboard.press('Enter');
+await pag.waitForURL(/prueba-3d\/index\.html\?.*buscar=pikachu/, { timeout: 15000 }).catch(() => {});
+ok(/buscar=pikachu(\+|%20)ex/.test(pag.url()), 'Intro abre el álbum por la página de esa carta: ' + pag.url());
+await biblioteca();
+ok(await pag.evaluate(() => window.__biblioteca.estado().coincidencias === null), 'al volver, sin búsqueda');
+
 // 6) 3.45 · borrar desde «Editar cartas» y desde el menú ⋯ del visor
 p = await propios();
 const pk = p.albumes.find((a) => a.nombre === 'Pikachu'), mi = p.albumes.find((a) => a.nombre === 'Mi ilustradora');

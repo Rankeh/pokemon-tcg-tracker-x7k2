@@ -12,7 +12,7 @@ import { iniciarSincronizacion } from '../../js/sincronizacion.js';
 import { montarCreador } from './creador.js';
 import { adminGuardado, comprobarAdmin } from '../../js/admin.js';
 import { LIBRO, grosorAlbum } from './disposicion.js';
-import { poses, mover, elementos, series, altoVisible, CARRUSEL } from './carrusel.js';
+import { poses, mover, elementos, series, altoVisible, CARRUSEL, albumesConCarta } from './carrusel.js';
 import { crearFabricaLibros } from './libros.js';
 
 export const FASE = 'biblioteca-editorial-1';
@@ -55,13 +55,13 @@ if (calidad.entorno) {        // estudio oscuro con un softbox: brillo en el oro
 let pendiente = false;
 const pedirFrame = () => { if (!pendiente) { pendiente = true; requestAnimationFrame(bucle); } };
 const libros = crearFabricaLibros(calidad, recursos, pedirFrame);
-let albumes = [], filtro = null, items = [], sel = 0, objetos = [], hover = null, apertura = null;
+let albumes = [], filtro = null, items = [], sel = 0, indice = new Map(), buscado = '', coincidencias = null, objetos = [], hover = null, apertura = null;
 const fila = new THREE.Group(); fila.name = 'Fila'; scene.add(fila);
 const cache = new Map();                                                  // los objetos 3D se reutilizan al cambiar de filtro
 
 function construir() {
   fila.clear();
-  items = elementos(albumes, filtro);
+  items = elementos(albumes, filtro, coincidencias);
   objetos = items.map((it) => {
     let o = cache.get(it.id);
     if (!o) {
@@ -150,12 +150,13 @@ function actualizarUi() {
     const a = it.album;
     $('i-titulo').textContent = a.nombre;
     $('i-sub').textContent = a.subtitulo.toUpperCase();
-    $('i-meta').textContent = (a.meta || `${a.cartas} cartas`).toUpperCase();
+    $('i-meta').textContent = (it.encontradas ? `${it.encontradas} ${it.encontradas === 1 ? 'carta' : 'cartas'} de «${buscado.trim()}» · ` : '')
+      + (a.meta || `${a.cartas} cartas`).toUpperCase();
     $('abrir').textContent = 'Abrir álbum';
     $('acciones-album').hidden = !a.propio;                              // editar y quitar: solo los creados en la app
   } else {
     $('i-titulo').textContent = 'Nuevo álbum';
-    $('i-sub').textContent = 'EXPANSIÓN, ILUSTRADOR O POKÉMON';
+    $('i-sub').textContent = coincidencias && items.length === 1 ? `NINGÚN ÁLBUM TIENE «${buscado.trim().toUpperCase()}»` : 'EXPANSIÓN, ILUSTRADOR O POKÉMON';
     $('i-meta').textContent = 'CON LAS CARTAS DE TCGDEX';
     $('abrir').textContent = 'Crear álbum';
     $('acciones-album').hidden = true;
@@ -166,7 +167,7 @@ function actualizarUi() {
 
 function pintarFiltros() {
   const cont = $('filtros'), opciones = [{ id: null, nombre: 'Todos' }, ...series(albumes)];
-  cont.replaceChildren(...opciones.map((s) => {
+  cont.replaceChildren($('b-carta'), ...opciones.map((s) => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'e-caja'; b.textContent = s.nombre; b.setAttribute('aria-pressed', String(s.id === filtro));
     b.onclick = () => { filtro = s.id; pintarFiltros(); construir(); };
@@ -174,11 +175,21 @@ function pintarFiltros() {
   }));
 }
 
+/** 3.46 · buscar una carta en los álbumes: solo quedan los que la tienen (con cuántas en la ficha). */
+function buscarCarta(texto) {
+  buscado = texto;
+  coincidencias = albumesConCarta(indice, texto);
+  $('b-carta').classList.toggle('activo', Boolean(coincidencias));
+  pintarContador();
+  construir(); pedirFrame();
+}
 function abrir() {
   const it = items[sel];
   if (it.tipo === 'nuevo') { creador.abrir(); return; }
   if (apertura) return;
-  const destino = new URL(it.album.ruta, document.baseURI).href;
+  const url = new URL(it.album.ruta, document.baseURI);
+  if (coincidencias) url.searchParams.set('buscar', buscado.trim());        // el visor abre por la primera página donde está
+  const destino = url.href;
   if (reducir.matches) { location.href = destino; return; }
   apertura = { t0: performance.now(), dur: 700 };
   document.body.classList.add('abriendo');                              // funde a negro por CSS mientras la cámara se acerca
@@ -244,6 +255,12 @@ addEventListener('keydown', (e) => {
 $('ant').onclick = () => seleccionar(sel - 1);
 $('sig').onclick = () => seleccionar(sel + 1);
 $('abrir').onclick = abrir;
+let esperaBusqueda = 0;
+$('b-carta').addEventListener('input', () => { clearTimeout(esperaBusqueda); esperaBusqueda = setTimeout(() => buscarCarta($('b-carta').value), 200); });
+$('b-carta').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); clearTimeout(esperaBusqueda); buscarCarta($('b-carta').value); if (items[sel]?.tipo === 'album') abrir(); }
+  else if (e.key === 'Escape' && $('b-carta').value) { e.preventDefault(); $('b-carta').value = ''; buscarCarta(''); }
+});
 
 // al volver con «atrás» (Safari guarda la página en caché): quitar el fundido y la cámara de apertura
 addEventListener('pageshow', (e) => { if (e.persisted) { apertura = null; document.body.classList.remove('abriendo'); pedirFrame(); } });
@@ -261,15 +278,26 @@ let verFijos = adminGuardado() || enPruebas;
 /** Lee los álbumes (los de la web y los creados en la app) y repinta la lista, el contador y los filtros. */
 async function cargarLista() {
   // 3.16 · nº de cartas real de cada álbum (leído de su catálogo): los álbumes que crecen no tienen cifras escritas a mano
+  // 3.46 · de paso se guardan los nombres de sus cartas, para buscar una carta en los álbumes
+  const nuevoIndice = new Map();
   albumes = await Promise.all((await listarTodos(almacen, { fijos: verFijos })).map(async (a) => {
-    if (a.propio) return conCifras(a, a.cartas);                         // 3.37: el catálogo está en el dispositivo
-    try { return conCifras(a, (await (await fetch(a.catalogo)).json()).cartas.length); } catch { return conCifras(a, a.cartas); }
+    if (a.propio) {                                                        // 3.37: el catálogo está en el dispositivo
+      try { nuevoIndice.set(a.id, (await almacen.albumPropio(a.id)).datos.catalogo.cartas.map((c) => c.nombre)); } catch { /* sin índice */ }
+      return conCifras(a, a.cartas);
+    }
+    try { const cat = await (await fetch(a.catalogo)).json(); nuevoIndice.set(a.id, cat.cartas.map((c) => c.nombre)); return conCifras(a, cat.cartas.length); }
+    catch { return conCifras(a, a.cartas); }
   }));
+  indice = nuevoIndice; coincidencias = albumesConCarta(indice, buscado);
   $('lista-albumes').replaceChildren(...albumes.map((a) => { const li = document.createElement('li'), enl = document.createElement('a'); enl.href = a.ruta; enl.textContent = `${a.nombre} — ${a.subtitulo}`; li.append(enl); return li; }));
-  const cartas = albumes.reduce((s, a) => s + (a.cartas || 0), 0);
-  $('contador').textContent = `${albumes.length} ${albumes.length === 1 ? 'álbum' : 'álbumes'} · ${cartas} cartas`;
+  pintarContador();
   if (filtro && !series(albumes).some((x) => x.id === filtro)) filtro = null;
   pintarFiltros();
+}
+function pintarContador() {
+  if (coincidencias) { const n = coincidencias.size; $('contador').textContent = `${n} ${n === 1 ? 'álbum' : 'álbumes'} con «${buscado.trim()}»`; return; }
+  const cartas = albumes.reduce((s, a) => s + (a.cartas || 0), 0);
+  $('contador').textContent = `${albumes.length} ${albumes.length === 1 ? 'álbum' : 'álbumes'} · ${cartas} cartas`;
 }
 /** Tras crear, quitar o recibir álbumes de otro dispositivo: vuelve a leer y se queda en `id` (si se da) o donde estaba. */
 async function recargar(id = null) {
@@ -304,7 +332,7 @@ async function iniciar() {
   new ResizeObserver(() => encuadrar()).observe($('info'));            // la ficha cambia de alto (título de otro álbum, fuentes que cargan)
   document.body.classList.add('lista');
   console.info(`Biblioteca · ${FASE} · calidad ${calidad.nivel} (${eleccion.origen}) · ${albumes.length} álbum(es)`);
-  window.__biblioteca = { FASE, THREE, scene, camara, renderer, calidad, recargar, estado: () => ({ sel, items: items.map((i) => i.id), filtro }) };
+  window.__biblioteca = { FASE, THREE, scene, camara, renderer, calidad, recargar, estado: () => ({ sel, items: items.map((i) => i.id), filtro, coincidencias: coincidencias && Object.fromEntries(coincidencias) }) };
   // 3.38 · ¿eres el administrador? (Supabase). Si ha cambiado (acabas de entrar, o de salir), se rehace la biblioteca
   comprobarAdmin().then((si) => { if ((si || enPruebas) !== verFijos) { verFijos = si || enPruebas; recargar(); } });
   // 3.37 · con sesión iniciada, los álbumes creados en otro dispositivo aparecen aquí (y los quitados desaparecen)
